@@ -11,7 +11,7 @@ What it does today:
 - structured JSON data binding with contract mapping
 - multi-page rendering with repeatable headers/footers
 - print-ready HTML + PDF generation
-- starter templates (invoice, statement, terms, SmartComm-style communication pack)
+- starter templates (invoice, statement, terms, enterprise communication pack)
 
 Why I built it:
 - most open examples focus on basic forms/invoices
@@ -52,7 +52,7 @@ Repo: https://github.com/snehalsurti12/smartdocs
 ## 5-Minute Demo Script
 
 1. Open editor: run `npm install`, then `npm run editor`.
-2. Load starter: choose `SmartComm Cover Package`.
+2. Load starter: choose `Enterprise Cover Package`.
 3. Toggle preview data and show bindings in property panel.
 4. Move one element and inline-edit one text element.
 5. Export JSON template.

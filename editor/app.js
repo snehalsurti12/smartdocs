@@ -44,7 +44,7 @@ const STARTER_TEMPLATES = [
   { label: "Credit Card Statement", path: "/examples/cc-template.json" },
   { label: "Bank Statement", path: "/examples/bank-statement-template.json" },
   { label: "Terms & Conditions", path: "/examples/terms-template.json" },
-  { label: "SmartComm Cover Package", path: "/examples/smartcomm-cover-template.json" }
+  { label: "Enterprise Cover Package", path: "/examples/enterprise-cover-template.json" }
 ];
 
 const PT_TO_PX = 96 / 72;

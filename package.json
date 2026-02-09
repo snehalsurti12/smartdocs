@@ -9,7 +9,7 @@
     "render:pdf": "node scripts/render-pdf.js",
     "editor": "node scripts/serve-editor.js",
     "validate": "node scripts/validate.js",
-    "check": "npm run validate -- --template examples/template.json && npm run validate -- --template examples/cc-template.json && npm run validate -- --template examples/bank-statement-template.json && npm run validate -- --template examples/terms-template.json && npm run validate -- --template examples/smartcomm-cover-template.json && npm run render -- --template examples/template.json --data examples/data.json --out out/render.html"
+    "check": "npm run validate -- --template examples/template.json && npm run validate -- --template examples/cc-template.json && npm run validate -- --template examples/bank-statement-template.json && npm run validate -- --template examples/terms-template.json && npm run validate -- --template examples/enterprise-cover-template.json && npm run render -- --template examples/template.json --data examples/data.json --out out/render.html"
   },
   "keywords": [
     "document-generation",

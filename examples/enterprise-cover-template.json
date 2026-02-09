@@ -1,6 +1,6 @@
 {
-  "id": "tmpl_smartcomm_cover_001",
-  "name": "SmartComm Style Cover Package (Sample)",
+  "id": "tmpl_enterprise_cover_001",
+  "name": "Enterprise Cover Package (Sample)",
   "version": "1.0.0",
   "unit": "pt",
   "page": {
@@ -50,7 +50,7 @@
       "lineHeight": 15
     }
   },
-  "dataSample": "examples/smartcomm-cover-data.json",
+  "dataSample": "examples/enterprise-cover-data.json",
   "options": {
     "flowMeasure": "browser"
   },

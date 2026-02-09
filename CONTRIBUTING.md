@@ -27,7 +27,7 @@ npm run check
 And if your change affects PDF output:
 
 ```bash
-npm run render:pdf -- --template examples/smartcomm-cover-template.json --data examples/smartcomm-cover-data.json --out out/smartcomm-cover-render.pdf
+npm run render:pdf -- --template examples/enterprise-cover-template.json --data examples/enterprise-cover-data.json --out out/enterprise-cover-render.pdf
 ```
 
 ## Pull Request Checklist

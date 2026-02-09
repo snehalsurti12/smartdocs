@@ -16,9 +16,9 @@ Template-driven document designer and renderer for enterprise-style communicatio
 
 ## Screenshots
 
-SmartComm-style cover + terms + EFL sample:
+Enterprise cover + terms + EFL sample:
 
-![SmartComm style sample](docs/screenshots/smartcomm-cover-render.png)
+![Enterprise communication sample](docs/screenshots/enterprise-cover-render.png)
 
 Bank statement sample:
 
@@ -47,7 +47,7 @@ Bank statement sample:
   - invoice
   - credit-card statement
   - bank statement
-  - terms + cover package (SmartComm-style sample)
+  - terms + cover package (enterprise sample)
 
 ## Quickstart
 
@@ -61,7 +61,7 @@ Open `http://localhost:5177`.
 Try a production-like starter:
 
 1. Click `Load Starter`
-2. Choose `SmartComm Cover Package`
+2. Choose `Enterprise Cover Package`
 3. Click `Preview PDF`
 
 ## CLI Usage
