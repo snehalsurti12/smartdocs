@@ -1,0 +1,65 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>SmartDocs Editor (POC)</title>
+    <link rel="stylesheet" href="/editor/styles.css" />
+  </head>
+  <body>
+    <div class="app">
+      <aside class="panel panel-left">
+        <div class="panel-title">Components</div>
+        <button data-add="text">Text</button>
+        <button data-add="flowText">Flow Text</button>
+        <button data-add="image">Image</button>
+        <button data-add="table">Table</button>
+        <button data-add="qr">QR</button>
+        <button data-add="line">Line</button>
+        <button data-add="box">Box</button>
+        <div class="panel-title">Partials</div>
+        <button id="btn-new-partial">New Partial</button>
+        <div id="partials-list"></div>
+        <div class="panel-title">Templates</div>
+        <button id="btn-new-template">New Template</button>
+        <select id="starter-template-select"></select>
+        <button id="btn-load-starter">Load Starter</button>
+        <div class="panel-title">Actions</div>
+        <button id="btn-preview">Preview Data: On</button>
+        <button id="btn-load-data">Load Data</button>
+        <button id="btn-load-template">Load Template</button>
+        <button id="btn-preview-pdf">Preview PDF</button>
+        <button id="btn-export">Export JSON</button>
+        <button id="btn-reload">Reload Template</button>
+        <div id="data-status" style="font-size:12px;color:#7a6f5f;"></div>
+        <input id="file-data" type="file" accept="application/json" hidden />
+        <input id="file-template" type="file" accept="application/json" hidden />
+      </aside>
+
+      <main class="canvas-wrap">
+        <div class="canvas-nav">
+          <button id="btn-page-prev" type="button">Prev Page</button>
+          <span id="page-indicator">Page 1 / 1</span>
+          <button id="btn-page-next" type="button">Next Page</button>
+        </div>
+        <div id="canvas"></div>
+      </main>
+
+      <aside class="panel panel-right">
+        <div class="panel-title">Properties</div>
+        <div id="text-toolbar" class="toolbar hidden">
+          <button data-cmd="bold" title="Bold"><strong>B</strong></button>
+          <button data-cmd="italic" title="Italic"><em>I</em></button>
+          <button data-cmd="removeFormat" title="Clear">Clear</button>
+          <select id="toolbar-font" title="Font"></select>
+          <input id="toolbar-size" type="number" min="6" max="96" step="1" title="Font size (pt)" />
+          <input id="toolbar-color" type="color" title="Color" />
+          <span id="toolbar-status" class="toolbar-status">Inline edit</span>
+        </div>
+        <div id="props">Select an element.</div>
+      </aside>
+    </div>
+
+    <script src="/editor/app.js"></script>
+  </body>
+</html>

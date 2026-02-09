@@ -1,0 +1,770 @@
+{
+  "id": "tmpl_smartcomm_cover_001",
+  "name": "SmartComm Style Cover Package (Sample)",
+  "version": "1.0.0",
+  "unit": "pt",
+  "page": {
+    "size": "Letter",
+    "width": 612,
+    "height": 792,
+    "margin": {
+      "top": 32,
+      "right": 36,
+      "bottom": 34,
+      "left": 36
+    },
+    "headerHeight": 26,
+    "footerHeight": 28
+  },
+  "fonts": [
+    {
+      "name": "Times New Roman",
+      "source": "local",
+      "fallback": [
+        "Times",
+        "serif"
+      ]
+    },
+    {
+      "name": "Arial",
+      "source": "local",
+      "fallback": [
+        "Helvetica",
+        "sans-serif"
+      ]
+    },
+    {
+      "name": "Courier New",
+      "source": "local",
+      "fallback": [
+        "Courier",
+        "monospace"
+      ]
+    }
+  ],
+  "styles": {
+    "defaultText": {
+      "font": "Times New Roman",
+      "size": 12,
+      "color": "#1d1d1f",
+      "lineHeight": 15
+    }
+  },
+  "dataSample": "examples/smartcomm-cover-data.json",
+  "options": {
+    "flowMeasure": "browser"
+  },
+  "elements": [
+    {
+      "id": "logo_first",
+      "type": "image",
+      "region": "body",
+      "repeat": "first",
+      "x": 0,
+      "y": 0,
+      "w": 170,
+      "h": 28,
+      "src": "{{company.logo}}",
+      "fit": "contain"
+    },
+    {
+      "id": "reference_first",
+      "type": "text",
+      "region": "body",
+      "repeat": "first",
+      "x": 0,
+      "y": 34,
+      "w": 300,
+      "h": 12,
+      "text": "{{document.reference}}",
+      "style": {
+        "font": "Courier New",
+        "size": 6.5,
+        "color": "#5f6772"
+      }
+    },
+    {
+      "id": "contact_first",
+      "type": "text",
+      "region": "body",
+      "repeat": "first",
+      "x": 300,
+      "y": 0,
+      "w": 240,
+      "h": 58,
+      "text": "Support: {{company.supportPhone}}\\n{{company.supportHours}}\\n{{company.web}}",
+      "style": {
+        "font": "Arial",
+        "size": 8,
+        "align": "right",
+        "lineHeight": 10,
+        "color": "#39495a"
+      }
+    },
+    {
+      "id": "header_rule_first",
+      "type": "line",
+      "region": "body",
+      "repeat": "first",
+      "x": 0,
+      "y": 100,
+      "w": 540,
+      "h": 1,
+      "style": {
+        "borderColor": "#c6ccd6",
+        "borderWidth": 1
+      }
+    },
+    {
+      "id": "tos_bar",
+      "type": "box",
+      "region": "header",
+      "repeat": "middle",
+      "x": 0,
+      "y": 0,
+      "w": 540,
+      "h": 24,
+      "style": {
+        "fill": "#171717"
+      }
+    },
+    {
+      "id": "tos_title",
+      "type": "text",
+      "region": "header",
+      "repeat": "middle",
+      "x": 0,
+      "y": 4,
+      "w": 540,
+      "h": 16,
+      "text": "{{legal.title}}",
+      "style": {
+        "font": "Arial",
+        "size": 18,
+        "weight": 700,
+        "align": "center",
+        "color": "#ffffff"
+      }
+    },
+    {
+      "id": "qr_first",
+      "type": "image",
+      "region": "body",
+      "repeat": "first",
+      "x": 8,
+      "y": 98,
+      "w": 88,
+      "h": 88,
+      "src": "{{recipient.qrImage}}",
+      "fit": "contain"
+    },
+    {
+      "id": "recipient_block_first",
+      "type": "text",
+      "region": "body",
+      "repeat": "first",
+      "x": 106,
+      "y": 112,
+      "w": 260,
+      "h": 88,
+      "text": "{{recipient.nameUpper}}\\n{{recipient.addressLine1Upper}}\\n{{recipient.addressLine2Upper}}",
+      "style": {
+        "font": "Times New Roman",
+        "size": 15,
+        "weight": 700,
+        "lineHeight": 18
+      }
+    },
+    {
+      "id": "date_first",
+      "type": "text",
+      "region": "body",
+      "repeat": "first",
+      "x": 346,
+      "y": 224,
+      "w": 194,
+      "h": 24,
+      "text": "{{letter.date}}",
+      "style": {
+        "font": "Times New Roman",
+        "size": 16,
+        "align": "right"
+      }
+    },
+    {
+      "id": "greeting_first",
+      "type": "text",
+      "region": "body",
+      "repeat": "first",
+      "x": 0,
+      "y": 280,
+      "w": 540,
+      "h": 24,
+      "text": "Dear {{recipient.name}},",
+      "style": {
+        "font": "Times New Roman",
+        "size": 18,
+        "lineHeight": 20
+      }
+    },
+    {
+      "id": "intro_first",
+      "type": "text",
+      "region": "body",
+      "repeat": "first",
+      "x": 0,
+      "y": 332,
+      "w": 540,
+      "h": 82,
+      "text": "{{letter.intro}}",
+      "style": {
+        "font": "Times New Roman",
+        "size": 12.5,
+        "lineHeight": 17
+      }
+    },
+    {
+      "id": "account_block_first",
+      "type": "text",
+      "region": "body",
+      "repeat": "first",
+      "x": 0,
+      "y": 436,
+      "w": 540,
+      "h": 102,
+      "richText": true,
+      "text": "Account Holder Name: <strong>{{account.holderName}}</strong><br/>Account Number: <strong>{{account.number}}</strong><br/>ESI ID: <strong>{{account.esiid}}</strong><br/>Service Address: <strong>{{account.serviceAddress}}</strong>",
+      "style": {
+        "font": "Times New Roman",
+        "size": 12.5,
+        "lineHeight": 17
+      }
+    },
+    {
+      "id": "body2_first",
+      "type": "text",
+      "region": "body",
+      "repeat": "first",
+      "x": 0,
+      "y": 562,
+      "w": 540,
+      "h": 74,
+      "text": "{{letter.body2}}",
+      "style": {
+        "font": "Times New Roman",
+        "size": 12.5,
+        "lineHeight": 17
+      }
+    },
+    {
+      "id": "signoff_first",
+      "type": "text",
+      "region": "body",
+      "repeat": "first",
+      "x": 0,
+      "y": 634,
+      "w": 540,
+      "h": 18,
+      "text": "{{letter.signoff}}",
+      "style": {
+        "font": "Times New Roman",
+        "size": 12.5
+      }
+    },
+    {
+      "id": "sender_first",
+      "type": "text",
+      "region": "body",
+      "repeat": "first",
+      "x": 0,
+      "y": 654,
+      "w": 540,
+      "h": 18,
+      "text": "{{letter.sender}}",
+      "style": {
+        "font": "Times New Roman",
+        "size": 12.5
+      }
+    },
+    {
+      "id": "terms_left_after",
+      "type": "text",
+      "region": "body",
+      "repeat": "middle",
+      "x": 0,
+      "y": 10,
+      "w": 252,
+      "h": 158,
+      "text": "{{legal.leftBlock}}",
+      "style": {
+        "font": "Arial",
+        "size": 10,
+        "weight": 700,
+        "align": "center",
+        "lineHeight": 12.8,
+        "color": "#1f1f1f"
+      }
+    },
+    {
+      "id": "terms_right_after",
+      "type": "text",
+      "region": "body",
+      "repeat": "middle",
+      "x": 274,
+      "y": 10,
+      "w": 266,
+      "h": 158,
+      "text": "{{legal.rightIntro}}",
+      "style": {
+        "font": "Arial",
+        "size": 10,
+        "lineHeight": 12.8,
+        "color": "#1f1f1f"
+      }
+    },
+    {
+      "id": "terms_rule_after",
+      "type": "line",
+      "region": "body",
+      "repeat": "middle",
+      "x": 0,
+      "y": 172,
+      "w": 540,
+      "h": 1,
+      "style": {
+        "borderColor": "#b9c1cc",
+        "borderWidth": 1
+      }
+    },
+    {
+      "id": "terms_flow",
+      "type": "flowText",
+      "region": "body",
+      "repeat": "middle",
+      "x": 0,
+      "y": 182,
+      "w": 540,
+      "h": 0,
+      "columns": 2,
+      "gap": 18,
+      "text": "{{termsText}}",
+      "style": {
+        "font": "Arial",
+        "size": 11,
+        "lineHeight": 13.8,
+        "color": "#1f1f1f"
+      }
+    },
+    {
+      "id": "efl_doc_code",
+      "type": "text",
+      "region": "header",
+      "repeat": "last",
+      "x": 340,
+      "y": 2,
+      "w": 200,
+      "h": 10,
+      "text": "{{efl.documentCode}}",
+      "style": {
+        "font": "Arial",
+        "size": 7,
+        "align": "right",
+        "color": "#dbe4f0"
+      }
+    },
+    {
+      "id": "efl_outer",
+      "type": "box",
+      "region": "body",
+      "repeat": "last",
+      "x": 0,
+      "y": 4,
+      "w": 540,
+      "h": 664,
+      "style": {
+        "fill": "#ffffff",
+        "borderColor": "#2a2a2a",
+        "borderWidth": 1
+      }
+    },
+    {
+      "id": "efl_title",
+      "type": "text",
+      "region": "body",
+      "repeat": "last",
+      "x": 0,
+      "y": 12,
+      "w": 540,
+      "h": 52,
+      "text": "Electricity Facts Label (EFL)\n{{efl.planLine}}\nFor Service Area: {{efl.serviceArea}}\nDate: {{efl.effectiveDate}}",
+      "style": {
+        "font": "Times New Roman",
+        "size": 11.8,
+        "weight": 700,
+        "align": "center",
+        "lineHeight": 13.6,
+        "color": "#111111"
+      }
+    },
+    {
+      "id": "efl_title_rule",
+      "type": "line",
+      "region": "body",
+      "repeat": "last",
+      "x": 0,
+      "y": 66,
+      "w": 540,
+      "h": 1,
+      "style": {
+        "borderColor": "#2a2a2a",
+        "borderWidth": 1
+      }
+    },
+    {
+      "id": "efl_price_sidebar",
+      "type": "box",
+      "region": "body",
+      "repeat": "last",
+      "x": 0,
+      "y": 66,
+      "w": 84,
+      "h": 248,
+      "style": {
+        "fill": "#d2d2d2",
+        "borderColor": "#2a2a2a",
+        "borderWidth": 1
+      }
+    },
+    {
+      "id": "efl_price_sidebar_text",
+      "type": "text",
+      "region": "body",
+      "repeat": "last",
+      "x": 8,
+      "y": 174,
+      "w": 68,
+      "h": 62,
+      "text": "Electricity Price\n(Residential)",
+      "style": {
+        "font": "Times New Roman",
+        "size": 10.2,
+        "fontStyle": "italic",
+        "weight": 700,
+        "lineHeight": 12.4,
+        "color": "#111111"
+      }
+    },
+    {
+      "id": "efl_avg_grid_box",
+      "type": "box",
+      "region": "body",
+      "repeat": "last",
+      "x": 84,
+      "y": 66,
+      "w": 456,
+      "h": 38,
+      "style": {
+        "fill": "#f4f4f4",
+        "borderColor": "#2a2a2a",
+        "borderWidth": 1
+      }
+    },
+    {
+      "id": "efl_avg_monthly",
+      "type": "text",
+      "region": "body",
+      "repeat": "last",
+      "x": 90,
+      "y": 72,
+      "w": 444,
+      "h": 14,
+      "text": "Average monthly use:                500 kWh             1000 kWh             2000 kWh",
+      "style": {
+        "font": "Times New Roman",
+        "size": 10.1,
+        "weight": 700,
+        "lineHeight": 12.2,
+        "color": "#111111"
+      }
+    },
+    {
+      "id": "efl_avg_price",
+      "type": "text",
+      "region": "body",
+      "repeat": "last",
+      "x": 90,
+      "y": 88,
+      "w": 444,
+      "h": 14,
+      "text": "Average price per kilowatt-hour:      {{efl.avgPrice500}}               {{efl.avgPrice1000}}               {{efl.avgPrice2000}}",
+      "style": {
+        "font": "Times New Roman",
+        "size": 9.6,
+        "weight": 700,
+        "lineHeight": 12,
+        "color": "#111111"
+      }
+    },
+    {
+      "id": "efl_price_details_box",
+      "type": "box",
+      "region": "body",
+      "repeat": "last",
+      "x": 84,
+      "y": 104,
+      "w": 456,
+      "h": 210,
+      "style": {
+        "fill": "#ffffff",
+        "borderColor": "#2a2a2a",
+        "borderWidth": 1
+      }
+    },
+    {
+      "id": "efl_price_details",
+      "type": "text",
+      "region": "body",
+      "repeat": "last",
+      "x": 92,
+      "y": 112,
+      "w": 440,
+      "h": 194,
+      "text": "{{efl.priceDetails}}",
+      "style": {
+        "font": "Times New Roman",
+        "size": 9.9,
+        "lineHeight": 12.8,
+        "color": "#111111"
+      }
+    },
+    {
+      "id": "efl_terms_sidebar",
+      "type": "box",
+      "region": "body",
+      "repeat": "last",
+      "x": 0,
+      "y": 314,
+      "w": 84,
+      "h": 50,
+      "style": {
+        "fill": "#d2d2d2",
+        "borderColor": "#2a2a2a",
+        "borderWidth": 1
+      }
+    },
+    {
+      "id": "efl_terms_sidebar_text",
+      "type": "text",
+      "region": "body",
+      "repeat": "last",
+      "x": 8,
+      "y": 320,
+      "w": 68,
+      "h": 42,
+      "text": "Other Key\nTerms and\nQuestions",
+      "style": {
+        "font": "Times New Roman",
+        "size": 10.2,
+        "fontStyle": "italic",
+        "weight": 700,
+        "lineHeight": 11.6,
+        "color": "#111111"
+      }
+    },
+    {
+      "id": "efl_terms_ref",
+      "type": "text",
+      "region": "body",
+      "repeat": "last",
+      "x": 92,
+      "y": 322,
+      "w": 440,
+      "h": 36,
+      "text": "{{efl.otherTermsReference}}",
+      "style": {
+        "font": "Times New Roman",
+        "size": 10,
+        "fontStyle": "italic",
+        "lineHeight": 12.4,
+        "color": "#111111"
+      }
+    },
+    {
+      "id": "efl_disclosure_sidebar",
+      "type": "box",
+      "region": "body",
+      "repeat": "last",
+      "x": 0,
+      "y": 364,
+      "w": 84,
+      "h": 264,
+      "style": {
+        "fill": "#d2d2d2",
+        "borderColor": "#2a2a2a",
+        "borderWidth": 1
+      }
+    },
+    {
+      "id": "efl_disclosure_sidebar_text",
+      "type": "text",
+      "region": "body",
+      "repeat": "last",
+      "x": 8,
+      "y": 476,
+      "w": 68,
+      "h": 50,
+      "text": "Disclosure\nChart",
+      "style": {
+        "font": "Times New Roman",
+        "size": 11.2,
+        "fontStyle": "italic",
+        "weight": 700,
+        "lineHeight": 12.8,
+        "color": "#111111"
+      }
+    },
+    {
+      "id": "efl_disclosure_table",
+      "type": "table",
+      "region": "body",
+      "repeat": "last",
+      "x": 84,
+      "y": 364,
+      "w": 456,
+      "h": 264,
+      "rows": "{{efl.disclosureRows}}",
+      "pagination": {
+        "mode": "none",
+        "rowHeight": 20
+      },
+      "columns": [
+        {
+          "header": "Question",
+          "field": "question",
+          "w": 212,
+          "align": "left"
+        },
+        {
+          "header": "Answer",
+          "field": "answer",
+          "w": 244,
+          "align": "left"
+        }
+      ],
+      "headerStyle": {
+        "font": "Times New Roman",
+        "size": 9.8,
+        "weight": 700,
+        "lineHeight": 13.2,
+        "fill": "#efefef",
+        "color": "#111111"
+      },
+      "rowStyle": {
+        "font": "Times New Roman",
+        "size": 9.8,
+        "lineHeight": 13.8,
+        "color": "#111111"
+      }
+    },
+    {
+      "id": "efl_contact_line",
+      "type": "line",
+      "region": "body",
+      "repeat": "last",
+      "x": 0,
+      "y": 628,
+      "w": 540,
+      "h": 1,
+      "style": {
+        "borderColor": "#2a2a2a",
+        "borderWidth": 1
+      }
+    },
+    {
+      "id": "efl_contact_left",
+      "type": "text",
+      "region": "body",
+      "repeat": "last",
+      "x": 8,
+      "y": 634,
+      "w": 260,
+      "h": 28,
+      "text": "{{efl.contactLeft}}",
+      "style": {
+        "font": "Times New Roman",
+        "size": 8.9,
+        "align": "center",
+        "lineHeight": 10.2,
+        "color": "#111111"
+      }
+    },
+    {
+      "id": "efl_contact_right",
+      "type": "text",
+      "region": "body",
+      "repeat": "last",
+      "x": 272,
+      "y": 634,
+      "w": 260,
+      "h": 28,
+      "text": "{{efl.contactRight}}",
+      "style": {
+        "font": "Times New Roman",
+        "size": 8.9,
+        "align": "center",
+        "lineHeight": 10.2,
+        "color": "#111111"
+      }
+    },
+    {
+      "id": "footer_first",
+      "type": "text",
+      "region": "footer",
+      "repeat": "first",
+      "x": 0,
+      "y": 7,
+      "w": 540,
+      "h": 14,
+      "text": "{{company.mailing}}",
+      "style": {
+        "font": "Times New Roman",
+        "size": 7.5,
+        "align": "center",
+        "color": "#646b74"
+      }
+    },
+    {
+      "id": "footer_after_note",
+      "type": "text",
+      "region": "footer",
+      "repeat": "afterFirst",
+      "x": 0,
+      "y": 7,
+      "w": 420,
+      "h": 12,
+      "text": "For account support visit {{company.web}}",
+      "style": {
+        "font": "Arial",
+        "size": 7.5,
+        "color": "#5f6772"
+      }
+    },
+    {
+      "id": "footer_after_page",
+      "type": "text",
+      "region": "footer",
+      "repeat": "afterFirst",
+      "x": 446,
+      "y": 7,
+      "w": 94,
+      "h": 12,
+      "text": "{{page.number}} of {{page.count}}",
+      "style": {
+        "font": "Arial",
+        "size": 7.5,
+        "align": "right",
+        "color": "#5f6772"
+      }
+    }
+  ]
+}

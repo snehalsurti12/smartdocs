@@ -1,0 +1,128 @@
+{
+  "id": "tmpl_generic_001",
+  "name": "Generic Document",
+  "version": "1.0.0",
+  "unit": "pt",
+  "page": {
+    "size": "A4",
+    "width": 595,
+    "height": 842,
+    "margin": { "top": 36, "right": 36, "bottom": 36, "left": 36 },
+    "headerHeight": 140,
+    "footerHeight": 40
+  },
+  "fonts": [
+    { "name": "Inter", "source": "local", "fallback": ["Arial", "sans-serif"] }
+  ],
+  "styles": {
+    "defaultText": { "font": "Inter", "size": 10, "color": "#111111" }
+  },
+  "elements": [
+    {
+      "id": "doc_title",
+      "type": "text",
+      "region": "header",
+      "x": 0,
+      "y": 0,
+      "w": 523,
+      "h": 24,
+      "text": "{{document.title}}",
+      "style": { "font": "Inter", "size": 16, "weight": 600 },
+      "visibleIf": "true"
+    },
+    {
+      "id": "logo",
+      "type": "image",
+      "region": "header",
+      "x": 440,
+      "y": 0,
+      "w": 80,
+      "h": 40,
+      "src": "{{company.logoUrl}}",
+      "fit": "contain"
+    },
+    {
+      "id": "address_block",
+      "type": "text",
+      "region": "header",
+      "x": 0,
+      "y": 50,
+      "w": 260,
+      "h": 60,
+      "text": "{{company.name}}\n{{company.address}}",
+      "style": { "font": "Inter", "size": 10 }
+    },
+    {
+      "id": "qr_payment",
+      "type": "qr",
+      "region": "header",
+      "x": 420,
+      "y": 50,
+      "w": 80,
+      "h": 80,
+      "value": "{{payment.qrData}}",
+      "ecc": "M",
+      "visibleIf": "exists(payment.qrData)"
+    },
+    {
+      "id": "line_1",
+      "type": "line",
+      "region": "header",
+      "x": 0,
+      "y": 130,
+      "w": 523,
+      "h": 1,
+      "style": { "borderColor": "#DDDDDD", "borderWidth": 1 }
+    },
+    {
+      "id": "items_table",
+      "type": "table",
+      "x": 0,
+      "y": 20,
+      "w": 523,
+      "h": 300,
+      "rows": "{{items}}",
+      "columns": [
+        { "header": "Item", "field": "name", "w": 260 },
+        { "header": "Qty", "field": "qty", "w": 60, "align": "right" },
+        { "header": "Price", "field": "price", "w": 80, "format": "currency" },
+        { "header": "Total", "field": "total", "w": 80, "format": "currency" }
+      ],
+      "rowStyle": { "font": "Inter", "size": 10 },
+      "headerStyle": { "font": "Inter", "size": 10, "weight": 600 },
+      "pagination": { "mode": "auto", "rowHeight": 16 }
+    },
+    {
+      "id": "total_block",
+      "type": "box",
+      "x": 320,
+      "y": 340,
+      "w": 203,
+      "h": 70,
+      "style": { "borderColor": "#DDDDDD", "borderWidth": 1, "fill": "#F9F9F9" }
+    },
+    {
+      "id": "total_label",
+      "type": "text",
+      "x": 330,
+      "y": 350,
+      "w": 100,
+      "h": 14,
+      "text": "Total",
+      "style": { "font": "Inter", "size": 10, "weight": 600 }
+    },
+    {
+      "id": "total_value",
+      "type": "text",
+      "x": 420,
+      "y": 350,
+      "w": 90,
+      "h": 14,
+      "text": "{{summary.total}}",
+      "style": { "font": "Inter", "size": 10, "align": "right" }
+    }
+  ],
+  "variables": {
+    "currency": "USD"
+  }
+}

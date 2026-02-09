@@ -1,0 +1,296 @@
+{
+  "id": "tmpl_cc_001",
+  "name": "Credit Card Statement",
+  "version": "1.1.0",
+  "unit": "pt",
+  "page": {
+    "size": "Letter",
+    "width": 612,
+    "height": 792,
+    "margin": { "top": 30, "right": 36, "bottom": 30, "left": 36 },
+    "headerHeight": 168,
+    "footerHeight": 32
+  },
+  "fonts": [
+    { "name": "Helvetica", "source": "local", "fallback": ["Arial", "sans-serif"] },
+    { "name": "Courier New", "source": "local", "fallback": ["Courier", "monospace"] }
+  ],
+  "styles": {
+    "defaultText": { "font": "Helvetica", "size": 9, "color": "#1d2430", "lineHeight": 12 },
+    "Heading": { "font": "Helvetica", "size": 15, "weight": 700, "color": "#0d1b3d" },
+    "Body": { "font": "Helvetica", "size": 9, "lineHeight": 12 },
+    "Mono": { "font": "Courier New", "size": 9, "lineHeight": 12 }
+  },
+  "dataSample": "examples/cc-data.json",
+  "elements": [
+    {
+      "id": "hdr_band",
+      "type": "box",
+      "region": "header",
+      "x": 0,
+      "y": 0,
+      "w": 540,
+      "h": 30,
+      "style": { "fill": "#0d1b3d" }
+    },
+    {
+      "id": "logo",
+      "type": "image",
+      "region": "header",
+      "x": 12,
+      "y": 5,
+      "w": 170,
+      "h": 20,
+      "src": "{{bank.logoUrl}}",
+      "fit": "contain"
+    },
+    {
+      "id": "statement_title",
+      "type": "text",
+      "region": "header",
+      "x": 336,
+      "y": 8,
+      "w": 192,
+      "h": 14,
+      "text": "Credit Card Statement",
+      "style": { "font": "Helvetica", "size": 11, "weight": 700, "color": "#ffffff", "align": "right" }
+    },
+    {
+      "id": "period_label",
+      "type": "text",
+      "region": "header",
+      "x": 0,
+      "y": 42,
+      "w": 150,
+      "h": 12,
+      "text": "Statement Period",
+      "style": { "font": "Helvetica", "size": 8, "weight": 700, "color": "#5d697a" }
+    },
+    {
+      "id": "period_value",
+      "type": "text",
+      "region": "header",
+      "x": 0,
+      "y": 55,
+      "w": 240,
+      "h": 14,
+      "text": "{{statement.period}}",
+      "style": { "font": "Helvetica", "size": 11, "weight": 600, "color": "#1f2b3d" }
+    },
+    {
+      "id": "acct_label",
+      "type": "text",
+      "region": "header",
+      "x": 340,
+      "y": 42,
+      "w": 188,
+      "h": 12,
+      "text": "Account Number",
+      "style": { "font": "Helvetica", "size": 8, "weight": 700, "color": "#5d697a", "align": "right" }
+    },
+    {
+      "id": "acct_value",
+      "type": "text",
+      "region": "header",
+      "x": 340,
+      "y": 55,
+      "w": 188,
+      "h": 14,
+      "text": "{{account.number}}",
+      "style": { "font": "Courier New", "size": 11, "weight": 700, "align": "right", "color": "#1f2b3d" }
+    },
+    {
+      "id": "customer_box",
+      "type": "box",
+      "region": "header",
+      "x": 0,
+      "y": 78,
+      "w": 260,
+      "h": 72,
+      "style": { "borderColor": "#d6dce8", "borderWidth": 1, "fill": "#f7f9fc" }
+    },
+    {
+      "id": "customer_name",
+      "type": "text",
+      "region": "header",
+      "x": 12,
+      "y": 88,
+      "w": 236,
+      "h": 14,
+      "text": "{{customer.name}}",
+      "style": { "font": "Helvetica", "size": 10, "weight": 700 }
+    },
+    {
+      "id": "customer_address",
+      "type": "text",
+      "region": "header",
+      "x": 12,
+      "y": 104,
+      "w": 236,
+      "h": 36,
+      "text": "{{customer.address}}",
+      "style": { "font": "Helvetica", "size": 9, "lineHeight": 12 }
+    },
+    {
+      "id": "summary_box",
+      "type": "box",
+      "region": "header",
+      "x": 276,
+      "y": 78,
+      "w": 264,
+      "h": 72,
+      "style": { "borderColor": "#d6dce8", "borderWidth": 1, "fill": "#f7f9fc" }
+    },
+    {
+      "id": "summary_heading",
+      "type": "text",
+      "region": "header",
+      "x": 288,
+      "y": 86,
+      "w": 240,
+      "h": 10,
+      "text": "PAYMENT SUMMARY",
+      "style": { "font": "Helvetica", "size": 8, "weight": 700, "color": "#5d697a" }
+    },
+    {
+      "id": "summary_balance_label",
+      "type": "text",
+      "region": "header",
+      "x": 288,
+      "y": 102,
+      "w": 110,
+      "h": 12,
+      "text": "New Balance"
+    },
+    {
+      "id": "summary_balance_value",
+      "type": "text",
+      "region": "header",
+      "x": 408,
+      "y": 102,
+      "w": 120,
+      "h": 12,
+      "text": "{{account.balance}}",
+      "style": { "font": "Helvetica", "size": 10, "weight": 700, "align": "right" }
+    },
+    {
+      "id": "summary_due_label",
+      "type": "text",
+      "region": "header",
+      "x": 288,
+      "y": 118,
+      "w": 110,
+      "h": 12,
+      "text": "Payment Due"
+    },
+    {
+      "id": "summary_due_value",
+      "type": "text",
+      "region": "header",
+      "x": 408,
+      "y": 118,
+      "w": 120,
+      "h": 12,
+      "text": "{{account.paymentDue}}",
+      "style": { "font": "Helvetica", "size": 10, "weight": 700, "align": "right", "color": "#0f5132" }
+    },
+    {
+      "id": "summary_due_date_label",
+      "type": "text",
+      "region": "header",
+      "x": 288,
+      "y": 134,
+      "w": 110,
+      "h": 12,
+      "text": "Due Date"
+    },
+    {
+      "id": "summary_due_date_value",
+      "type": "text",
+      "region": "header",
+      "x": 408,
+      "y": 134,
+      "w": 120,
+      "h": 12,
+      "text": "{{account.paymentDate}}",
+      "style": { "font": "Helvetica", "size": 10, "weight": 700, "align": "right" }
+    },
+    {
+      "id": "header_line",
+      "type": "line",
+      "region": "header",
+      "x": 0,
+      "y": 160,
+      "w": 540,
+      "h": 1,
+      "style": { "borderColor": "#d6dce8", "borderWidth": 1 }
+    },
+    {
+      "id": "transactions_title",
+      "type": "text",
+      "region": "body",
+      "x": 0,
+      "y": 0,
+      "w": 540,
+      "h": 16,
+      "text": "Transactions",
+      "style": { "font": "Helvetica", "size": 12, "weight": 700, "color": "#0d1b3d" }
+    },
+    {
+      "id": "transactions_subtitle",
+      "type": "text",
+      "region": "body",
+      "x": 0,
+      "y": 16,
+      "w": 540,
+      "h": 12,
+      "text": "Activity posted during this billing cycle.",
+      "style": { "font": "Helvetica", "size": 8, "color": "#5d697a" }
+    },
+    {
+      "id": "transactions_table",
+      "type": "table",
+      "region": "body",
+      "x": 0,
+      "y": 32,
+      "w": 540,
+      "h": 420,
+      "rows": "{{transactions}}",
+      "columns": [
+        { "header": "Date", "field": "date", "w": 72 },
+        { "header": "Description", "field": "description", "w": 236 },
+        { "header": "Category", "field": "category", "w": 80 },
+        { "header": "Amount", "field": "amount", "w": 76, "align": "right", "format": "currency", "precision": 2 },
+        { "header": "Balance", "field": "runningBalance", "w": 76, "align": "right", "format": "currency", "precision": 2 }
+      ],
+      "rowStyle": { "font": "Helvetica", "size": 9, "lineHeight": 13 },
+      "headerStyle": { "font": "Helvetica", "size": 8, "weight": 700, "color": "#ffffff", "fill": "#30405f" },
+      "pagination": { "mode": "auto", "rowHeight": 18 }
+    },
+    {
+      "id": "footer_left",
+      "type": "text",
+      "region": "footer",
+      "x": 0,
+      "y": 10,
+      "w": 360,
+      "h": 12,
+      "text": "Questions? Call {{bank.supportPhone}} or visit {{bank.supportSite}}",
+      "style": { "font": "Helvetica", "size": 8, "color": "#5d697a" }
+    },
+    {
+      "id": "footer_page",
+      "type": "text",
+      "region": "footer",
+      "x": 380,
+      "y": 10,
+      "w": 160,
+      "h": 12,
+      "text": "Page {{page.number}} of {{page.count}}",
+      "style": { "font": "Helvetica", "size": 8, "color": "#5d697a", "align": "right" }
+    }
+  ],
+  "variables": {
+    "currency": "USD"
+  }
+}

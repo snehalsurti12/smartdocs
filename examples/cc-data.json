@@ -1,0 +1,673 @@
+{
+  "bank": {
+    "logoUrl": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0ODAiIGhlaWdodD0iNzIiIHZpZXdCb3g9IjAgMCA0ODAgNzIiIHJvbGU9ImltZyIgYXJpYS1sYWJlbD0iTm9ydGhzdGFyIEJhbmsiPjxkZWZzPjxsaW5lYXJHcmFkaWVudCBpZD0iZyIgeDE9IjAiIHgyPSIxIiB5MT0iMCIgeTI9IjEiPjxzdG9wIG9mZnNldD0iMCIgc3RvcC1jb2xvcj0iIzVkYjBmZiIvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iIzJkNzNkNSIvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPjxyZWN0IHdpZHRoPSI0ODAiIGhlaWdodD0iNzIiIGZpbGw9Im5vbmUiLz48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSg0LDYpIj48cmVjdCB4PSIwIiB5PSIwIiB3aWR0aD0iNTgiIGhlaWdodD0iNTgiIHJ4PSIxMiIgZmlsbD0iI2ZmZmZmZiIgb3BhY2l0eT0iMC4yIi8+PHBhdGggZD0iTTI5IDggTDM1IDIzIEw1MSAyMyBMMzggMzMgTDQzIDQ4IEwyOSAzOCBMMTUgNDggTDIwIDMzIEw3IDIzIEwyMyAyMyBaIiBmaWxsPSJ1cmwoI2cpIi8+PGNpcmNsZSBjeD0iMjkiIGN5PSIyOSIgcj0iMjgiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzlkY2NmZiIgc3Ryb2tlLXdpZHRoPSIyIi8+PC9nPjx0ZXh0IHg9Ijc4IiB5PSIzMSIgZmlsbD0iI2ZmZmZmZiIgZm9udC1mYW1pbHk9IkhlbHZldGljYSwgQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMjIiIGZvbnQtd2VpZ2h0PSI3MDAiIGxldHRlci1zcGFjaW5nPSIwLjYiPk5PUlRIU1RBUjwvdGV4dD48dGV4dCB4PSI3OSIgeT0iNTEiIGZpbGw9IiNiN2NmZjEiIGZvbnQtZmFtaWx5PSJIZWx2ZXRpY2EsIEFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjEyIiBmb250LXdlaWdodD0iNjAwIiBsZXR0ZXItc3BhY2luZz0iMi42Ij5CQU5LPC90ZXh0Pjwvc3ZnPg==",
+    "supportPhone": "1-800-555-0184",
+    "supportSite": "northstarbank.example.com"
+  },
+  "customer": {
+    "name": "Jordan Rivera",
+    "address": "742 Evergreen Terrace\nSpringfield, IL 62701"
+  },
+  "account": {
+    "number": "**** **** **** 1234",
+    "balance": "$5,071.96",
+    "paymentDue": "$215.00",
+    "paymentDate": "Jan 12, 2026"
+  },
+  "statement": {
+    "period": "Nov 18, 2025 - Dec 17, 2025"
+  },
+  "transactions": [
+    {
+      "date": "2025-11-18",
+      "description": "Previous Balance",
+      "category": "Opening",
+      "amount": 2950,
+      "runningBalance": 2950
+    },
+    {
+      "date": "2025-11-19",
+      "description": "Metro Fuel",
+      "category": "Gas",
+      "amount": 10.56,
+      "runningBalance": 2960.56
+    },
+    {
+      "date": "2025-11-20",
+      "description": "Hearthside Cafe",
+      "category": "Dining",
+      "amount": 17.87,
+      "runningBalance": 2978.43
+    },
+    {
+      "date": "2025-11-21",
+      "description": "Nimbus Online",
+      "category": "Shopping",
+      "amount": 25.18,
+      "runningBalance": 3003.61
+    },
+    {
+      "date": "2025-11-22",
+      "description": "Elm Pharmacy",
+      "category": "Health",
+      "amount": 32.49,
+      "runningBalance": 3036.1
+    },
+    {
+      "date": "2025-11-23",
+      "description": "Rail Ride Share",
+      "category": "Transport",
+      "amount": 39.8,
+      "runningBalance": 3075.9
+    },
+    {
+      "date": "2025-11-24",
+      "description": "Lakeview Utilities",
+      "category": "Utilities",
+      "amount": 47.11,
+      "runningBalance": 3123.01
+    },
+    {
+      "date": "2025-11-25",
+      "description": "City Parking",
+      "category": "Transport",
+      "amount": 54.42,
+      "runningBalance": 3177.43
+    },
+    {
+      "date": "2025-11-26",
+      "description": "Cloud Cinema",
+      "category": "Entertainment",
+      "amount": 61.73,
+      "runningBalance": 3239.16
+    },
+    {
+      "date": "2025-11-27",
+      "description": "Pine Hardware",
+      "category": "Home",
+      "amount": 69.04,
+      "runningBalance": 3308.2
+    },
+    {
+      "date": "2025-11-28",
+      "description": "Cedar Books",
+      "category": "Shopping",
+      "amount": 76.35,
+      "runningBalance": 3384.55
+    },
+    {
+      "date": "2025-11-29",
+      "description": "Peak Mobile",
+      "category": "Telecom",
+      "amount": 83.66,
+      "runningBalance": 3468.21
+    },
+    {
+      "date": "2025-11-30",
+      "description": "Bright Insurance",
+      "category": "Insurance",
+      "amount": 5.97,
+      "runningBalance": 3474.18
+    },
+    {
+      "date": "2025-12-01",
+      "description": "Summit Gym",
+      "category": "Health",
+      "amount": 13.28,
+      "runningBalance": 3487.46
+    },
+    {
+      "date": "2025-12-02",
+      "description": "Orbit Travel",
+      "category": "Travel",
+      "amount": 20.59,
+      "runningBalance": 3508.05
+    },
+    {
+      "date": "2025-12-03",
+      "description": "Greenway Supermarket",
+      "category": "Groceries",
+      "amount": 27.9,
+      "runningBalance": 3535.95
+    },
+    {
+      "date": "2025-12-04",
+      "description": "Metro Fuel",
+      "category": "Gas",
+      "amount": 35.21,
+      "runningBalance": 3571.16
+    },
+    {
+      "date": "2025-12-05",
+      "description": "Hearthside Cafe",
+      "category": "Dining",
+      "amount": 42.52,
+      "runningBalance": 3613.68
+    },
+    {
+      "date": "2025-12-06",
+      "description": "Nimbus Online",
+      "category": "Shopping",
+      "amount": 49.83,
+      "runningBalance": 3663.51
+    },
+    {
+      "date": "2025-12-07",
+      "description": "Elm Pharmacy",
+      "category": "Health",
+      "amount": 57.14,
+      "runningBalance": 3720.65
+    },
+    {
+      "date": "2025-12-08",
+      "description": "Rail Ride Share",
+      "category": "Transport",
+      "amount": 64.45,
+      "runningBalance": 3785.1
+    },
+    {
+      "date": "2025-12-09",
+      "description": "Lakeview Utilities",
+      "category": "Utilities",
+      "amount": 71.76,
+      "runningBalance": 3856.86
+    },
+    {
+      "date": "2025-12-10",
+      "description": "City Parking",
+      "category": "Transport",
+      "amount": 79.07,
+      "runningBalance": 3935.93
+    },
+    {
+      "date": "2025-12-10",
+      "description": "Online Payment Received",
+      "category": "Payment",
+      "amount": -450,
+      "runningBalance": 3485.93
+    },
+    {
+      "date": "2025-12-11",
+      "description": "Cloud Cinema",
+      "category": "Entertainment",
+      "amount": 86.38,
+      "runningBalance": 3572.31
+    },
+    {
+      "date": "2025-12-12",
+      "description": "Pine Hardware",
+      "category": "Home",
+      "amount": 8.69,
+      "runningBalance": 3581
+    },
+    {
+      "date": "2025-12-13",
+      "description": "Cedar Books",
+      "category": "Shopping",
+      "amount": 16,
+      "runningBalance": 3597
+    },
+    {
+      "date": "2025-12-14",
+      "description": "Peak Mobile",
+      "category": "Telecom",
+      "amount": 23.31,
+      "runningBalance": 3620.31
+    },
+    {
+      "date": "2025-12-15",
+      "description": "Bright Insurance",
+      "category": "Insurance",
+      "amount": 30.62,
+      "runningBalance": 3650.93
+    },
+    {
+      "date": "2025-12-16",
+      "description": "Summit Gym",
+      "category": "Health",
+      "amount": 37.93,
+      "runningBalance": 3688.86
+    },
+    {
+      "date": "2025-12-17",
+      "description": "Orbit Travel",
+      "category": "Travel",
+      "amount": 45.24,
+      "runningBalance": 3734.1
+    },
+    {
+      "date": "2025-12-18",
+      "description": "Greenway Supermarket",
+      "category": "Groceries",
+      "amount": 52.55,
+      "runningBalance": 3786.65
+    },
+    {
+      "date": "2025-12-19",
+      "description": "Metro Fuel",
+      "category": "Gas",
+      "amount": 59.86,
+      "runningBalance": 3846.51
+    },
+    {
+      "date": "2025-12-20",
+      "description": "Hearthside Cafe",
+      "category": "Dining",
+      "amount": 67.17,
+      "runningBalance": 3913.68
+    },
+    {
+      "date": "2025-12-21",
+      "description": "Nimbus Online",
+      "category": "Shopping",
+      "amount": 74.48,
+      "runningBalance": 3988.16
+    },
+    {
+      "date": "2025-12-22",
+      "description": "Elm Pharmacy",
+      "category": "Health",
+      "amount": 81.79,
+      "runningBalance": 4069.95
+    },
+    {
+      "date": "2025-12-23",
+      "description": "Rail Ride Share",
+      "category": "Transport",
+      "amount": 4.1,
+      "runningBalance": 4074.05
+    },
+    {
+      "date": "2025-12-24",
+      "description": "Lakeview Utilities",
+      "category": "Utilities",
+      "amount": 11.41,
+      "runningBalance": 4085.46
+    },
+    {
+      "date": "2025-12-25",
+      "description": "City Parking",
+      "category": "Transport",
+      "amount": 18.72,
+      "runningBalance": 4104.18
+    },
+    {
+      "date": "2025-12-26",
+      "description": "Cloud Cinema",
+      "category": "Entertainment",
+      "amount": 26.03,
+      "runningBalance": 4130.21
+    },
+    {
+      "date": "2025-12-27",
+      "description": "Pine Hardware",
+      "category": "Home",
+      "amount": 33.34,
+      "runningBalance": 4163.55
+    },
+    {
+      "date": "2025-12-28",
+      "description": "Cedar Books",
+      "category": "Shopping",
+      "amount": 40.65,
+      "runningBalance": 4204.2
+    },
+    {
+      "date": "2025-12-29",
+      "description": "Peak Mobile",
+      "category": "Telecom",
+      "amount": 47.96,
+      "runningBalance": 4252.16
+    },
+    {
+      "date": "2025-12-30",
+      "description": "Bright Insurance",
+      "category": "Insurance",
+      "amount": 55.27,
+      "runningBalance": 4307.43
+    },
+    {
+      "date": "2025-12-31",
+      "description": "Summit Gym",
+      "category": "Health",
+      "amount": 62.58,
+      "runningBalance": 4370.01
+    },
+    {
+      "date": "2026-01-01",
+      "description": "Orbit Travel",
+      "category": "Travel",
+      "amount": 69.89,
+      "runningBalance": 4439.9
+    },
+    {
+      "date": "2026-01-01",
+      "description": "Online Payment Received",
+      "category": "Payment",
+      "amount": -450,
+      "runningBalance": 3989.9
+    },
+    {
+      "date": "2026-01-02",
+      "description": "Greenway Supermarket",
+      "category": "Groceries",
+      "amount": 77.2,
+      "runningBalance": 4067.1
+    },
+    {
+      "date": "2026-01-03",
+      "description": "Metro Fuel",
+      "category": "Gas",
+      "amount": 84.51,
+      "runningBalance": 4151.61
+    },
+    {
+      "date": "2026-01-04",
+      "description": "Hearthside Cafe",
+      "category": "Dining",
+      "amount": 6.82,
+      "runningBalance": 4158.43
+    },
+    {
+      "date": "2026-01-05",
+      "description": "Nimbus Online",
+      "category": "Shopping",
+      "amount": 14.13,
+      "runningBalance": 4172.56
+    },
+    {
+      "date": "2026-01-06",
+      "description": "Elm Pharmacy",
+      "category": "Health",
+      "amount": 21.44,
+      "runningBalance": 4194
+    },
+    {
+      "date": "2026-01-07",
+      "description": "Rail Ride Share",
+      "category": "Transport",
+      "amount": 28.75,
+      "runningBalance": 4222.75
+    },
+    {
+      "date": "2026-01-08",
+      "description": "Lakeview Utilities",
+      "category": "Utilities",
+      "amount": 36.06,
+      "runningBalance": 4258.81
+    },
+    {
+      "date": "2026-01-09",
+      "description": "City Parking",
+      "category": "Transport",
+      "amount": 43.37,
+      "runningBalance": 4302.18
+    },
+    {
+      "date": "2026-01-10",
+      "description": "Cloud Cinema",
+      "category": "Entertainment",
+      "amount": 50.68,
+      "runningBalance": 4352.86
+    },
+    {
+      "date": "2026-01-11",
+      "description": "Pine Hardware",
+      "category": "Home",
+      "amount": 57.99,
+      "runningBalance": 4410.85
+    },
+    {
+      "date": "2026-01-12",
+      "description": "Cedar Books",
+      "category": "Shopping",
+      "amount": 65.3,
+      "runningBalance": 4476.15
+    },
+    {
+      "date": "2026-01-13",
+      "description": "Peak Mobile",
+      "category": "Telecom",
+      "amount": 72.61,
+      "runningBalance": 4548.76
+    },
+    {
+      "date": "2026-01-14",
+      "description": "Bright Insurance",
+      "category": "Insurance",
+      "amount": 79.92,
+      "runningBalance": 4628.68
+    },
+    {
+      "date": "2026-01-15",
+      "description": "Summit Gym",
+      "category": "Health",
+      "amount": 87.23,
+      "runningBalance": 4715.91
+    },
+    {
+      "date": "2026-01-16",
+      "description": "Orbit Travel",
+      "category": "Travel",
+      "amount": 9.54,
+      "runningBalance": 4725.45
+    },
+    {
+      "date": "2026-01-17",
+      "description": "Greenway Supermarket",
+      "category": "Groceries",
+      "amount": 16.85,
+      "runningBalance": 4742.3
+    },
+    {
+      "date": "2026-01-18",
+      "description": "Metro Fuel",
+      "category": "Gas",
+      "amount": 24.16,
+      "runningBalance": 4766.46
+    },
+    {
+      "date": "2026-01-19",
+      "description": "Hearthside Cafe",
+      "category": "Dining",
+      "amount": 31.47,
+      "runningBalance": 4797.93
+    },
+    {
+      "date": "2026-01-20",
+      "description": "Nimbus Online",
+      "category": "Shopping",
+      "amount": 38.78,
+      "runningBalance": 4836.71
+    },
+    {
+      "date": "2026-01-21",
+      "description": "Elm Pharmacy",
+      "category": "Health",
+      "amount": 46.09,
+      "runningBalance": 4882.8
+    },
+    {
+      "date": "2026-01-22",
+      "description": "Rail Ride Share",
+      "category": "Transport",
+      "amount": 53.4,
+      "runningBalance": 4936.2
+    },
+    {
+      "date": "2026-01-23",
+      "description": "Lakeview Utilities",
+      "category": "Utilities",
+      "amount": 60.71,
+      "runningBalance": 4996.91
+    },
+    {
+      "date": "2026-01-23",
+      "description": "Online Payment Received",
+      "category": "Payment",
+      "amount": -450,
+      "runningBalance": 4546.91
+    },
+    {
+      "date": "2026-01-24",
+      "description": "City Parking",
+      "category": "Transport",
+      "amount": 68.02,
+      "runningBalance": 4614.93
+    },
+    {
+      "date": "2026-01-25",
+      "description": "Cloud Cinema",
+      "category": "Entertainment",
+      "amount": 75.33,
+      "runningBalance": 4690.26
+    },
+    {
+      "date": "2026-01-26",
+      "description": "Pine Hardware",
+      "category": "Home",
+      "amount": 82.64,
+      "runningBalance": 4772.9
+    },
+    {
+      "date": "2026-01-27",
+      "description": "Cedar Books",
+      "category": "Shopping",
+      "amount": 4.95,
+      "runningBalance": 4777.85
+    },
+    {
+      "date": "2026-01-28",
+      "description": "Peak Mobile",
+      "category": "Telecom",
+      "amount": 12.26,
+      "runningBalance": 4790.11
+    },
+    {
+      "date": "2026-01-29",
+      "description": "Bright Insurance",
+      "category": "Insurance",
+      "amount": 19.57,
+      "runningBalance": 4809.68
+    },
+    {
+      "date": "2026-01-30",
+      "description": "Summit Gym",
+      "category": "Health",
+      "amount": 26.88,
+      "runningBalance": 4836.56
+    },
+    {
+      "date": "2026-01-31",
+      "description": "Orbit Travel",
+      "category": "Travel",
+      "amount": 34.19,
+      "runningBalance": 4870.75
+    },
+    {
+      "date": "2026-02-01",
+      "description": "Greenway Supermarket",
+      "category": "Groceries",
+      "amount": 41.5,
+      "runningBalance": 4912.25
+    },
+    {
+      "date": "2026-02-02",
+      "description": "Metro Fuel",
+      "category": "Gas",
+      "amount": 48.81,
+      "runningBalance": 4961.06
+    },
+    {
+      "date": "2026-02-03",
+      "description": "Hearthside Cafe",
+      "category": "Dining",
+      "amount": 56.12,
+      "runningBalance": 5017.18
+    },
+    {
+      "date": "2026-02-04",
+      "description": "Nimbus Online",
+      "category": "Shopping",
+      "amount": 63.43,
+      "runningBalance": 5080.61
+    },
+    {
+      "date": "2026-02-05",
+      "description": "Elm Pharmacy",
+      "category": "Health",
+      "amount": 70.74,
+      "runningBalance": 5151.35
+    },
+    {
+      "date": "2026-02-06",
+      "description": "Rail Ride Share",
+      "category": "Transport",
+      "amount": 78.05,
+      "runningBalance": 5229.4
+    },
+    {
+      "date": "2026-02-07",
+      "description": "Lakeview Utilities",
+      "category": "Utilities",
+      "amount": 85.36,
+      "runningBalance": 5314.76
+    },
+    {
+      "date": "2026-02-08",
+      "description": "City Parking",
+      "category": "Transport",
+      "amount": 7.67,
+      "runningBalance": 5322.43
+    },
+    {
+      "date": "2026-02-09",
+      "description": "Cloud Cinema",
+      "category": "Entertainment",
+      "amount": 14.98,
+      "runningBalance": 5337.41
+    },
+    {
+      "date": "2026-02-10",
+      "description": "Pine Hardware",
+      "category": "Home",
+      "amount": 22.29,
+      "runningBalance": 5359.7
+    },
+    {
+      "date": "2026-02-11",
+      "description": "Cedar Books",
+      "category": "Shopping",
+      "amount": 29.6,
+      "runningBalance": 5389.3
+    },
+    {
+      "date": "2026-02-12",
+      "description": "Peak Mobile",
+      "category": "Telecom",
+      "amount": 36.91,
+      "runningBalance": 5426.21
+    },
+    {
+      "date": "2026-02-13",
+      "description": "Bright Insurance",
+      "category": "Insurance",
+      "amount": 44.22,
+      "runningBalance": 5470.43
+    },
+    {
+      "date": "2026-02-14",
+      "description": "Summit Gym",
+      "category": "Health",
+      "amount": 51.53,
+      "runningBalance": 5521.96
+    },
+    {
+      "date": "2026-02-14",
+      "description": "Online Payment Received",
+      "category": "Payment",
+      "amount": -450,
+      "runningBalance": 5071.96
+    }
+  ]
+}

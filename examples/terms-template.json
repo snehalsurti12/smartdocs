@@ -1,0 +1,93 @@
+{
+  "id": "tmpl_terms_001",
+  "name": "Terms Cover + Flow",
+  "version": "1.0.0",
+  "unit": "pt",
+  "page": {
+    "size": "A4",
+    "width": 595,
+    "height": 842,
+    "margin": { "top": 36, "right": 36, "bottom": 36, "left": 36 },
+    "headerHeight": 120,
+    "footerHeight": 40
+  },
+  "fonts": [
+    { "name": "Times New Roman", "source": "local", "fallback": ["Times", "serif"] }
+  ],
+  "styles": {
+    "Heading": { "font": "Times New Roman", "size": 16, "weight": 700 },
+    "Body": { "font": "Times New Roman", "size": 11, "weight": 400, "lineHeight": 14 }
+  },
+  "options": { "flowMeasure": "browser" },
+  "dataSample": "examples/terms-data.json",
+  "elements": [
+    {
+      "id": "header_title",
+      "type": "text",
+      "region": "header",
+      "x": 0,
+      "y": 0,
+      "w": 400,
+      "h": 24,
+      "text": "{{document.title}}",
+      "style": { "font": "Times New Roman", "size": 16, "weight": 700 }
+    },
+    {
+      "id": "header_logo",
+      "type": "image",
+      "region": "header",
+      "x": 440,
+      "y": 0,
+      "w": 80,
+      "h": 40,
+      "src": "{{company.logoUrl}}",
+      "fit": "contain"
+    },
+    {
+      "id": "header_address",
+      "type": "text",
+      "region": "header",
+      "x": 0,
+      "y": 50,
+      "w": 260,
+      "h": 60,
+      "text": "{{company.name}}\n{{company.address}}",
+      "style": { "font": "Times New Roman", "size": 10 }
+    },
+    {
+      "id": "header_line",
+      "type": "line",
+      "region": "header",
+      "x": 0,
+      "y": 105,
+      "w": 523,
+      "h": 1,
+      "style": { "borderColor": "#DDDDDD", "borderWidth": 1 }
+    },
+    {
+      "id": "terms_flow",
+      "type": "flowText",
+      "region": "body",
+      "x": 0,
+      "y": 0,
+      "w": 523,
+      "h": 0,
+      "columns": 2,
+      "gap": 18,
+      "text": "{{termsText}}",
+      "style": { "font": "Times New Roman", "size": 11, "lineHeight": 14 }
+    },
+    {
+      "id": "footer_page",
+      "type": "text",
+      "region": "footer",
+      "x": 0,
+      "y": 10,
+      "w": 523,
+      "h": 20,
+      "text": "Page {{page.number}} of {{page.count}}",
+      "style": { "font": "Times New Roman", "size": 9, "align": "right" }
+    }
+  ],
+  "variables": {}
+}

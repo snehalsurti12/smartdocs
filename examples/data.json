@@ -1,0 +1,14 @@
+{
+  "document": { "title": "Invoice" },
+  "company": {
+    "name": "Example Co",
+    "address": "123 Main St\nSpringfield",
+    "logoUrl": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMjAiIGhlaWdodD0iNjAiPjxyZWN0IHdpZHRoPSIxMjAiIGhlaWdodD0iNjAiIGZpbGw9IiNmMGYwZjAiLz48dGV4dCB4PSI2MCIgeT0iMzUiIGZvbnQtc2l6ZT0iMTYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IiMzMzMiPkxvZ288L3RleHQ+PC9zdmc+"
+  },
+  "items": [
+    { "name": "Widget A", "qty": 2, "price": 12.5, "total": 25 },
+    { "name": "Widget B", "qty": 1, "price": 8, "total": 8 }
+  ],
+  "summary": { "total": 33 },
+  "payment": { "qrData": "pay:example.com/invoice/123" }
+}

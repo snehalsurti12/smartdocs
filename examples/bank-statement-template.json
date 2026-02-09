@@ -1,0 +1,428 @@
+{
+  "id": "tmpl_bank_statement_001",
+  "name": "Personal Chequing Account Statement (Sample)",
+  "version": "1.1.0",
+  "unit": "pt",
+  "page": {
+    "size": "Letter",
+    "width": 612,
+    "height": 792,
+    "margin": { "top": 24, "right": 30, "bottom": 28, "left": 30 },
+    "headerHeight": 160,
+    "footerHeight": 24
+  },
+  "fonts": [
+    { "name": "Times New Roman", "source": "local", "fallback": ["Times", "serif"] },
+    { "name": "Arial", "source": "local", "fallback": ["Helvetica", "sans-serif"] },
+    { "name": "Courier New", "source": "local", "fallback": ["Courier", "monospace"] }
+  ],
+  "styles": {
+    "defaultText": { "font": "Arial", "size": 8.5, "color": "#1f2a35", "lineHeight": 11 }
+  },
+  "dataSample": "examples/bank-statement-data.json",
+  "elements": [
+    {
+      "id": "top_band",
+      "type": "box",
+      "region": "header",
+      "x": 0,
+      "y": 0,
+      "w": 552,
+      "h": 12,
+      "style": { "fill": "#0b5aa8" }
+    },
+    {
+      "id": "sample_tag",
+      "type": "text",
+      "region": "header",
+      "x": 452,
+      "y": 14,
+      "w": 100,
+      "h": 10,
+      "text": "SAMPLE STATEMENT",
+      "style": { "font": "Arial", "size": 7, "align": "right", "color": "#667789" }
+    },
+    {
+      "id": "bank_logo",
+      "type": "image",
+      "region": "header",
+      "x": 10,
+      "y": 18,
+      "w": 100,
+      "h": 38,
+      "src": "{{bank.logoUrl}}",
+      "fit": "contain"
+    },
+    {
+      "id": "bank_address",
+      "type": "text",
+      "region": "header",
+      "x": 116,
+      "y": 22,
+      "w": 174,
+      "h": 38,
+      "text": "{{bank.name}}\n{{bank.address1}}\n{{bank.address2}}",
+      "style": { "font": "Arial", "size": 8.5, "lineHeight": 10 }
+    },
+    {
+      "id": "statement_title",
+      "type": "text",
+      "region": "header",
+      "x": 302,
+      "y": 18,
+      "w": 238,
+      "h": 56,
+      "text": "Your personal chequing\naccount statement",
+      "style": { "font": "Times New Roman", "size": 20, "weight": 700, "align": "right", "lineHeight": 21, "color": "#253342" }
+    },
+    {
+      "id": "statement_period",
+      "type": "text",
+      "region": "header",
+      "x": 302,
+      "y": 76,
+      "w": 238,
+      "h": 12,
+      "text": "{{statement.period}}",
+      "style": { "font": "Arial", "size": 8.5, "align": "right", "color": "#4b5a6a" }
+    },
+    {
+      "id": "customer_ref",
+      "type": "text",
+      "region": "header",
+      "x": 12,
+      "y": 72,
+      "w": 280,
+      "h": 10,
+      "text": "{{statement.reference}}",
+      "style": { "font": "Arial", "size": 6.5, "color": "#6b7786" }
+    },
+    {
+      "id": "customer_block",
+      "type": "text",
+      "region": "header",
+      "x": 12,
+      "y": 88,
+      "w": 250,
+      "h": 66,
+      "text": "{{customer.name}}\n{{customer.address1}}\n{{customer.address2}}\n{{customer.address3}}",
+      "style": { "font": "Arial", "size": 9.5, "lineHeight": 12, "weight": 700 }
+    },
+    {
+      "id": "account_label",
+      "type": "text",
+      "region": "header",
+      "x": 372,
+      "y": 94,
+      "w": 168,
+      "h": 10,
+      "text": "Your account number:",
+      "style": { "font": "Arial", "size": 8.5, "weight": 700, "align": "right" }
+    },
+    {
+      "id": "account_value",
+      "type": "text",
+      "region": "header",
+      "x": 372,
+      "y": 104,
+      "w": 168,
+      "h": 12,
+      "text": "{{account.number}}",
+      "style": { "font": "Courier New", "size": 10, "weight": 700, "align": "right" }
+    },
+    {
+      "id": "contact_label",
+      "type": "text",
+      "region": "header",
+      "x": 372,
+      "y": 122,
+      "w": 168,
+      "h": 10,
+      "text": "How to reach us:",
+      "style": { "font": "Arial", "size": 8.5, "weight": 700, "align": "right" }
+    },
+    {
+      "id": "contact_info",
+      "type": "text",
+      "region": "header",
+      "x": 372,
+      "y": 132,
+      "w": 168,
+      "h": 20,
+      "text": "{{bank.phone}}\n{{bank.web}}",
+      "style": { "font": "Arial", "size": 8.5, "align": "right", "lineHeight": 10 }
+    },
+    {
+      "id": "header_divider",
+      "type": "line",
+      "region": "header",
+      "x": 0,
+      "y": 152,
+      "w": 552,
+      "h": 1,
+      "style": { "borderColor": "#c7ced8", "borderWidth": 1 }
+    },
+    {
+      "id": "summary_top_rule",
+      "type": "line",
+      "region": "body",
+      "x": 0,
+      "y": 0,
+      "w": 340,
+      "h": 1,
+      "style": { "borderColor": "#1f2a35", "borderWidth": 1 }
+    },
+    {
+      "id": "summary_heading",
+      "type": "text",
+      "region": "body",
+      "x": 0,
+      "y": 6,
+      "w": 340,
+      "h": 22,
+      "text": "Summary of your account for this period",
+      "style": { "font": "Times New Roman", "size": 18, "weight": 700, "lineHeight": 18, "color": "#253342" }
+    },
+    {
+      "id": "summary_product",
+      "type": "text",
+      "region": "body",
+      "x": 0,
+      "y": 28,
+      "w": 340,
+      "h": 12,
+      "text": "Signature Plus {{account.number}}",
+      "style": { "font": "Arial", "size": 8.5, "weight": 700 }
+    },
+    {
+      "id": "summary_branch",
+      "type": "text",
+      "region": "body",
+      "x": 0,
+      "y": 40,
+      "w": 340,
+      "h": 14,
+      "text": "{{bank.branch}}",
+      "style": { "font": "Arial", "size": 7.5, "lineHeight": 9, "color": "#5f6f7f" }
+    },
+    {
+      "id": "sum_label_1",
+      "type": "text",
+      "region": "body",
+      "x": 0,
+      "y": 56,
+      "w": 250,
+      "h": 10,
+      "text": "Your opening balance on {{summary.openingDate}}"
+    },
+    {
+      "id": "sum_label_2",
+      "type": "text",
+      "region": "body",
+      "x": 0,
+      "y": 68,
+      "w": 250,
+      "h": 10,
+      "text": "Total deposits into your account"
+    },
+    {
+      "id": "sum_label_3",
+      "type": "text",
+      "region": "body",
+      "x": 0,
+      "y": 80,
+      "w": 250,
+      "h": 10,
+      "text": "Total withdrawals from your account"
+    },
+    {
+      "id": "sum_label_4",
+      "type": "text",
+      "region": "body",
+      "x": 0,
+      "y": 92,
+      "w": 250,
+      "h": 10,
+      "text": "Your closing balance on {{summary.closingDate}}",
+      "style": { "weight": 700 }
+    },
+    {
+      "id": "sum_value_1",
+      "type": "text",
+      "region": "body",
+      "x": 250,
+      "y": 56,
+      "w": 90,
+      "h": 10,
+      "text": "{{summary.openingBalance}}",
+      "style": { "font": "Courier New", "size": 9, "weight": 700, "align": "right" }
+    },
+    {
+      "id": "sum_value_2",
+      "type": "text",
+      "region": "body",
+      "x": 250,
+      "y": 68,
+      "w": 90,
+      "h": 10,
+      "text": "{{summary.totalDeposits}}",
+      "style": { "font": "Courier New", "size": 9, "weight": 700, "align": "right" }
+    },
+    {
+      "id": "sum_value_3",
+      "type": "text",
+      "region": "body",
+      "x": 250,
+      "y": 80,
+      "w": 90,
+      "h": 10,
+      "text": "{{summary.totalWithdrawals}}",
+      "style": { "font": "Courier New", "size": 9, "weight": 700, "align": "right" }
+    },
+    {
+      "id": "sum_value_4",
+      "type": "text",
+      "region": "body",
+      "x": 250,
+      "y": 92,
+      "w": 90,
+      "h": 10,
+      "text": "{{summary.closingBalance}}",
+      "style": { "font": "Courier New", "size": 9, "weight": 700, "align": "right" }
+    },
+    {
+      "id": "message_box",
+      "type": "box",
+      "region": "body",
+      "x": 356,
+      "y": 2,
+      "w": 196,
+      "h": 102,
+      "style": { "borderColor": "#96a5b5", "borderWidth": 1, "fill": "#f9fbff", "borderRadius": 10 }
+    },
+    {
+      "id": "message_title",
+      "type": "text",
+      "region": "body",
+      "x": 366,
+      "y": 10,
+      "w": 176,
+      "h": 12,
+      "text": "Paperless account notices*",
+      "style": { "font": "Times New Roman", "size": 13, "weight": 700, "color": "#2a3b4c" }
+    },
+    {
+      "id": "message_text",
+      "type": "text",
+      "region": "body",
+      "x": 366,
+      "y": 24,
+      "w": 176,
+      "h": 74,
+      "text": "{{statement.note}}",
+      "style": { "font": "Arial", "size": 8, "lineHeight": 10, "fontStyle": "italic", "color": "#48596a" }
+    },
+    {
+      "id": "details_divider_first",
+      "type": "line",
+      "region": "body",
+      "repeat": "first",
+      "x": 0,
+      "y": 112,
+      "w": 552,
+      "h": 1,
+      "style": { "borderColor": "#c7ced8", "borderWidth": 1 }
+    },
+    {
+      "id": "activity_title_first",
+      "type": "text",
+      "region": "body",
+      "repeat": "first",
+      "x": 0,
+      "y": 118,
+      "w": 552,
+      "h": 18,
+      "text": "Details of your account activity",
+      "style": { "font": "Times New Roman", "size": 18, "weight": 700, "color": "#253342" }
+    },
+    {
+      "id": "cont_line",
+      "type": "line",
+      "region": "body",
+      "repeat": "afterFirst",
+      "x": 0,
+      "y": 0,
+      "w": 552,
+      "h": 1,
+      "style": { "borderColor": "#c7ced8", "borderWidth": 1 }
+    },
+    {
+      "id": "cont_title",
+      "type": "text",
+      "region": "body",
+      "repeat": "afterFirst",
+      "x": 0,
+      "y": 4,
+      "w": 552,
+      "h": 14,
+      "text": "Details of your account activity (continued)",
+      "style": { "font": "Times New Roman", "size": 13, "weight": 700, "color": "#253342" }
+    },
+    {
+      "id": "activity_table",
+      "type": "table",
+      "region": "body",
+      "x": 0,
+      "y": 138,
+      "w": 552,
+      "h": 362,
+      "continuationY": 20,
+      "rows": "{{transactions}}",
+      "columns": [
+        { "header": "Date", "field": "date", "w": 56 },
+        { "header": "Description", "field": "description", "w": 238 },
+        { "header": "Withdrawals ($)", "field": "withdrawal", "w": 86, "align": "right", "format": "number", "precision": 2 },
+        { "header": "Deposits ($)", "field": "deposit", "w": 86, "align": "right", "format": "number", "precision": 2 },
+        { "header": "Balance ($)", "field": "balance", "w": 86, "align": "right", "format": "number", "precision": 2 }
+      ],
+      "rowStyle": { "font": "Arial", "size": 8, "lineHeight": 10 },
+      "headerStyle": { "font": "Arial", "size": 8, "weight": 700, "fill": "#ffffff", "color": "#213043" },
+      "pagination": { "mode": "auto", "rowHeight": 13 }
+    },
+    {
+      "id": "footer_rule",
+      "type": "line",
+      "region": "footer",
+      "x": 0,
+      "y": 0,
+      "w": 552,
+      "h": 1,
+      "style": { "borderColor": "#c7ced8", "borderWidth": 1 }
+    },
+    {
+      "id": "footer_note",
+      "type": "text",
+      "region": "footer",
+      "x": 0,
+      "y": 7,
+      "w": 420,
+      "h": 11,
+      "text": "For 24/7 account services visit {{bank.web}}",
+      "style": { "font": "Arial", "size": 7.5, "color": "#5d6978" }
+    },
+    {
+      "id": "footer_page",
+      "type": "text",
+      "region": "footer",
+      "x": 460,
+      "y": 7,
+      "w": 92,
+      "h": 11,
+      "text": "{{page.number}} of {{page.count}}",
+      "style": { "font": "Arial", "size": 7.5, "align": "right", "color": "#5d6978" }
+    }
+  ],
+  "variables": {
+    "currency": "CAD"
+  }
+}

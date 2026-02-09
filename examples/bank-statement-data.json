@@ -1,0 +1,1274 @@
+{
+  "bank": {
+    "logoUrl": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNDAiIGhlaWdodD0iNzAiIHZpZXdCb3g9IjAgMCAyNDAgNzAiPjxyZWN0IHdpZHRoPSIyNDAiIGhlaWdodD0iNzAiIGZpbGw9IiNmZmZmZmYiLz48cmVjdCB4PSI2IiB5PSIxMCIgd2lkdGg9IjQ0IiBoZWlnaHQ9IjUwIiByeD0iMyIgZmlsbD0iIzBiNWFhOCIvPjxwYXRoIGQ9Ik0yOCAxOGw0IDhoOWwtNyA1IDMgOC05LTUtOSA1IDMtOC03LTVoOXoiIGZpbGw9IiNmMmMxMWEiLz48dGV4dCB4PSI2MCIgeT0iMjciIGZvbnQtZmFtaWx5PSJBcmlhbCwgSGVsdmV0aWNhLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjEyIiBmb250LXdlaWdodD0iNzAwIiBmaWxsPSIjMWYyYTM1Ij5NYXBsZSBDcmVzdCBCYW5rPC90ZXh0Pjx0ZXh0IHg9IjYwIiB5PSI0MyIgZm9udC1mYW1pbHk9IkFyaWFsLCBIZWx2ZXRpY2EsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTAiIGZpbGw9IiMzZDRmNjIiPlAuTy4gQm94IDQwNDcgVGVybWluYWwgQTwvdGV4dD48dGV4dCB4PSI2MCIgeT0iNTciIGZvbnQtZmFtaWx5PSJBcmlhbCwgSGVsdmV0aWNhLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjEwIiBmaWxsPSIjM2Q0ZjYyIj5Ub3JvbnRvLCBPTiBNNVcgMUw1PC90ZXh0Pjwvc3ZnPg==",
+    "name": "Maple Crest Bank",
+    "address1": "P.O. Box 4047 Terminal A",
+    "address2": "Toronto, ON M5W 1L5",
+    "branch": "5879 ROULE JEAN-BAPTISTE, MONTREAL, QC H3C 3B8",
+    "phone": "1-800-555-0184",
+    "web": "www.maplecrestbank.example.com/deposits"
+  },
+  "customer": {
+    "name": "SUSAN SAMPLE",
+    "address1": "1234 ANY STREET, SUITE 5678",
+    "address2": "ADDRESS LINE #2",
+    "address3": "CITY, PROVINCE  A1B 2C3"
+  },
+  "account": {
+    "number": "02782-5094431"
+  },
+  "statement": {
+    "period": "From March 12, 2025 to April 12, 2025",
+    "reference": "MCPB/AA001-123456789-01-000001-1-0001",
+    "note": "Dear customer, this sample layout demonstrates a full monthly statement with multi-page activity details, balance progression, and recurring section formatting. Contact support if any posted transaction appears unfamiliar."
+  },
+  "summary": {
+    "openingDate": "March 12, 2025",
+    "closingDate": "April 12, 2025",
+    "openingBalance": "4,247.14",
+    "totalDeposits": "4,541.33",
+    "totalWithdrawals": "6,715.75",
+    "closingBalance": "2,072.72"
+  },
+  "transactions": [
+    {
+      "date": "12 Mar",
+      "description": "Interac purchase - 1361 - North Grocers",
+      "withdrawal": 5,
+      "deposit": null,
+      "balance": 4242.14
+    },
+    {
+      "date": "13 Mar",
+      "description": "ATM withdrawal",
+      "withdrawal": 12.33,
+      "deposit": null,
+      "balance": 4229.81
+    },
+    {
+      "date": "14 Mar",
+      "description": "Online transfer in",
+      "withdrawal": null,
+      "deposit": 19.66,
+      "balance": 4249.47
+    },
+    {
+      "date": "15 Mar",
+      "description": "Payroll deposit",
+      "withdrawal": null,
+      "deposit": 26.99,
+      "balance": 4276.46
+    },
+    {
+      "date": "16 Mar",
+      "description": "Interac purchase - 1361 - Fuel Centre",
+      "withdrawal": 34.32,
+      "deposit": null,
+      "balance": 4242.14
+    },
+    {
+      "date": "17 Mar",
+      "description": "Cheque #301",
+      "withdrawal": 41.65,
+      "deposit": null,
+      "balance": 4200.49
+    },
+    {
+      "date": "18 Mar",
+      "description": "Interest paid",
+      "withdrawal": null,
+      "deposit": 48.98,
+      "balance": 4249.47
+    },
+    {
+      "date": "19 Mar",
+      "description": "Interac purchase - 1361 - Highland Farms",
+      "withdrawal": 56.31,
+      "deposit": null,
+      "balance": 4193.16
+    },
+    {
+      "date": "20 Mar",
+      "description": "Debit purchase - Pharmacy",
+      "withdrawal": 63.64,
+      "deposit": null,
+      "balance": 4129.52
+    },
+    {
+      "date": "21 Mar",
+      "description": "Electronic funds transfer",
+      "withdrawal": null,
+      "deposit": 70.97,
+      "balance": 4200.49
+    },
+    {
+      "date": "22 Mar",
+      "description": "Interac purchase - 1361 - North Grocers",
+      "withdrawal": 78.3,
+      "deposit": null,
+      "balance": 4122.19
+    },
+    {
+      "date": "23 Mar",
+      "description": "ATM withdrawal",
+      "withdrawal": 85.63,
+      "deposit": null,
+      "balance": 4036.56
+    },
+    {
+      "date": "24 Mar",
+      "description": "Online transfer in",
+      "withdrawal": null,
+      "deposit": 92.96,
+      "balance": 4129.52
+    },
+    {
+      "date": "25 Mar",
+      "description": "Payroll deposit",
+      "withdrawal": null,
+      "deposit": 100.29,
+      "balance": 4229.81
+    },
+    {
+      "date": "26 Mar",
+      "description": "Interac purchase - 1361 - Fuel Centre",
+      "withdrawal": 107.62,
+      "deposit": null,
+      "balance": 4122.19
+    },
+    {
+      "date": "27 Mar",
+      "description": "Cheque #301",
+      "withdrawal": 114.95,
+      "deposit": null,
+      "balance": 4007.24
+    },
+    {
+      "date": "28 Mar",
+      "description": "Interest paid",
+      "withdrawal": null,
+      "deposit": 122.28,
+      "balance": 4129.52
+    },
+    {
+      "date": "29 Mar",
+      "description": "Interac purchase - 1361 - Highland Farms",
+      "withdrawal": 9.61,
+      "deposit": null,
+      "balance": 4119.91
+    },
+    {
+      "date": "30 Mar",
+      "description": "Debit purchase - Pharmacy",
+      "withdrawal": 16.94,
+      "deposit": null,
+      "balance": 4102.97
+    },
+    {
+      "date": "31 Mar",
+      "description": "Electronic funds transfer",
+      "withdrawal": null,
+      "deposit": 24.27,
+      "balance": 4127.24
+    },
+    {
+      "date": "01 Apr",
+      "description": "Interac purchase - 1361 - North Grocers",
+      "withdrawal": 31.6,
+      "deposit": null,
+      "balance": 4095.64
+    },
+    {
+      "date": "02 Apr",
+      "description": "ATM withdrawal",
+      "withdrawal": 38.93,
+      "deposit": null,
+      "balance": 4056.71
+    },
+    {
+      "date": "03 Apr",
+      "description": "Online transfer in",
+      "withdrawal": null,
+      "deposit": 46.26,
+      "balance": 4102.97
+    },
+    {
+      "date": "04 Apr",
+      "description": "Payroll deposit",
+      "withdrawal": null,
+      "deposit": 53.59,
+      "balance": 4156.56
+    },
+    {
+      "date": "05 Apr",
+      "description": "Interac purchase - 1361 - Fuel Centre",
+      "withdrawal": 60.92,
+      "deposit": null,
+      "balance": 4095.64
+    },
+    {
+      "date": "06 Apr",
+      "description": "Cheque #301",
+      "withdrawal": 68.25,
+      "deposit": null,
+      "balance": 4027.39
+    },
+    {
+      "date": "07 Apr",
+      "description": "Interest paid",
+      "withdrawal": null,
+      "deposit": 75.58,
+      "balance": 4102.97
+    },
+    {
+      "date": "08 Apr",
+      "description": "Interac purchase - 1361 - Highland Farms",
+      "withdrawal": 82.91,
+      "deposit": null,
+      "balance": 4020.06
+    },
+    {
+      "date": "09 Apr",
+      "description": "Debit purchase - Pharmacy",
+      "withdrawal": 90.24,
+      "deposit": null,
+      "balance": 3929.82
+    },
+    {
+      "date": "10 Apr",
+      "description": "Electronic funds transfer",
+      "withdrawal": null,
+      "deposit": 97.57,
+      "balance": 4027.39
+    },
+    {
+      "date": "11 Apr",
+      "description": "Interac purchase - 1361 - North Grocers",
+      "withdrawal": 104.9,
+      "deposit": null,
+      "balance": 3922.49
+    },
+    {
+      "date": "12 Apr",
+      "description": "ATM withdrawal",
+      "withdrawal": 112.23,
+      "deposit": null,
+      "balance": 3810.26
+    },
+    {
+      "date": "13 Apr",
+      "description": "Online transfer in",
+      "withdrawal": null,
+      "deposit": 119.56,
+      "balance": 3929.82
+    },
+    {
+      "date": "14 Apr",
+      "description": "Payroll deposit",
+      "withdrawal": null,
+      "deposit": 6.89,
+      "balance": 3936.71
+    },
+    {
+      "date": "15 Apr",
+      "description": "Interac purchase - 1361 - Fuel Centre",
+      "withdrawal": 14.22,
+      "deposit": null,
+      "balance": 3922.49
+    },
+    {
+      "date": "16 Apr",
+      "description": "Cheque #301",
+      "withdrawal": 21.55,
+      "deposit": null,
+      "balance": 3900.94
+    },
+    {
+      "date": "17 Apr",
+      "description": "Interest paid",
+      "withdrawal": null,
+      "deposit": 28.88,
+      "balance": 3929.82
+    },
+    {
+      "date": "18 Apr",
+      "description": "Interac purchase - 1361 - Highland Farms",
+      "withdrawal": 36.21,
+      "deposit": null,
+      "balance": 3893.61
+    },
+    {
+      "date": "19 Apr",
+      "description": "Debit purchase - Pharmacy",
+      "withdrawal": 43.54,
+      "deposit": null,
+      "balance": 3850.07
+    },
+    {
+      "date": "20 Apr",
+      "description": "Electronic funds transfer",
+      "withdrawal": null,
+      "deposit": 50.87,
+      "balance": 3900.94
+    },
+    {
+      "date": "21 Apr",
+      "description": "Interac purchase - 1361 - North Grocers",
+      "withdrawal": 58.2,
+      "deposit": null,
+      "balance": 3842.74
+    },
+    {
+      "date": "22 Apr",
+      "description": "ATM withdrawal",
+      "withdrawal": 65.53,
+      "deposit": null,
+      "balance": 3777.21
+    },
+    {
+      "date": "23 Apr",
+      "description": "Online transfer in",
+      "withdrawal": null,
+      "deposit": 72.86,
+      "balance": 3850.07
+    },
+    {
+      "date": "24 Apr",
+      "description": "Payroll deposit",
+      "withdrawal": null,
+      "deposit": 80.19,
+      "balance": 3930.26
+    },
+    {
+      "date": "25 Apr",
+      "description": "Interac purchase - 1361 - Fuel Centre",
+      "withdrawal": 87.52,
+      "deposit": null,
+      "balance": 3842.74
+    },
+    {
+      "date": "26 Apr",
+      "description": "Cheque #301",
+      "withdrawal": 94.85,
+      "deposit": null,
+      "balance": 3747.89
+    },
+    {
+      "date": "27 Apr",
+      "description": "Interest paid",
+      "withdrawal": null,
+      "deposit": 102.18,
+      "balance": 3850.07
+    },
+    {
+      "date": "28 Apr",
+      "description": "Interac purchase - 1361 - Highland Farms",
+      "withdrawal": 109.51,
+      "deposit": null,
+      "balance": 3740.56
+    },
+    {
+      "date": "29 Apr",
+      "description": "Debit purchase - Pharmacy",
+      "withdrawal": 116.84,
+      "deposit": null,
+      "balance": 3623.72
+    },
+    {
+      "date": "30 Apr",
+      "description": "Electronic funds transfer",
+      "withdrawal": null,
+      "deposit": 124.17,
+      "balance": 3747.89
+    },
+    {
+      "date": "01 May",
+      "description": "Interac purchase - 1361 - North Grocers",
+      "withdrawal": 11.5,
+      "deposit": null,
+      "balance": 3736.39
+    },
+    {
+      "date": "02 May",
+      "description": "ATM withdrawal",
+      "withdrawal": 18.83,
+      "deposit": null,
+      "balance": 3717.56
+    },
+    {
+      "date": "03 May",
+      "description": "Online transfer in",
+      "withdrawal": null,
+      "deposit": 26.16,
+      "balance": 3743.72
+    },
+    {
+      "date": "04 May",
+      "description": "Payroll deposit",
+      "withdrawal": null,
+      "deposit": 33.49,
+      "balance": 3777.21
+    },
+    {
+      "date": "05 May",
+      "description": "Interac purchase - 1361 - Fuel Centre",
+      "withdrawal": 40.82,
+      "deposit": null,
+      "balance": 3736.39
+    },
+    {
+      "date": "06 May",
+      "description": "Cheque #301",
+      "withdrawal": 48.15,
+      "deposit": null,
+      "balance": 3688.24
+    },
+    {
+      "date": "07 May",
+      "description": "Interest paid",
+      "withdrawal": null,
+      "deposit": 55.48,
+      "balance": 3743.72
+    },
+    {
+      "date": "08 May",
+      "description": "Interac purchase - 1361 - Highland Farms",
+      "withdrawal": 62.81,
+      "deposit": null,
+      "balance": 3680.91
+    },
+    {
+      "date": "09 May",
+      "description": "Debit purchase - Pharmacy",
+      "withdrawal": 70.14,
+      "deposit": null,
+      "balance": 3610.77
+    },
+    {
+      "date": "10 May",
+      "description": "Electronic funds transfer",
+      "withdrawal": null,
+      "deposit": 77.47,
+      "balance": 3688.24
+    },
+    {
+      "date": "11 May",
+      "description": "Interac purchase - 1361 - North Grocers",
+      "withdrawal": 84.8,
+      "deposit": null,
+      "balance": 3603.44
+    },
+    {
+      "date": "12 May",
+      "description": "ATM withdrawal",
+      "withdrawal": 92.13,
+      "deposit": null,
+      "balance": 3511.31
+    },
+    {
+      "date": "13 May",
+      "description": "Online transfer in",
+      "withdrawal": null,
+      "deposit": 99.46,
+      "balance": 3610.77
+    },
+    {
+      "date": "14 May",
+      "description": "Payroll deposit",
+      "withdrawal": null,
+      "deposit": 106.79,
+      "balance": 3717.56
+    },
+    {
+      "date": "15 May",
+      "description": "Interac purchase - 1361 - Fuel Centre",
+      "withdrawal": 114.12,
+      "deposit": null,
+      "balance": 3603.44
+    },
+    {
+      "date": "16 May",
+      "description": "Cheque #301",
+      "withdrawal": 121.45,
+      "deposit": null,
+      "balance": 3481.99
+    },
+    {
+      "date": "17 May",
+      "description": "Interest paid",
+      "withdrawal": null,
+      "deposit": 8.78,
+      "balance": 3490.77
+    },
+    {
+      "date": "18 May",
+      "description": "Interac purchase - 1361 - Highland Farms",
+      "withdrawal": 16.11,
+      "deposit": null,
+      "balance": 3474.66
+    },
+    {
+      "date": "19 May",
+      "description": "Debit purchase - Pharmacy",
+      "withdrawal": 23.44,
+      "deposit": null,
+      "balance": 3451.22
+    },
+    {
+      "date": "20 May",
+      "description": "Electronic funds transfer",
+      "withdrawal": null,
+      "deposit": 30.77,
+      "balance": 3481.99
+    },
+    {
+      "date": "21 May",
+      "description": "Interac purchase - 1361 - North Grocers",
+      "withdrawal": 38.1,
+      "deposit": null,
+      "balance": 3443.89
+    },
+    {
+      "date": "22 May",
+      "description": "ATM withdrawal",
+      "withdrawal": 45.43,
+      "deposit": null,
+      "balance": 3398.46
+    },
+    {
+      "date": "23 May",
+      "description": "Online transfer in",
+      "withdrawal": null,
+      "deposit": 52.76,
+      "balance": 3451.22
+    },
+    {
+      "date": "24 May",
+      "description": "Payroll deposit",
+      "withdrawal": null,
+      "deposit": 60.09,
+      "balance": 3511.31
+    },
+    {
+      "date": "25 May",
+      "description": "Interac purchase - 1361 - Fuel Centre",
+      "withdrawal": 67.42,
+      "deposit": null,
+      "balance": 3443.89
+    },
+    {
+      "date": "26 May",
+      "description": "Cheque #301",
+      "withdrawal": 74.75,
+      "deposit": null,
+      "balance": 3369.14
+    },
+    {
+      "date": "27 May",
+      "description": "Interest paid",
+      "withdrawal": null,
+      "deposit": 82.08,
+      "balance": 3451.22
+    },
+    {
+      "date": "28 May",
+      "description": "Interac purchase - 1361 - Highland Farms",
+      "withdrawal": 89.41,
+      "deposit": null,
+      "balance": 3361.81
+    },
+    {
+      "date": "29 May",
+      "description": "Debit purchase - Pharmacy",
+      "withdrawal": 96.74,
+      "deposit": null,
+      "balance": 3265.07
+    },
+    {
+      "date": "30 May",
+      "description": "Electronic funds transfer",
+      "withdrawal": null,
+      "deposit": 104.07,
+      "balance": 3369.14
+    },
+    {
+      "date": "31 May",
+      "description": "Interac purchase - 1361 - North Grocers",
+      "withdrawal": 111.4,
+      "deposit": null,
+      "balance": 3257.74
+    },
+    {
+      "date": "01 Jun",
+      "description": "ATM withdrawal",
+      "withdrawal": 118.73,
+      "deposit": null,
+      "balance": 3139.01
+    },
+    {
+      "date": "02 Jun",
+      "description": "Online transfer in",
+      "withdrawal": null,
+      "deposit": 6.06,
+      "balance": 3145.07
+    },
+    {
+      "date": "03 Jun",
+      "description": "Payroll deposit",
+      "withdrawal": null,
+      "deposit": 13.39,
+      "balance": 3158.46
+    },
+    {
+      "date": "04 Jun",
+      "description": "Interac purchase - 1361 - Fuel Centre",
+      "withdrawal": 20.72,
+      "deposit": null,
+      "balance": 3137.74
+    },
+    {
+      "date": "05 Jun",
+      "description": "Cheque #301",
+      "withdrawal": 28.05,
+      "deposit": null,
+      "balance": 3109.69
+    },
+    {
+      "date": "06 Jun",
+      "description": "Interest paid",
+      "withdrawal": null,
+      "deposit": 35.38,
+      "balance": 3145.07
+    },
+    {
+      "date": "07 Jun",
+      "description": "Interac purchase - 1361 - Highland Farms",
+      "withdrawal": 42.71,
+      "deposit": null,
+      "balance": 3102.36
+    },
+    {
+      "date": "08 Jun",
+      "description": "Debit purchase - Pharmacy",
+      "withdrawal": 50.04,
+      "deposit": null,
+      "balance": 3052.32
+    },
+    {
+      "date": "09 Jun",
+      "description": "Electronic funds transfer",
+      "withdrawal": null,
+      "deposit": 57.37,
+      "balance": 3109.69
+    },
+    {
+      "date": "10 Jun",
+      "description": "Interac purchase - 1361 - North Grocers",
+      "withdrawal": 64.7,
+      "deposit": null,
+      "balance": 3044.99
+    },
+    {
+      "date": "11 Jun",
+      "description": "ATM withdrawal",
+      "withdrawal": 72.03,
+      "deposit": null,
+      "balance": 2972.96
+    },
+    {
+      "date": "12 Jun",
+      "description": "Online transfer in",
+      "withdrawal": null,
+      "deposit": 79.36,
+      "balance": 3052.32
+    },
+    {
+      "date": "13 Jun",
+      "description": "Payroll deposit",
+      "withdrawal": null,
+      "deposit": 86.69,
+      "balance": 3139.01
+    },
+    {
+      "date": "14 Jun",
+      "description": "Interac purchase - 1361 - Fuel Centre",
+      "withdrawal": 94.02,
+      "deposit": null,
+      "balance": 3044.99
+    },
+    {
+      "date": "15 Jun",
+      "description": "Cheque #301",
+      "withdrawal": 101.35,
+      "deposit": null,
+      "balance": 2943.64
+    },
+    {
+      "date": "16 Jun",
+      "description": "Interest paid",
+      "withdrawal": null,
+      "deposit": 108.68,
+      "balance": 3052.32
+    },
+    {
+      "date": "17 Jun",
+      "description": "Interac purchase - 1361 - Highland Farms",
+      "withdrawal": 116.01,
+      "deposit": null,
+      "balance": 2936.31
+    },
+    {
+      "date": "18 Jun",
+      "description": "Debit purchase - Pharmacy",
+      "withdrawal": 123.34,
+      "deposit": null,
+      "balance": 2812.97
+    },
+    {
+      "date": "19 Jun",
+      "description": "Electronic funds transfer",
+      "withdrawal": null,
+      "deposit": 10.67,
+      "balance": 2823.64
+    },
+    {
+      "date": "20 Jun",
+      "description": "Interac purchase - 1361 - North Grocers",
+      "withdrawal": 18,
+      "deposit": null,
+      "balance": 2805.64
+    },
+    {
+      "date": "21 Jun",
+      "description": "ATM withdrawal",
+      "withdrawal": 25.33,
+      "deposit": null,
+      "balance": 2780.31
+    },
+    {
+      "date": "22 Jun",
+      "description": "Online transfer in",
+      "withdrawal": null,
+      "deposit": 32.66,
+      "balance": 2812.97
+    },
+    {
+      "date": "23 Jun",
+      "description": "Payroll deposit",
+      "withdrawal": null,
+      "deposit": 39.99,
+      "balance": 2852.96
+    },
+    {
+      "date": "24 Jun",
+      "description": "Interac purchase - 1361 - Fuel Centre",
+      "withdrawal": 47.32,
+      "deposit": null,
+      "balance": 2805.64
+    },
+    {
+      "date": "25 Jun",
+      "description": "Cheque #301",
+      "withdrawal": 54.65,
+      "deposit": null,
+      "balance": 2750.99
+    },
+    {
+      "date": "26 Jun",
+      "description": "Interest paid",
+      "withdrawal": null,
+      "deposit": 61.98,
+      "balance": 2812.97
+    },
+    {
+      "date": "27 Jun",
+      "description": "Interac purchase - 1361 - Highland Farms",
+      "withdrawal": 69.31,
+      "deposit": null,
+      "balance": 2743.66
+    },
+    {
+      "date": "28 Jun",
+      "description": "Debit purchase - Pharmacy",
+      "withdrawal": 76.64,
+      "deposit": null,
+      "balance": 2667.02
+    },
+    {
+      "date": "29 Jun",
+      "description": "Electronic funds transfer",
+      "withdrawal": null,
+      "deposit": 83.97,
+      "balance": 2750.99
+    },
+    {
+      "date": "30 Jun",
+      "description": "Interac purchase - 1361 - North Grocers",
+      "withdrawal": 91.3,
+      "deposit": null,
+      "balance": 2659.69
+    },
+    {
+      "date": "01 Jul",
+      "description": "ATM withdrawal",
+      "withdrawal": 98.63,
+      "deposit": null,
+      "balance": 2561.06
+    },
+    {
+      "date": "02 Jul",
+      "description": "Online transfer in",
+      "withdrawal": null,
+      "deposit": 105.96,
+      "balance": 2667.02
+    },
+    {
+      "date": "03 Jul",
+      "description": "Payroll deposit",
+      "withdrawal": null,
+      "deposit": 113.29,
+      "balance": 2780.31
+    },
+    {
+      "date": "04 Jul",
+      "description": "Interac purchase - 1361 - Fuel Centre",
+      "withdrawal": 120.62,
+      "deposit": null,
+      "balance": 2659.69
+    },
+    {
+      "date": "05 Jul",
+      "description": "Cheque #301",
+      "withdrawal": 7.95,
+      "deposit": null,
+      "balance": 2651.74
+    },
+    {
+      "date": "06 Jul",
+      "description": "Interest paid",
+      "withdrawal": null,
+      "deposit": 15.28,
+      "balance": 2667.02
+    },
+    {
+      "date": "07 Jul",
+      "description": "Interac purchase - 1361 - Highland Farms",
+      "withdrawal": 22.61,
+      "deposit": null,
+      "balance": 2644.41
+    },
+    {
+      "date": "08 Jul",
+      "description": "Debit purchase - Pharmacy",
+      "withdrawal": 29.94,
+      "deposit": null,
+      "balance": 2614.47
+    },
+    {
+      "date": "09 Jul",
+      "description": "Electronic funds transfer",
+      "withdrawal": null,
+      "deposit": 37.27,
+      "balance": 2651.74
+    },
+    {
+      "date": "10 Jul",
+      "description": "Interac purchase - 1361 - North Grocers",
+      "withdrawal": 44.6,
+      "deposit": null,
+      "balance": 2607.14
+    },
+    {
+      "date": "11 Jul",
+      "description": "ATM withdrawal",
+      "withdrawal": 51.93,
+      "deposit": null,
+      "balance": 2555.21
+    },
+    {
+      "date": "12 Jul",
+      "description": "Online transfer in",
+      "withdrawal": null,
+      "deposit": 59.26,
+      "balance": 2614.47
+    },
+    {
+      "date": "13 Jul",
+      "description": "Payroll deposit",
+      "withdrawal": null,
+      "deposit": 66.59,
+      "balance": 2681.06
+    },
+    {
+      "date": "14 Jul",
+      "description": "Interac purchase - 1361 - Fuel Centre",
+      "withdrawal": 73.92,
+      "deposit": null,
+      "balance": 2607.14
+    },
+    {
+      "date": "15 Jul",
+      "description": "Cheque #301",
+      "withdrawal": 81.25,
+      "deposit": null,
+      "balance": 2525.89
+    },
+    {
+      "date": "16 Jul",
+      "description": "Interest paid",
+      "withdrawal": null,
+      "deposit": 88.58,
+      "balance": 2614.47
+    },
+    {
+      "date": "17 Jul",
+      "description": "Interac purchase - 1361 - Highland Farms",
+      "withdrawal": 95.91,
+      "deposit": null,
+      "balance": 2518.56
+    },
+    {
+      "date": "18 Jul",
+      "description": "Debit purchase - Pharmacy",
+      "withdrawal": 103.24,
+      "deposit": null,
+      "balance": 2415.32
+    },
+    {
+      "date": "19 Jul",
+      "description": "Electronic funds transfer",
+      "withdrawal": null,
+      "deposit": 110.57,
+      "balance": 2525.89
+    },
+    {
+      "date": "20 Jul",
+      "description": "Interac purchase - 1361 - North Grocers",
+      "withdrawal": 117.9,
+      "deposit": null,
+      "balance": 2407.99
+    },
+    {
+      "date": "21 Jul",
+      "description": "ATM withdrawal",
+      "withdrawal": 5.23,
+      "deposit": null,
+      "balance": 2402.76
+    },
+    {
+      "date": "22 Jul",
+      "description": "Online transfer in",
+      "withdrawal": null,
+      "deposit": 12.56,
+      "balance": 2415.32
+    },
+    {
+      "date": "23 Jul",
+      "description": "Payroll deposit",
+      "withdrawal": null,
+      "deposit": 19.89,
+      "balance": 2435.21
+    },
+    {
+      "date": "24 Jul",
+      "description": "Interac purchase - 1361 - Fuel Centre",
+      "withdrawal": 27.22,
+      "deposit": null,
+      "balance": 2407.99
+    },
+    {
+      "date": "25 Jul",
+      "description": "Cheque #301",
+      "withdrawal": 34.55,
+      "deposit": null,
+      "balance": 2373.44
+    },
+    {
+      "date": "26 Jul",
+      "description": "Interest paid",
+      "withdrawal": null,
+      "deposit": 41.88,
+      "balance": 2415.32
+    },
+    {
+      "date": "27 Jul",
+      "description": "Interac purchase - 1361 - Highland Farms",
+      "withdrawal": 49.21,
+      "deposit": null,
+      "balance": 2366.11
+    },
+    {
+      "date": "28 Jul",
+      "description": "Debit purchase - Pharmacy",
+      "withdrawal": 56.54,
+      "deposit": null,
+      "balance": 2309.57
+    },
+    {
+      "date": "29 Jul",
+      "description": "Electronic funds transfer",
+      "withdrawal": null,
+      "deposit": 63.87,
+      "balance": 2373.44
+    },
+    {
+      "date": "30 Jul",
+      "description": "Interac purchase - 1361 - North Grocers",
+      "withdrawal": 71.2,
+      "deposit": null,
+      "balance": 2302.24
+    },
+    {
+      "date": "31 Jul",
+      "description": "ATM withdrawal",
+      "withdrawal": 78.53,
+      "deposit": null,
+      "balance": 2223.71
+    },
+    {
+      "date": "01 Aug",
+      "description": "Online transfer in",
+      "withdrawal": null,
+      "deposit": 85.86,
+      "balance": 2309.57
+    },
+    {
+      "date": "02 Aug",
+      "description": "Payroll deposit",
+      "withdrawal": null,
+      "deposit": 93.19,
+      "balance": 2402.76
+    },
+    {
+      "date": "03 Aug",
+      "description": "Interac purchase - 1361 - Fuel Centre",
+      "withdrawal": 100.52,
+      "deposit": null,
+      "balance": 2302.24
+    },
+    {
+      "date": "04 Aug",
+      "description": "Cheque #301",
+      "withdrawal": 107.85,
+      "deposit": null,
+      "balance": 2194.39
+    },
+    {
+      "date": "05 Aug",
+      "description": "Interest paid",
+      "withdrawal": null,
+      "deposit": 115.18,
+      "balance": 2309.57
+    },
+    {
+      "date": "06 Aug",
+      "description": "Interac purchase - 1361 - Highland Farms",
+      "withdrawal": 122.51,
+      "deposit": null,
+      "balance": 2187.06
+    },
+    {
+      "date": "07 Aug",
+      "description": "Debit purchase - Pharmacy",
+      "withdrawal": 9.84,
+      "deposit": null,
+      "balance": 2177.22
+    },
+    {
+      "date": "08 Aug",
+      "description": "Electronic funds transfer",
+      "withdrawal": null,
+      "deposit": 17.17,
+      "balance": 2194.39
+    },
+    {
+      "date": "09 Aug",
+      "description": "Interac purchase - 1361 - North Grocers",
+      "withdrawal": 24.5,
+      "deposit": null,
+      "balance": 2169.89
+    },
+    {
+      "date": "10 Aug",
+      "description": "ATM withdrawal",
+      "withdrawal": 31.83,
+      "deposit": null,
+      "balance": 2138.06
+    },
+    {
+      "date": "11 Aug",
+      "description": "Online transfer in",
+      "withdrawal": null,
+      "deposit": 39.16,
+      "balance": 2177.22
+    },
+    {
+      "date": "12 Aug",
+      "description": "Payroll deposit",
+      "withdrawal": null,
+      "deposit": 46.49,
+      "balance": 2223.71
+    },
+    {
+      "date": "13 Aug",
+      "description": "Interac purchase - 1361 - Fuel Centre",
+      "withdrawal": 53.82,
+      "deposit": null,
+      "balance": 2169.89
+    },
+    {
+      "date": "14 Aug",
+      "description": "Cheque #301",
+      "withdrawal": 61.15,
+      "deposit": null,
+      "balance": 2108.74
+    },
+    {
+      "date": "15 Aug",
+      "description": "Interest paid",
+      "withdrawal": null,
+      "deposit": 68.48,
+      "balance": 2177.22
+    },
+    {
+      "date": "16 Aug",
+      "description": "Interac purchase - 1361 - Highland Farms",
+      "withdrawal": 75.81,
+      "deposit": null,
+      "balance": 2101.41
+    },
+    {
+      "date": "17 Aug",
+      "description": "Debit purchase - Pharmacy",
+      "withdrawal": 83.14,
+      "deposit": null,
+      "balance": 2018.27
+    },
+    {
+      "date": "18 Aug",
+      "description": "Electronic funds transfer",
+      "withdrawal": null,
+      "deposit": 90.47,
+      "balance": 2108.74
+    },
+    {
+      "date": "19 Aug",
+      "description": "Interac purchase - 1361 - North Grocers",
+      "withdrawal": 97.8,
+      "deposit": null,
+      "balance": 2010.94
+    },
+    {
+      "date": "20 Aug",
+      "description": "ATM withdrawal",
+      "withdrawal": 105.13,
+      "deposit": null,
+      "balance": 1905.81
+    },
+    {
+      "date": "21 Aug",
+      "description": "Online transfer in",
+      "withdrawal": null,
+      "deposit": 112.46,
+      "balance": 2018.27
+    },
+    {
+      "date": "22 Aug",
+      "description": "Payroll deposit",
+      "withdrawal": null,
+      "deposit": 119.79,
+      "balance": 2138.06
+    },
+    {
+      "date": "23 Aug",
+      "description": "Interac purchase - 1361 - Fuel Centre",
+      "withdrawal": 7.12,
+      "deposit": null,
+      "balance": 2130.94
+    },
+    {
+      "date": "24 Aug",
+      "description": "Cheque #301",
+      "withdrawal": 14.45,
+      "deposit": null,
+      "balance": 2116.49
+    },
+    {
+      "date": "25 Aug",
+      "description": "Interest paid",
+      "withdrawal": null,
+      "deposit": 21.78,
+      "balance": 2138.27
+    },
+    {
+      "date": "26 Aug",
+      "description": "Interac purchase - 1361 - Highland Farms",
+      "withdrawal": 29.11,
+      "deposit": null,
+      "balance": 2109.16
+    },
+    {
+      "date": "27 Aug",
+      "description": "Debit purchase - Pharmacy",
+      "withdrawal": 36.44,
+      "deposit": null,
+      "balance": 2072.72
+    },
+    {
+      "date": "28 Aug",
+      "description": "Electronic funds transfer",
+      "withdrawal": null,
+      "deposit": 43.77,
+      "balance": 2116.49
+    },
+    {
+      "date": "29 Aug",
+      "description": "Interac purchase - 1361 - North Grocers",
+      "withdrawal": 51.1,
+      "deposit": null,
+      "balance": 2065.39
+    },
+    {
+      "date": "30 Aug",
+      "description": "ATM withdrawal",
+      "withdrawal": 58.43,
+      "deposit": null,
+      "balance": 2006.96
+    },
+    {
+      "date": "31 Aug",
+      "description": "Online transfer in",
+      "withdrawal": null,
+      "deposit": 65.76,
+      "balance": 2072.72
+    },
+    {
+      "date": "01 Sep",
+      "description": "Payroll deposit",
+      "withdrawal": null,
+      "deposit": 73.09,
+      "balance": 2145.81
+    },
+    {
+      "date": "02 Sep",
+      "description": "Interac purchase - 1361 - Fuel Centre",
+      "withdrawal": 80.42,
+      "deposit": null,
+      "balance": 2065.39
+    },
+    {
+      "date": "03 Sep",
+      "description": "Cheque #301",
+      "withdrawal": 87.75,
+      "deposit": null,
+      "balance": 1977.64
+    },
+    {
+      "date": "04 Sep",
+      "description": "Interest paid",
+      "withdrawal": null,
+      "deposit": 95.08,
+      "balance": 2072.72
+    }
+  ]
+}
