@@ -2,12 +2,27 @@
 
 Template-driven document designer and renderer for enterprise-style communications.
 
+[![Status](https://img.shields.io/badge/status-alpha-orange)](https://github.com/snehalsurti12/smartdocs)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
+[![CI](https://github.com/snehalsurti12/smartdocs/actions/workflows/ci.yml/badge.svg)](https://github.com/snehalsurti12/smartdocs/actions/workflows/ci.yml)
+[![Node](https://img.shields.io/badge/node-%3E%3D18-339933)](https://nodejs.org/)
+
 `SmartDocs` lets you:
 - design templates with drag/drop components
 - bind template fields to structured JSON payloads
 - generate print-ready HTML and PDF
 - build multi-page packs with repeated header/footer logic
 - validate templates against a strict schema
+
+## Screenshots
+
+SmartComm-style cover + terms + EFL sample:
+
+![SmartComm style sample](docs/screenshots/smartcomm-cover-render.png)
+
+Bank statement sample:
+
+![Bank statement sample](docs/screenshots/bank-statement-render.png)
 
 ## Status
 
@@ -42,6 +57,12 @@ npm run editor
 ```
 
 Open `http://localhost:5177`.
+
+Try a production-like starter:
+
+1. Click `Load Starter`
+2. Choose `SmartComm Cover Package`
+3. Click `Preview PDF`
 
 ## CLI Usage
 
@@ -93,6 +114,7 @@ npm run check
 
 See `docs/ROADMAP.md` for planned milestones.
 Launch checklist is in `docs/OPEN_SOURCE_LAUNCH.md`.
+Launch post templates are in `docs/LAUNCH_POSTS.md`.
 
 ## Contributing
 
