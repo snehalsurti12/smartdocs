@@ -1,0 +1,28 @@
+title: "[Q&A] "
+labels:
+  - question
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Ask usage or implementation questions here.
+        For confirmed bugs, open an Issue with reproduction steps.
+  - type: textarea
+    id: question
+    attributes:
+      label: Question
+      placeholder: "How do I ... ?"
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: Project setup, template type, and what you already tried.
+      placeholder: "I am using ... and tried ..."
+  - type: textarea
+    id: snippets
+    attributes:
+      label: Relevant snippets
+      description: Optional JSON/template/data snippets.
+      render: shell

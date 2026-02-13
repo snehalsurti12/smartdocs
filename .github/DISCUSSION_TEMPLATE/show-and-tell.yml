@@ -1,0 +1,26 @@
+title: "[Show and Tell] "
+labels:
+  - showcase
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Share what you built with SmartDocs.
+        Include screenshots or output PDFs when possible.
+  - type: input
+    id: project
+    attributes:
+      label: Project or company (optional)
+      placeholder: "Internal statement generator"
+  - type: textarea
+    id: story
+    attributes:
+      label: What did you build?
+      placeholder: "We built ... using flowText, table pagination, and ..."
+    validations:
+      required: true
+  - type: textarea
+    id: assets
+    attributes:
+      label: Links/screenshots
+      description: Add images, repo links, or generated output links.

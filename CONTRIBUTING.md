@@ -5,7 +5,11 @@ Thanks for contributing to SmartDocs.
 ## Setup
 
 ```bash
+cp .env.example .env
 npm install
+npm run db:up
+npm run prisma:migrate -- --name init_templates
+npm run prisma:generate
 npm run editor
 ```
 
@@ -15,6 +19,12 @@ npm run editor
 - Add or update starter examples when you add new template features.
 - Prefer small, focused pull requests.
 - Include reproduction steps for bug fixes.
+
+## Where To Post
+
+- `Discussions > Ideas`: feature proposals and roadmap suggestions.
+- `Discussions > Q&A`: usage and implementation questions.
+- `Issues`: implementation-ready bugs and scoped feature work.
 
 ## Before Opening a PR
 

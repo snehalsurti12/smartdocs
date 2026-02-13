@@ -1,0 +1,27 @@
+title: "[Announcement] "
+labels:
+  - announcement
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Maintainer announcement template.
+  - type: input
+    id: headline
+    attributes:
+      label: Headline
+      placeholder: "v0.2.0 alpha released"
+    validations:
+      required: true
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      placeholder: "What changed and why it matters."
+    validations:
+      required: true
+  - type: textarea
+    id: links
+    attributes:
+      label: Links
+      description: Changelog, docs, PRs, or release notes.

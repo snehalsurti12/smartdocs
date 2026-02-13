@@ -1,0 +1,66 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum TemplateStatus {
+  DRAFT
+  REVIEW
+  APPROVED
+  PUBLISHED
+  ARCHIVED
+}
+
+model Template {
+  id               String         @id @default(cuid())
+  name             String
+  description      String?
+  status           TemplateStatus @default(DRAFT)
+  currentVersionId String?
+  createdBy        String         @default("system")
+  updatedBy        String         @default("system")
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  currentVersion TemplateVersion? @relation("CurrentTemplateVersion", fields: [currentVersionId], references: [id], onDelete: SetNull)
+  versions       TemplateVersion[] @relation("TemplateVersions")
+  audits         AuditEvent[]
+}
+
+model TemplateVersion {
+  id         String   @id @default(cuid())
+  templateId String
+  version    Int
+  contentJson Json
+  createdBy  String   @default("system")
+  createdAt  DateTime @default(now())
+
+  template   Template @relation("TemplateVersions", fields: [templateId], references: [id], onDelete: Cascade)
+  currentFor Template[] @relation("CurrentTemplateVersion")
+  audits     AuditEvent[]
+
+  @@unique([templateId, version])
+  @@index([templateId, createdAt])
+}
+
+model AuditEvent {
+  id         String   @id @default(cuid())
+  templateId String
+  versionId  String?
+  entityType String   @default("template")
+  action     String
+  actorId    String   @default("system")
+  beforeJson Json?
+  afterJson  Json?
+  metadata   Json?
+  createdAt  DateTime @default(now())
+
+  template   Template        @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  version    TemplateVersion? @relation(fields: [versionId], references: [id], onDelete: SetNull)
+
+  @@index([templateId, createdAt])
+}

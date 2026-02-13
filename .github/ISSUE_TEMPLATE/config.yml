@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Ideas and feature brainstorming
+    url: https://github.com/snehalsurti12/smartdocs/discussions/categories/ideas
+    about: Propose and discuss feature ideas before opening implementation issues.
+  - name: Q&A
+    url: https://github.com/snehalsurti12/smartdocs/discussions/categories/q-a
+    about: Ask usage and implementation questions.
+  - name: Security policy
+    url: https://github.com/snehalsurti12/smartdocs/security/policy
+    about: Report security vulnerabilities responsibly.

@@ -1,0 +1,50 @@
+name: Feature request
+description: Request an implementation-ready feature (not early-stage brainstorming).
+title: "[Feature] "
+labels:
+  - enhancement
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use Discussions > Ideas for early proposals.
+        Open this issue when scope and behavior are clear enough to implement.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem statement
+      description: What user workflow is blocked?
+      placeholder: "In enterprise templates, users cannot ..."
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Expected behavior
+      description: Concrete acceptance criteria.
+      placeholder: |
+        - Given ...
+        - When ...
+        - Then ...
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope
+      description: UI, API, schema, and migration impacts.
+      placeholder: "Editor only / renderer only / both ..."
+  - type: textarea
+    id: references
+    attributes:
+      label: References
+      description: Link related Discussion, screenshots, docs, or examples.
+  - type: checkboxes
+    id: readiness
+    attributes:
+      label: Readiness
+      options:
+        - label: I searched existing issues/discussions
+          required: true
+        - label: This request is specific enough to estimate
+          required: true

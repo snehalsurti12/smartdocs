@@ -9,7 +9,14 @@
     "render:pdf": "node scripts/render-pdf.js",
     "editor": "node scripts/serve-editor.js",
     "validate": "node scripts/validate.js",
-    "check": "npm run validate -- --template examples/template.json && npm run validate -- --template examples/cc-template.json && npm run validate -- --template examples/bank-statement-template.json && npm run validate -- --template examples/terms-template.json && npm run validate -- --template examples/enterprise-cover-template.json && npm run render -- --template examples/template.json --data examples/data.json --out out/render.html"
+    "check": "npm run validate -- --template examples/template.json && npm run validate -- --template examples/cc-template.json && npm run validate -- --template examples/bank-statement-template.json && npm run validate -- --template examples/terms-template.json && npm run validate -- --template examples/enterprise-cover-template.json && npm run render -- --template examples/template.json --data examples/data.json --out out/render.html",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:studio": "prisma studio",
+    "db:up": "docker compose up -d postgres",
+    "db:down": "docker compose down",
+    "db:logs": "docker compose logs -f postgres",
+    "db:smoke": "node scripts/db-smoke.js"
   },
   "keywords": [
     "document-generation",
@@ -23,7 +30,11 @@
     "node": ">=18"
   },
   "dependencies": {
+    "@prisma/client": "^5.22.0",
     "ajv": "^8.12.0",
     "playwright": "^1.49.0"
+  },
+  "devDependencies": {
+    "prisma": "^5.22.0"
   }
 }

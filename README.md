@@ -96,10 +96,51 @@ Run baseline checks:
 npm run check
 ```
 
+## Postgres Persistence (Prisma Skeleton)
+
+SmartDocs now includes a DB persistence skeleton for template lifecycle:
+- `Template`
+- `TemplateVersion` (immutable versions)
+- `AuditEvent` (append-only history)
+
+Setup:
+
+```bash
+cp .env.example .env
+npm install
+npm run db:up
+npm run prisma:migrate -- --name init_templates
+npm run prisma:generate
+```
+
+Stop local Postgres container:
+
+```bash
+npm run db:down
+```
+
+Optional smoke test:
+
+```bash
+npm run db:smoke
+```
+
+If you prefer a non-Docker DB, point `DATABASE_URL` to any compatible Postgres instance and run the same Prisma commands.
+
+When `DATABASE_URL` is set, the editor server exposes template APIs:
+- `GET /api/templates`
+- `POST /api/templates`
+- `GET /api/templates/:id`
+- `PATCH /api/templates/:id`
+- `GET /api/templates/:id/versions`
+- `POST /api/templates/:id/versions`
+- `GET /api/templates/:id/audit`
+
 ## Repository Layout
 
 - `editor/` UI and interaction logic
 - `scripts/` renderer, PDF pipeline, validation, dev server
+- `prisma/` Postgres schema for template persistence
 - `schemas/` template JSON schema
 - `examples/` sample templates + sample data
 - `docs/` model/spec/roadmap docs
@@ -115,10 +156,17 @@ npm run check
 See `docs/ROADMAP.md` for planned milestones.
 Launch checklist is in `docs/OPEN_SOURCE_LAUNCH.md`.
 Launch post templates are in `docs/LAUNCH_POSTS.md`.
+Persistence model details are in `docs/persistence-model.md`.
 
 ## Contributing
 
 See `CONTRIBUTING.md`.
+
+## Community
+
+- Share feature ideas in Discussions: `Ideas`
+- Ask usage questions in Discussions: `Q&A`
+- Open Issues for implementation-ready bugs/features
 
 ## Security
 

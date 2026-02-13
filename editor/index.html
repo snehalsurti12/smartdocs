@@ -9,29 +9,112 @@
   <body>
     <div class="app">
       <aside class="panel panel-left">
-        <div class="panel-title">Components</div>
-        <button data-add="text">Text</button>
-        <button data-add="flowText">Flow Text</button>
-        <button data-add="image">Image</button>
-        <button data-add="table">Table</button>
-        <button data-add="qr">QR</button>
-        <button data-add="line">Line</button>
-        <button data-add="box">Box</button>
-        <div class="panel-title">Partials</div>
-        <button id="btn-new-partial">New Partial</button>
-        <div id="partials-list"></div>
-        <div class="panel-title">Templates</div>
-        <button id="btn-new-template">New Template</button>
-        <select id="starter-template-select"></select>
-        <button id="btn-load-starter">Load Starter</button>
-        <div class="panel-title">Actions</div>
-        <button id="btn-preview">Preview Data: On</button>
-        <button id="btn-load-data">Load Data</button>
-        <button id="btn-load-template">Load Template</button>
-        <button id="btn-preview-pdf">Preview PDF</button>
-        <button id="btn-export">Export JSON</button>
-        <button id="btn-reload">Reload Template</button>
-        <div id="data-status" style="font-size:12px;color:#7a6f5f;"></div>
+        <div class="left-header">
+          <div class="panel-title">Workspace</div>
+          <div class="panel-subtitle">Template Builder</div>
+        </div>
+
+        <div class="mode-toggle" id="left-mode-toggle">
+          <button type="button" class="mode-btn active" data-mode="design">Design</button>
+          <button type="button" class="mode-btn" data-mode="data">Data</button>
+          <button type="button" class="mode-btn" data-mode="manage">Manage</button>
+        </div>
+
+        <div class="quick-manage-bar" data-mode-section="manage">
+          <button type="button" class="quick-action" data-proxy-click="btn-new-template">New</button>
+          <button type="button" class="quick-action" data-proxy-click="btn-db-load">Open</button>
+          <button type="button" class="quick-action quick-action-primary" data-proxy-click="btn-db-save">Save</button>
+        </div>
+
+        <details class="left-section" data-mode-section="design" open>
+          <summary data-icon="CMP">Components</summary>
+          <div class="section-body">
+            <button data-add="text">Text</button>
+            <button data-add="flowText">Flow Text</button>
+            <button data-add="image">Image</button>
+            <button data-add="table">Table</button>
+            <button data-add="qr">QR</button>
+            <button data-add="line">Line</button>
+            <button data-add="box">Box</button>
+          </div>
+        </details>
+
+        <details class="left-section" data-mode-section="design" open>
+          <summary data-icon="PRT">Partials</summary>
+          <div class="section-body">
+            <button id="btn-new-partial">New Partial</button>
+            <div id="partials-list"></div>
+          </div>
+        </details>
+
+        <details class="left-section" data-mode-section="data" open>
+          <summary data-icon="DAT">Preview & Data</summary>
+          <div class="section-body">
+            <button id="btn-preview">Preview Data: On</button>
+            <button id="btn-load-data">Load Data</button>
+            <button id="btn-preview-pdf">Preview PDF</button>
+          </div>
+        </details>
+
+        <details class="left-section" data-mode-section="manage" open>
+          <summary data-icon="TPL">Template Setup</summary>
+          <div class="section-body">
+            <div class="template-card">
+              <div class="panel-subtitle">Create</div>
+              <div class="button-row button-row-2">
+                <button id="btn-new-template">New Template</button>
+                <button id="btn-load-template">Import JSON</button>
+              </div>
+            </div>
+            <div class="template-card">
+              <div class="panel-subtitle">Starter Templates</div>
+              <select id="starter-template-select"></select>
+              <button id="btn-load-starter">Load Starter</button>
+            </div>
+          </div>
+        </details>
+
+        <details class="left-section" data-mode-section="manage" open>
+          <summary data-icon="DB">Database Templates</summary>
+          <div class="section-body">
+            <select id="db-template-select"></select>
+            <div class="button-row button-row-3">
+              <button id="btn-db-refresh">Refresh</button>
+              <button id="btn-db-load">Open</button>
+              <button id="btn-db-save">Save</button>
+            </div>
+            <details class="advanced-panel">
+              <summary>More Actions</summary>
+              <div class="button-row button-row-3">
+                <button id="btn-db-save-as">Save As New</button>
+                <button id="btn-db-rename">Rename</button>
+                <button id="btn-db-archive">Archive</button>
+              </div>
+              <select id="db-status-select">
+                <option value="DRAFT">Status: Draft</option>
+                <option value="REVIEW">Status: Review</option>
+                <option value="APPROVED">Status: Approved</option>
+                <option value="PUBLISHED">Status: Published</option>
+                <option value="ARCHIVED">Status: Archived</option>
+              </select>
+            </details>
+          </div>
+        </details>
+
+        <details class="left-section" data-mode-section="manage">
+          <summary data-icon="FIL">File Actions</summary>
+          <div class="section-body">
+            <button id="btn-export">Export JSON</button>
+            <button id="btn-reload">Reload Template</button>
+          </div>
+        </details>
+
+        <div class="status-bar">
+          <div id="template-state"></div>
+          <div id="db-status"></div>
+          <div id="data-status"></div>
+        </div>
+
         <input id="file-data" type="file" accept="application/json" hidden />
         <input id="file-template" type="file" accept="application/json" hidden />
       </aside>

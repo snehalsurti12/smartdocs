@@ -1,0 +1,56 @@
+title: "[Idea] "
+labels:
+  - idea
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for proposing an idea for SmartDocs.
+        Keep this focused on a user problem and expected impact.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem to solve
+      description: What problem are you trying to solve?
+      placeholder: "When generating large statements, ... is hard because ..."
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: Describe your proposed behavior or workflow.
+      placeholder: "Add ... so users can ..."
+    validations:
+      required: true
+  - type: textarea
+    id: examples
+    attributes:
+      label: Example template/document
+      description: Optional links, screenshots, or mock JSON.
+      placeholder: "Screenshots, sample template snippets, PDF references..."
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: What else did you consider?
+      placeholder: "Alternative approaches and why they are weaker..."
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Editor UX
+        - Rendering/PDF
+        - Data contract/mapping
+        - Template lifecycle/versioning
+        - Integrations
+        - Docs/Developer experience
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Business impact
+      options:
+        - High
+        - Medium
+        - Low

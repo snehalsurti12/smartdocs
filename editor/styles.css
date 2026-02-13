@@ -18,7 +18,7 @@ body {
 
 .app {
   display: grid;
-  grid-template-columns: 220px 1fr 260px;
+  grid-template-columns: 250px 1fr 270px;
   height: 100vh;
   overflow: hidden;
 }
@@ -26,10 +26,10 @@ body {
 .panel {
   background: var(--panel);
   border-right: 1px solid var(--panel-border);
-  padding: 12px;
+  padding: 10px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
   min-height: 0;
   overflow: auto;
 }
@@ -41,7 +41,136 @@ body {
 
 .panel-title {
   font-weight: 600;
-  margin: 8px 0 4px;
+  margin: 6px 0 2px;
+}
+
+.left-header {
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--panel-border);
+}
+
+.panel-subtitle {
+  font-size: 12px;
+  font-weight: 600;
+  color: #6f6658;
+}
+
+.mode-toggle {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 5px;
+  margin-top: 2px;
+  margin-bottom: 4px;
+}
+
+.mode-btn {
+  padding: 6px 6px;
+  font-size: 12px;
+  border-radius: 6px;
+}
+
+.mode-btn.active {
+  border-color: var(--accent);
+  background: #fff1ee;
+  color: #7f2b20;
+}
+
+.left-section {
+  border: 1px solid var(--panel-border);
+  background: #fff;
+}
+
+.left-section > summary {
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+  font-size: 12px;
+  font-weight: 600;
+  color: #544b3f;
+  padding: 7px 9px;
+  border-bottom: 1px solid transparent;
+}
+
+.left-section > summary::-webkit-details-marker {
+  display: none;
+}
+
+.left-section[open] > summary {
+  border-bottom-color: var(--panel-border);
+  background: #fcfaf5;
+}
+
+.left-section > summary::before {
+  content: attr(data-icon);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 16px;
+  margin-right: 7px;
+  border: 1px solid #d7cebd;
+  border-radius: 999px;
+  background: #f8f3e8;
+  color: #7a6d5a;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.left-section > summary::after {
+  content: "+";
+  float: right;
+  color: #8a7d6a;
+}
+
+.left-section[open] > summary::after {
+  content: "-";
+}
+
+.left-section .section-body {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding: 8px;
+}
+
+.is-hidden {
+  display: none;
+}
+
+.quick-manage-bar {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  background: var(--panel);
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  padding: 6px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.quick-action {
+  padding: 6px 6px;
+  font-size: 12px;
+  border-radius: 6px;
+}
+
+.quick-action-primary {
+  border-color: #8e2f23;
+  color: #8e2f23;
+  background: #fff1ee;
+  font-weight: 600;
+}
+
+.template-card {
+  border: 1px solid var(--panel-border);
+  background: #fff;
+  padding: 7px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
 }
 
 .toolbar {
@@ -97,16 +226,71 @@ body {
 button {
   border: 1px solid var(--panel-border);
   background: #fff;
-  padding: 8px 10px;
+  padding: 7px 9px;
   cursor: pointer;
-  font-size: 13px;
+  font-size: 12px;
 }
 
 .panel select {
   border: 1px solid var(--panel-border);
   background: #fff;
-  padding: 8px 10px;
-  font-size: 13px;
+  padding: 7px 9px;
+  font-size: 12px;
+}
+
+.button-row {
+  display: grid;
+  gap: 6px;
+}
+
+.button-row-3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.button-row button {
+  padding: 6px 5px;
+  font-size: 12px;
+}
+
+.button-row-2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.advanced-panel {
+  border: 1px solid var(--panel-border);
+  background: #fcfbf8;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.advanced-panel > summary {
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  color: #6f6658;
+}
+
+.advanced-panel[open] > summary {
+  margin-bottom: 4px;
+}
+
+.status-bar {
+  margin-top: auto;
+  padding-top: 8px;
+  border-top: 1px solid var(--panel-border);
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+#template-state,
+#db-status,
+#data-status {
+  font-size: 12px;
+  color: #7a6f5f;
+  line-height: 1.25;
 }
 
 .page-nav {

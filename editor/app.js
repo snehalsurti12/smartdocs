@@ -1,6 +1,9 @@
 const canvas = document.getElementById("canvas");
 const props = document.getElementById("props");
 const addButtons = document.querySelectorAll("[data-add]");
+const modeButtons = document.querySelectorAll(".mode-btn[data-mode]");
+const modeSections = document.querySelectorAll("[data-mode-section]");
+const quickProxyButtons = document.querySelectorAll("[data-proxy-click]");
 const previewBtn = document.getElementById("btn-preview");
 const loadDataBtn = document.getElementById("btn-load-data");
 const dataFileInput = document.getElementById("file-data");
@@ -12,6 +15,16 @@ const partialsList = document.getElementById("partials-list");
 const newTemplateBtn = document.getElementById("btn-new-template");
 const loadStarterBtn = document.getElementById("btn-load-starter");
 const starterTemplateSelect = document.getElementById("starter-template-select");
+const dbTemplateSelect = document.getElementById("db-template-select");
+const dbRefreshBtn = document.getElementById("btn-db-refresh");
+const dbLoadBtn = document.getElementById("btn-db-load");
+const dbSaveBtn = document.getElementById("btn-db-save");
+const dbSaveAsBtn = document.getElementById("btn-db-save-as");
+const dbRenameBtn = document.getElementById("btn-db-rename");
+const dbArchiveBtn = document.getElementById("btn-db-archive");
+const dbStatusSelect = document.getElementById("db-status-select");
+const templateState = document.getElementById("template-state");
+const dbStatus = document.getElementById("db-status");
 const pagePrevBtn = document.getElementById("btn-page-prev");
 const pageNextBtn = document.getElementById("btn-page-next");
 const pageIndicator = document.getElementById("page-indicator");
@@ -38,6 +51,12 @@ let contractTestPayload = "";
 let contractTestResult = null;
 let previewPageIndex = 0;
 let previewPageCount = 1;
+let dbTemplates = [];
+let activeDbTemplateId = null;
+let activeDbTemplateStatus = "DRAFT";
+let savedTemplateSnapshot = "";
+let templateDirty = false;
+let activeLeftMode = "design";
 
 const STARTER_TEMPLATES = [
   { label: "Invoice Starter", path: "/examples/template.json" },
@@ -47,7 +66,81 @@ const STARTER_TEMPLATES = [
   { label: "Enterprise Cover Package", path: "/examples/enterprise-cover-template.json" }
 ];
 
+function setLeftMode(mode) {
+  const next = ["design", "data", "manage"].includes(mode) ? mode : "design";
+  activeLeftMode = next;
+  modeButtons.forEach((btn) => {
+    btn.classList.toggle("active", btn.dataset.mode === next);
+  });
+  modeSections.forEach((section) => {
+    const isVisible = section.dataset.modeSection === next;
+    section.classList.toggle("is-hidden", !isVisible);
+    if (isVisible && section.tagName === "DETAILS" && !section.hasAttribute("open")) {
+      section.setAttribute("open", "open");
+    }
+  });
+  try {
+    window.localStorage.setItem("smartdocs.leftMode", next);
+  } catch (_err) {
+    // ignore storage failures
+  }
+  syncQuickActions();
+}
+
+function syncQuickActions() {
+  quickProxyButtons.forEach((proxyBtn) => {
+    const targetId = proxyBtn.dataset.proxyClick;
+    const target = targetId ? document.getElementById(targetId) : null;
+    proxyBtn.disabled = !target || target.disabled;
+  });
+}
+
 const PT_TO_PX = 96 / 72;
+
+function computeTemplateSnapshot() {
+  if (!template) return "";
+  try {
+    return JSON.stringify(template);
+  } catch (_err) {
+    return "";
+  }
+}
+
+function syncDbStatusSelect() {
+  if (!dbStatusSelect) return;
+  const value = (activeDbTemplateStatus || "DRAFT").toUpperCase();
+  const hasOption = Array.from(dbStatusSelect.options).some((opt) => opt.value === value);
+  dbStatusSelect.disabled = !activeDbTemplateId;
+  dbStatusSelect.value = hasOption ? value : "DRAFT";
+}
+
+function updateTemplateStateLabel() {
+  if (!templateState) return;
+  const name = (template && template.name) || "Untitled Template";
+  const dirtyLabel = templateDirty ? "unsaved" : "saved";
+  const dbLabel = activeDbTemplateId
+    ? `db:${activeDbTemplateId.slice(0, 8)} (${String(activeDbTemplateStatus || "DRAFT").toLowerCase()})`
+    : "db:not saved";
+  templateState.textContent = `${name} | ${dirtyLabel} | ${dbLabel}`;
+  templateState.style.color = templateDirty ? "#a1372f" : "#7a6f5f";
+}
+
+function setSavedTemplateSnapshot() {
+  savedTemplateSnapshot = computeTemplateSnapshot();
+  templateDirty = false;
+  updateTemplateStateLabel();
+}
+
+function updateTemplateDirtyState() {
+  if (!template) {
+    templateDirty = false;
+    updateTemplateStateLabel();
+    return;
+  }
+  const current = computeTemplateSnapshot();
+  templateDirty = current !== savedTemplateSnapshot;
+  updateTemplateStateLabel();
+}
 
 function ptToPx(val) {
   return Number(val || 0) * PT_TO_PX;
@@ -109,6 +202,224 @@ function populateStarterTemplates() {
     opt.textContent = starter.label;
     starterTemplateSelect.appendChild(opt);
   });
+}
+
+function setDbStatus(message, isError = false) {
+  if (!dbStatus) return;
+  dbStatus.textContent = message || "";
+  dbStatus.style.color = isError ? "#a1372f" : "#7a6f5f";
+}
+
+function parseApiError(res, payload) {
+  if (payload && payload.error) return payload.error;
+  return `Request failed (${res.status})`;
+}
+
+async function fetchApiJson(url, options = {}) {
+  const res = await fetch(url, options);
+  let payload = null;
+  try {
+    payload = await res.json();
+  } catch (_err) {
+    payload = null;
+  }
+  if (!res.ok) {
+    throw new Error(parseApiError(res, payload));
+  }
+  return payload || {};
+}
+
+function renderDbTemplateSelect() {
+  if (!dbTemplateSelect) return;
+  dbTemplateSelect.innerHTML = "";
+  const placeholder = document.createElement("option");
+  placeholder.value = "";
+  placeholder.textContent = dbTemplates.length ? "Select DB template..." : "No DB templates";
+  dbTemplateSelect.appendChild(placeholder);
+  dbTemplates.forEach((tpl) => {
+    const opt = document.createElement("option");
+    opt.value = tpl.id;
+    const version = tpl.currentVersion && tpl.currentVersion.version ? `v${tpl.currentVersion.version}` : "v-";
+    const status = tpl.status ? String(tpl.status).toLowerCase() : "draft";
+    opt.textContent = `${tpl.name} (${version}, ${status})`;
+    dbTemplateSelect.appendChild(opt);
+  });
+  if (activeDbTemplateId && dbTemplates.some((tpl) => tpl.id === activeDbTemplateId)) {
+    dbTemplateSelect.value = activeDbTemplateId;
+  } else if (dbTemplates.length) {
+    dbTemplateSelect.value = dbTemplates[0].id;
+  } else {
+    dbTemplateSelect.value = "";
+  }
+  syncDbStatusSelect();
+  updateTemplateStateLabel();
+}
+
+async function refreshDbTemplates(options = {}) {
+  const silent = Boolean(options.silent);
+  if (!dbTemplateSelect) return;
+  try {
+    const payload = await fetchApiJson("/api/templates");
+    dbTemplates = Array.isArray(payload.templates) ? payload.templates : [];
+    if (activeDbTemplateId) {
+      const matched = dbTemplates.find((tpl) => tpl.id === activeDbTemplateId);
+      if (matched) activeDbTemplateStatus = matched.status || activeDbTemplateStatus;
+    }
+    renderDbTemplateSelect();
+    if (!silent) setDbStatus(`DB templates: ${dbTemplates.length}`);
+  } catch (err) {
+    dbTemplates = [];
+    activeDbTemplateId = null;
+    activeDbTemplateStatus = "DRAFT";
+    renderDbTemplateSelect();
+    setDbStatus(err.message, true);
+  }
+}
+
+async function loadDbTemplateById(templateId) {
+  if (!templateId) {
+    setDbStatus("Select a DB template first.", true);
+    return;
+  }
+  try {
+    const payload = await fetchApiJson(`/api/templates/${encodeURIComponent(templateId)}`);
+    const dbTemplate = payload.template;
+    const version = dbTemplate && dbTemplate.currentVersion;
+    if (!version || typeof version.contentJson !== "object" || version.contentJson == null) {
+      throw new Error("Selected DB template has no current version content.");
+    }
+    activeStarterPath = null;
+    contractTestPayload = "";
+    contractTestResult = null;
+    activeDbTemplateId = dbTemplate.id;
+    activeDbTemplateStatus = dbTemplate.status || "DRAFT";
+    setTemplate(version.contentJson, { keepDbContext: true });
+    if (dbTemplateSelect) dbTemplateSelect.value = dbTemplate.id;
+    syncDbStatusSelect();
+    setDbStatus(`Loaded DB template: ${dbTemplate.name} (v${version.version})`);
+  } catch (err) {
+    setDbStatus(`Load failed: ${err.message}`, true);
+  }
+}
+
+async function saveTemplateToDbAsNew() {
+  if (!template) return;
+  const actorId = "editor";
+  const currentName = template.name || "Untitled Template";
+  const requestedName = prompt("Save as new template name?", `${currentName} Copy`);
+  if (requestedName == null) return;
+  const nextName = requestedName.trim();
+  if (!nextName) {
+    setDbStatus("Template name cannot be empty.", true);
+    return;
+  }
+  const snapshot = JSON.parse(JSON.stringify(template));
+  snapshot.name = nextName;
+  template.name = nextName;
+  try {
+    const payload = await fetchApiJson("/api/templates", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: nextName,
+        description: snapshot.description || null,
+        contentJson: snapshot,
+        actorId
+      })
+    });
+    const created = payload.template;
+    activeDbTemplateId = created.id;
+    activeDbTemplateStatus = created.status || "DRAFT";
+    await refreshDbTemplates({ silent: true });
+    if (dbTemplateSelect) dbTemplateSelect.value = activeDbTemplateId;
+    setSavedTemplateSnapshot();
+    syncDbStatusSelect();
+    setDbStatus(`Saved as new DB template: ${created.name}`);
+    render();
+  } catch (err) {
+    setDbStatus(`Save As New failed: ${err.message}`, true);
+  }
+}
+
+async function patchDbTemplateMetadata(patch, successMessage) {
+  if (!activeDbTemplateId) {
+    throw new Error("No active DB template loaded.");
+  }
+  const payload = await fetchApiJson(`/api/templates/${encodeURIComponent(activeDbTemplateId)}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      ...patch,
+      actorId: "editor"
+    })
+  });
+  const updated = payload.template;
+  activeDbTemplateStatus = updated.status || activeDbTemplateStatus;
+  await refreshDbTemplates({ silent: true });
+  if (dbTemplateSelect) dbTemplateSelect.value = activeDbTemplateId;
+  syncDbStatusSelect();
+  setDbStatus(successMessage || "Template metadata updated.");
+  return updated;
+}
+
+async function saveTemplateToDb() {
+  if (!template) return;
+  const actorId = "editor";
+  try {
+    if (!activeDbTemplateId) {
+      const payload = await fetchApiJson("/api/templates", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: template.name || "Untitled Template",
+          description: template.description || null,
+          contentJson: template,
+          actorId
+        })
+      });
+      const created = payload.template;
+      activeDbTemplateId = created.id;
+      activeDbTemplateStatus = created.status || "DRAFT";
+      await refreshDbTemplates({ silent: true });
+      if (dbTemplateSelect) dbTemplateSelect.value = activeDbTemplateId;
+      const createdVersion = created.currentVersion && created.currentVersion.version ? created.currentVersion.version : 1;
+      setSavedTemplateSnapshot();
+      syncDbStatusSelect();
+      setDbStatus(`Saved new DB template: ${created.name} (v${createdVersion})`);
+      return;
+    }
+
+    try {
+      await fetchApiJson(`/api/templates/${encodeURIComponent(activeDbTemplateId)}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: template.name || "Untitled Template",
+          actorId
+        })
+      });
+    } catch (_err) {
+      // Metadata sync is best effort; version write still proceeds.
+    }
+
+    const payload = await fetchApiJson(`/api/templates/${encodeURIComponent(activeDbTemplateId)}/versions`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        contentJson: template,
+        actorId
+      })
+    });
+    const updated = payload.template;
+    await refreshDbTemplates({ silent: true });
+    if (dbTemplateSelect) dbTemplateSelect.value = activeDbTemplateId;
+    const version = updated.currentVersion && updated.currentVersion.version ? updated.currentVersion.version : "?";
+    setSavedTemplateSnapshot();
+    syncDbStatusSelect();
+    setDbStatus(`Saved DB version: ${updated.name} (v${version})`);
+  } catch (err) {
+    setDbStatus(`Save failed: ${err.message}`, true);
+  }
 }
 
 function loadData() {
@@ -401,14 +712,25 @@ function findMissingBindings() {
   return Array.from(missing);
 }
 
-function setTemplate(next) {
+function setTemplate(next, options = {}) {
   template = next;
+  if (!options.keepDbContext) {
+    activeDbTemplateId = null;
+    activeDbTemplateStatus = "DRAFT";
+    if (dbTemplateSelect) dbTemplateSelect.value = "";
+  }
   if (!template.partials) template.partials = {};
   syncDataContractBindings();
   editingPartial = null;
   selectedId = null;
   previewPageIndex = 0;
   previewPageCount = 1;
+  if (options.markSaved !== false) {
+    setSavedTemplateSnapshot();
+  } else {
+    updateTemplateDirtyState();
+  }
+  syncDbStatusSelect();
   if (template.dataSample) {
     loadDataFromUrl(template.dataSample).then(() => {
       renderPartialsList();
@@ -2317,6 +2639,7 @@ window.addEventListener("pointerup", onPointerUp);
 
 addButtons.forEach((btn) => {
   btn.addEventListener("click", () => {
+    if (activeLeftMode !== "design") setLeftMode("design");
     const type = btn.dataset.add;
     if (placingType === type) {
       clearPlacing();
@@ -2324,6 +2647,22 @@ addButtons.forEach((btn) => {
       return;
     }
     setPlacing(type);
+  });
+});
+
+modeButtons.forEach((btn) => {
+  btn.addEventListener("click", () => {
+    setLeftMode(btn.dataset.mode);
+  });
+});
+
+quickProxyButtons.forEach((proxyBtn) => {
+  proxyBtn.addEventListener("click", () => {
+    const targetId = proxyBtn.dataset.proxyClick;
+    const target = targetId ? document.getElementById(targetId) : null;
+    if (!target || target.disabled) return;
+    target.click();
+    syncQuickActions();
   });
 });
 
@@ -2395,6 +2734,89 @@ if (loadStarterBtn) {
   });
 }
 
+if (dbRefreshBtn) {
+  dbRefreshBtn.addEventListener("click", () => {
+    refreshDbTemplates();
+  });
+}
+
+if (dbLoadBtn) {
+  dbLoadBtn.addEventListener("click", () => {
+    if (!dbTemplateSelect || !dbTemplateSelect.value) {
+      setDbStatus("Select a DB template first.", true);
+      return;
+    }
+    loadDbTemplateById(dbTemplateSelect.value);
+  });
+}
+
+if (dbSaveBtn) {
+  dbSaveBtn.addEventListener("click", () => {
+    saveTemplateToDb();
+  });
+}
+
+if (dbSaveAsBtn) {
+  dbSaveAsBtn.addEventListener("click", () => {
+    saveTemplateToDbAsNew();
+  });
+}
+
+if (dbRenameBtn) {
+  dbRenameBtn.addEventListener("click", async () => {
+    if (!activeDbTemplateId) {
+      setDbStatus("Load a DB template before renaming.", true);
+      return;
+    }
+    const currentName = template && template.name ? template.name : "Untitled Template";
+    const requestedName = prompt("Rename DB template to:", currentName);
+    if (requestedName == null) return;
+    const nextName = requestedName.trim();
+    if (!nextName) {
+      setDbStatus("Template name cannot be empty.", true);
+      return;
+    }
+    try {
+      const updated = await patchDbTemplateMetadata({ name: nextName }, `Renamed template to: ${nextName}`);
+      template.name = updated.name;
+      render();
+    } catch (err) {
+      setDbStatus(`Rename failed: ${err.message}`, true);
+    }
+  });
+}
+
+if (dbArchiveBtn) {
+  dbArchiveBtn.addEventListener("click", async () => {
+    if (!activeDbTemplateId) {
+      setDbStatus("Load a DB template before archiving.", true);
+      return;
+    }
+    if (!confirm("Archive this DB template?")) return;
+    try {
+      await patchDbTemplateMetadata({ status: "ARCHIVED" }, "Template archived.");
+    } catch (err) {
+      setDbStatus(`Archive failed: ${err.message}`, true);
+    }
+  });
+}
+
+if (dbStatusSelect) {
+  dbStatusSelect.addEventListener("change", async () => {
+    if (!activeDbTemplateId) {
+      dbStatusSelect.value = "DRAFT";
+      return;
+    }
+    const nextStatus = String(dbStatusSelect.value || "DRAFT").toUpperCase();
+    try {
+      await patchDbTemplateMetadata({ status: nextStatus }, `Status updated: ${nextStatus.toLowerCase()}`);
+    } catch (err) {
+      setDbStatus(`Status update failed: ${err.message}`, true);
+      syncDbStatusSelect();
+    }
+  });
+}
+
 if (pagePrevBtn) {
   pagePrevBtn.addEventListener("click", () => setPreviewPage(previewPageIndex - 1));
 }
@@ -2404,8 +2826,16 @@ if (pageNextBtn) {
 }
 
 populateStarterTemplates();
+renderDbTemplateSelect();
 setTemplate(createBlankTemplate("Untitled Template"));
 previewBtn.textContent = `Preview Data: ${previewMode ? "On" : "Off"}`;
+refreshDbTemplates({ silent: true });
+syncDbStatusSelect();
+try {
+  setLeftMode(window.localStorage.getItem("smartdocs.leftMode") || "design");
+} catch (_err) {
+  setLeftMode("design");
+}
 
 previewPdfBtn.addEventListener("click", async () => {
   const evaluation = evaluateDataContractLocal(data || {});
@@ -2601,4 +3031,7 @@ const originalRender = render;
 render = function renderWithPartials() {
   originalRender();
   renderPartialsList();
+  updateTemplateDirtyState();
+  syncDbStatusSelect();
+  syncQuickActions();
 };
