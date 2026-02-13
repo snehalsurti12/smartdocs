@@ -34,6 +34,15 @@ const toolbarFont = document.getElementById("toolbar-font");
 const toolbarSize = document.getElementById("toolbar-size");
 const toolbarColor = document.getElementById("toolbar-color");
 const dataStatus = document.getElementById("data-status");
+const snapEnabledInput = document.getElementById("snap-enabled");
+const alignLeftBtn = document.getElementById("btn-align-left");
+const alignCenterBtn = document.getElementById("btn-align-center");
+const alignRightBtn = document.getElementById("btn-align-right");
+const alignTopBtn = document.getElementById("btn-align-top");
+const alignMiddleBtn = document.getElementById("btn-align-middle");
+const alignBottomBtn = document.getElementById("btn-align-bottom");
+const distributeHBtn = document.getElementById("btn-distribute-h");
+const distributeVBtn = document.getElementById("btn-distribute-v");
 
 let template = null;
 let data = null;
@@ -57,6 +66,11 @@ let activeDbTemplateStatus = "DRAFT";
 let savedTemplateSnapshot = "";
 let templateDirty = false;
 let activeLeftMode = "design";
+let selectedIds = [];
+let snapEnabled = true;
+let activeGuides = { x: null, y: null, region: "body" };
+let dragPaletteType = null;
+let dropPreview = null;
 
 const STARTER_TEMPLATES = [
   { label: "Invoice Starter", path: "/examples/template.json" },
@@ -93,6 +107,53 @@ function syncQuickActions() {
     const target = targetId ? document.getElementById(targetId) : null;
     proxyBtn.disabled = !target || target.disabled;
   });
+}
+
+function syncArrangeActions() {
+  const count = getSelectedElements().length;
+  const hasSelection = count > 0;
+  [alignLeftBtn, alignCenterBtn, alignRightBtn, alignTopBtn, alignMiddleBtn, alignBottomBtn]
+    .filter(Boolean)
+    .forEach((btn) => {
+      btn.disabled = !hasSelection;
+    });
+  if (distributeHBtn) distributeHBtn.disabled = count < 3;
+  if (distributeVBtn) distributeVBtn.disabled = count < 3;
+}
+
+function clearSelection() {
+  selectedId = null;
+  selectedIds = [];
+}
+
+function isSelected(id) {
+  return selectedIds.includes(id);
+}
+
+function setSingleSelection(id) {
+  selectedId = id || null;
+  selectedIds = id ? [id] : [];
+}
+
+function toggleSelection(id) {
+  if (isSelected(id)) {
+    selectedIds = selectedIds.filter((item) => item !== id);
+    selectedId = selectedIds.length ? selectedIds[selectedIds.length - 1] : null;
+    return;
+  }
+  selectedIds.push(id);
+  selectedId = id;
+}
+
+function getSelectedElements() {
+  const ids = selectedIds.length ? selectedIds : (selectedId ? [selectedId] : []);
+  const list = getElements();
+  return ids.map((id) => list.find((el) => el.id === id)).filter(Boolean);
+}
+
+function clearVisualHelpers() {
+  activeGuides = { x: null, y: null, region: "body" };
+  dropPreview = null;
 }
 
 const PT_TO_PX = 96 / 72;
@@ -722,7 +783,8 @@ function setTemplate(next, options = {}) {
   if (!template.partials) template.partials = {};
   syncDataContractBindings();
   editingPartial = null;
-  selectedId = null;
+  clearSelection();
+  clearVisualHelpers();
   previewPageIndex = 0;
   previewPageCount = 1;
   if (options.markSaved !== false) {
@@ -1200,7 +1262,7 @@ function setPlacing(type) {
   });
   canvas.classList.toggle("placing", Boolean(type));
   if (type) {
-    selectedId = null;
+    clearSelection();
   }
   render();
 }
@@ -1220,6 +1282,153 @@ function getRegionBounds(region) {
   if (region === "header") return { x: 0, y: 0, w: bodyW, h: headerH };
   if (region === "footer") return { x: 0, y: 0, w: bodyW, h: footerH };
   return { x: 0, y: 0, w: bodyW, h: bodyH };
+}
+
+function getRegionOrigin(region) {
+  const { margin, headerH, bodyH } = getPageMetrics();
+  const left = margin.left;
+  if (region === "header") return { left, top: margin.top };
+  if (region === "footer") return { left, top: margin.top + headerH + bodyH };
+  return { left, top: margin.top + headerH };
+}
+
+function getSnapTargets(el, region) {
+  const bounds = getRegionBounds(region);
+  const targetsX = [0, bounds.w / 2, bounds.w];
+  const targetsY = [0, bounds.h / 2, bounds.h];
+  getElements()
+    .filter((other) => other.id !== el.id)
+    .filter((other) => (other.region || "body") === region)
+    .forEach((other) => {
+      const left = other.x || 0;
+      const right = (other.x || 0) + (other.w || 0);
+      const midX = left + (other.w || 0) / 2;
+      const top = other.y || 0;
+      const bottom = (other.y || 0) + (other.h || 0);
+      const midY = top + (other.h || 0) / 2;
+      targetsX.push(left, midX, right);
+      targetsY.push(top, midY, bottom);
+    });
+  return { targetsX, targetsY };
+}
+
+function findSnapOffset(points, targets, tolerance) {
+  let winner = null;
+  points.forEach((point) => {
+    targets.forEach((target) => {
+      const delta = target - point.value;
+      const distance = Math.abs(delta);
+      if (distance > tolerance) return;
+      if (!winner || distance < winner.distance) {
+        winner = { distance, delta, target, anchor: point.anchor };
+      }
+    });
+  });
+  return winner;
+}
+
+function snapMovePosition(el, draftX, draftY, region) {
+  if (!snapEnabled) return { x: draftX, y: draftY, guides: { x: null, y: null, region } };
+  const tolerance = 3;
+  const { targetsX, targetsY } = getSnapTargets(el, region);
+  const pointsX = [
+    { anchor: "left", value: draftX },
+    { anchor: "center", value: draftX + (el.w || 0) / 2 },
+    { anchor: "right", value: draftX + (el.w || 0) }
+  ];
+  const pointsY = [
+    { anchor: "top", value: draftY },
+    { anchor: "middle", value: draftY + (el.h || 0) / 2 },
+    { anchor: "bottom", value: draftY + (el.h || 0) }
+  ];
+  const snapX = findSnapOffset(pointsX, targetsX, tolerance);
+  const snapY = findSnapOffset(pointsY, targetsY, tolerance);
+  return {
+    x: draftX + (snapX ? snapX.delta : 0),
+    y: draftY + (snapY ? snapY.delta : 0),
+    guides: {
+      x: snapX ? snapX.target : null,
+      y: snapY ? snapY.target : null,
+      region
+    }
+  };
+}
+
+function alignSelection(mode) {
+  const selected = getSelectedElements();
+  if (!selected.length) return;
+  const region = (selected[0].region || "body");
+  const bounds = getRegionBounds(region);
+  if (selected.some((el) => (el.region || "body") !== region)) {
+    alert("Align only works when all selected elements are in the same region.");
+    return;
+  }
+  const anchor = selected[0];
+  selected.forEach((el, idx) => {
+    if (idx === 0 && selected.length > 1) return;
+    if (mode === "left") el.x = anchor.x;
+    if (mode === "center") el.x = anchor.x + (anchor.w - el.w) / 2;
+    if (mode === "right") el.x = anchor.x + anchor.w - el.w;
+    if (mode === "top") el.y = anchor.y;
+    if (mode === "middle") el.y = anchor.y + (anchor.h - el.h) / 2;
+    if (mode === "bottom") el.y = anchor.y + anchor.h - el.h;
+
+    if (selected.length === 1) {
+      if (mode === "left") el.x = 0;
+      if (mode === "center") el.x = (bounds.w - el.w) / 2;
+      if (mode === "right") el.x = bounds.w - el.w;
+      if (mode === "top") el.y = 0;
+      if (mode === "middle") el.y = (bounds.h - el.h) / 2;
+      if (mode === "bottom") el.y = bounds.h - el.h;
+    }
+    el.x = clamp(el.x, 0, Math.max(0, bounds.w - el.w));
+    el.y = clamp(el.y, 0, Math.max(0, bounds.h - el.h));
+  });
+  render();
+}
+
+function distributeSelection(axis) {
+  const selected = getSelectedElements();
+  if (selected.length < 3) {
+    alert("Select at least 3 elements to distribute.");
+    return;
+  }
+  const region = (selected[0].region || "body");
+  if (selected.some((el) => (el.region || "body") !== region)) {
+    alert("Distribute only works when all selected elements are in the same region.");
+    return;
+  }
+  const sorted = selected.slice().sort((a, b) => (axis === "x" ? a.x - b.x : a.y - b.y));
+  const first = sorted[0];
+  const last = sorted[sorted.length - 1];
+  if (axis === "x") {
+    const totalWidth = sorted.reduce((sum, el) => sum + (el.w || 0), 0);
+    const free = (last.x + last.w) - first.x - totalWidth;
+    const gap = free / (sorted.length - 1);
+    let cursor = first.x;
+    sorted.forEach((el, idx) => {
+      if (idx === 0 || idx === sorted.length - 1) {
+        cursor = el.x + el.w + gap;
+        return;
+      }
+      el.x = cursor;
+      cursor += el.w + gap;
+    });
+  } else {
+    const totalHeight = sorted.reduce((sum, el) => sum + (el.h || 0), 0);
+    const free = (last.y + last.h) - first.y - totalHeight;
+    const gap = free / (sorted.length - 1);
+    let cursor = first.y;
+    sorted.forEach((el, idx) => {
+      if (idx === 0 || idx === sorted.length - 1) {
+        cursor = el.y + el.h + gap;
+        return;
+      }
+      el.y = cursor;
+      cursor += el.h + gap;
+    });
+  }
+  render();
 }
 
 function getDefaultRepeat(el) {
@@ -1430,6 +1639,49 @@ function setPreviewPage(nextIndex) {
   render();
 }
 
+function getPaletteTypeFromDragEvent(ev) {
+  if (!ev || !ev.dataTransfer) return dragPaletteType;
+  const direct = ev.dataTransfer.getData("application/x-smartdocs-component");
+  if (direct) return direct;
+  return dragPaletteType;
+}
+
+function updateDropPreviewFromEvent(ev) {
+  if (!template) return;
+  const type = getPaletteTypeFromDragEvent(ev);
+  if (!type) return;
+  let element;
+  if (type.startsWith("include:")) {
+    element = createIncludeElement(type.split("include:")[1]);
+  } else {
+    element = createDefaultElement(type);
+  }
+  const placement = computePlacement(ev, element);
+  if (!placement) {
+    if (dropPreview) {
+      dropPreview = null;
+      render();
+    }
+    return;
+  }
+  const nextPreview = {
+    type,
+    region: placement.region,
+    x: placement.x,
+    y: placement.y,
+    w: element.w,
+    h: element.h
+  };
+  const changed =
+    !dropPreview ||
+    dropPreview.type !== nextPreview.type ||
+    dropPreview.region !== nextPreview.region ||
+    Math.abs(dropPreview.x - nextPreview.x) > 0.1 ||
+    Math.abs(dropPreview.y - nextPreview.y) > 0.1;
+  dropPreview = nextPreview;
+  if (changed) render();
+}
+
 function renderElement(el, ctx = {}) {
   if (!isVisible(el.visibleIf)) {
     return document.createElement("div");
@@ -1443,6 +1695,9 @@ function renderElement(el, ctx = {}) {
   div.style.width = `${ptToPx(el.w)}px`;
   div.style.height = `${ptToPx(el.h)}px`;
 
+  if (selectedIds.length > 1 && isSelected(el.id)) {
+    div.classList.add("multi-selected");
+  }
   if (el.id === selectedId) div.classList.add("selected");
 
   const defaultText = template.styles && template.styles.defaultText;
@@ -1534,16 +1789,36 @@ function renderElement(el, ctx = {}) {
     }
     ev.stopPropagation();
     if (div.classList.contains("editing")) return;
-    const wasSelected = selectedId === el.id;
-    selectedId = el.id;
+    const beforeSelection = `${selectedId || ""}|${selectedIds.join(",")}`;
+    if (ev.shiftKey) {
+      toggleSelection(el.id);
+      render();
+      return;
+    }
+    if (!isSelected(el.id)) {
+      setSingleSelection(el.id);
+    } else if (selectedIds.length > 1 && selectedId !== el.id) {
+      selectedId = el.id;
+    }
+    const movingIds = isSelected(el.id) ? selectedIds.slice() : [el.id];
+    const selectionOrigins = movingIds
+      .map((id) => {
+        const node = getElementById(id);
+        if (!node) return null;
+        return { id, x: node.x, y: node.y };
+      })
+      .filter(Boolean);
     dragState = {
       id: el.id,
       startX: ev.clientX,
       startY: ev.clientY,
       originX: el.x,
-      originY: el.y
+      originY: el.y,
+      region: el.region || "body",
+      selectionOrigins
     };
-    if (!wasSelected) {
+    const afterSelection = `${selectedId || ""}|${selectedIds.join(",")}`;
+    if (beforeSelection !== afterSelection) {
       render();
     }
   });
@@ -1672,6 +1947,40 @@ function render() {
   pageEl.appendChild(header);
   pageEl.appendChild(body);
   pageEl.appendChild(footer);
+
+  if (activeGuides && (activeGuides.x != null || activeGuides.y != null)) {
+    const region = activeGuides.region || "body";
+    const origin = getRegionOrigin(region);
+    const bounds = getRegionBounds(region);
+    if (activeGuides.x != null) {
+      const line = document.createElement("div");
+      line.className = "snap-guide vertical";
+      line.style.left = `${ptToPx(origin.left + activeGuides.x)}px`;
+      line.style.top = `${ptToPx(origin.top)}px`;
+      line.style.height = `${ptToPx(bounds.h)}px`;
+      pageEl.appendChild(line);
+    }
+    if (activeGuides.y != null) {
+      const line = document.createElement("div");
+      line.className = "snap-guide horizontal";
+      line.style.left = `${ptToPx(origin.left)}px`;
+      line.style.top = `${ptToPx(origin.top + activeGuides.y)}px`;
+      line.style.width = `${ptToPx(bounds.w)}px`;
+      pageEl.appendChild(line);
+    }
+  }
+
+  if (dropPreview) {
+    const origin = getRegionOrigin(dropPreview.region || "body");
+    const outline = document.createElement("div");
+    outline.className = "drop-preview";
+    outline.style.left = `${ptToPx(origin.left + dropPreview.x)}px`;
+    outline.style.top = `${ptToPx(origin.top + dropPreview.y)}px`;
+    outline.style.width = `${ptToPx(dropPreview.w)}px`;
+    outline.style.height = `${ptToPx(dropPreview.h)}px`;
+    pageEl.appendChild(outline);
+  }
+
   canvas.appendChild(pageEl);
   updatePageNav();
 
@@ -2612,25 +2921,88 @@ function onPointerMove(ev) {
     el.y = y;
     el.w = w;
     el.h = h;
+    activeGuides = { x: null, y: null, region: el.region || "body" };
   } else {
     let x = dragState.originX + dx;
     let y = dragState.originY + dy;
     x = clamp(x, bounds.x, bounds.w - el.w);
     y = clamp(y, bounds.y, bounds.h - el.h);
-    el.x = x;
-    el.y = y;
+    const snapped = snapMovePosition(el, x, y, dragState.region || (el.region || "body"));
+    const nextX = clamp(snapped.x, bounds.x, bounds.w - el.w);
+    const nextY = clamp(snapped.y, bounds.y, bounds.h - el.h);
+    const moveDx = nextX - dragState.originX;
+    const moveDy = nextY - dragState.originY;
+
+    if (Array.isArray(dragState.selectionOrigins) && dragState.selectionOrigins.length > 1) {
+      dragState.selectionOrigins.forEach((origin) => {
+        const node = getElementById(origin.id);
+        if (!node) return;
+        if ((node.region || "body") !== (dragState.region || "body")) return;
+        const nodeBounds = getRegionBounds(node.region || "body");
+        node.x = clamp(origin.x + moveDx, nodeBounds.x, nodeBounds.w - node.w);
+        node.y = clamp(origin.y + moveDy, nodeBounds.y, nodeBounds.h - node.h);
+      });
+    } else {
+      el.x = nextX;
+      el.y = nextY;
+    }
+    activeGuides = snapped.guides || { x: null, y: null, region: dragState.region || "body" };
   }
 
   render();
 }
 
 function onPointerUp() {
+  if (!dragState) return;
   dragState = null;
+  activeGuides = { x: null, y: null, region: "body" };
+  render();
 }
 
 canvas.addEventListener("pointerdown", () => {
   if (placingType) return;
-  selectedId = null;
+  clearSelection();
+  clearVisualHelpers();
+  render();
+});
+
+canvas.addEventListener("dragover", (ev) => {
+  ev.preventDefault();
+  updateDropPreviewFromEvent(ev);
+});
+
+canvas.addEventListener("dragleave", (ev) => {
+  if (ev.currentTarget !== ev.target) return;
+  if (dropPreview) {
+    dropPreview = null;
+    render();
+  }
+});
+
+canvas.addEventListener("drop", (ev) => {
+  ev.preventDefault();
+  if (!template) return;
+  const type = getPaletteTypeFromDragEvent(ev);
+  if (!type) return;
+  let el;
+  if (type.startsWith("include:")) {
+    const ref = type.split("include:")[1];
+    el = createIncludeElement(ref);
+  } else {
+    el = createDefaultElement(type);
+  }
+  const placement = computePlacement(ev, el);
+  if (!placement) return;
+  el.region = placement.region;
+  el.x = placement.x;
+  el.y = placement.y;
+  const list = getElements();
+  list.push(el);
+  setElements(list);
+  setSingleSelection(el.id);
+  clearPlacing();
+  dragPaletteType = null;
+  dropPreview = null;
   render();
 });
 
@@ -2638,6 +3010,38 @@ window.addEventListener("pointermove", onPointerMove);
 window.addEventListener("pointerup", onPointerUp);
 
 addButtons.forEach((btn) => {
+  btn.draggable = true;
+  btn.addEventListener("dragstart", (ev) => {
+    const type = btn.dataset.add;
+    dragPaletteType = type;
+    if (ev.dataTransfer) {
+      ev.dataTransfer.effectAllowed = "copy";
+      ev.dataTransfer.setData("application/x-smartdocs-component", type);
+      ev.dataTransfer.setData("text/plain", type);
+      const dragChip = document.createElement("div");
+      dragChip.textContent = btn.textContent || type;
+      dragChip.style.position = "fixed";
+      dragChip.style.top = "-1000px";
+      dragChip.style.left = "-1000px";
+      dragChip.style.padding = "6px 10px";
+      dragChip.style.border = "1px solid #b33a2b";
+      dragChip.style.background = "#fff5f3";
+      dragChip.style.color = "#7f2b20";
+      dragChip.style.fontSize = "12px";
+      dragChip.style.borderRadius = "6px";
+      dragChip.style.pointerEvents = "none";
+      document.body.appendChild(dragChip);
+      ev.dataTransfer.setDragImage(dragChip, 18, 12);
+      requestAnimationFrame(() => dragChip.remove());
+    }
+  });
+  btn.addEventListener("dragend", () => {
+    dragPaletteType = null;
+    if (dropPreview) {
+      dropPreview = null;
+      render();
+    }
+  });
   btn.addEventListener("click", () => {
     if (activeLeftMode !== "design") setLeftMode("design");
     const type = btn.dataset.add;
@@ -2665,6 +3069,26 @@ quickProxyButtons.forEach((proxyBtn) => {
     syncQuickActions();
   });
 });
+
+if (snapEnabledInput) {
+  snapEnabledInput.checked = snapEnabled;
+  snapEnabledInput.addEventListener("change", () => {
+    snapEnabled = snapEnabledInput.checked;
+    if (!snapEnabled) {
+      activeGuides = { x: null, y: null, region: "body" };
+      render();
+    }
+  });
+}
+
+if (alignLeftBtn) alignLeftBtn.addEventListener("click", () => alignSelection("left"));
+if (alignCenterBtn) alignCenterBtn.addEventListener("click", () => alignSelection("center"));
+if (alignRightBtn) alignRightBtn.addEventListener("click", () => alignSelection("right"));
+if (alignTopBtn) alignTopBtn.addEventListener("click", () => alignSelection("top"));
+if (alignMiddleBtn) alignMiddleBtn.addEventListener("click", () => alignSelection("middle"));
+if (alignBottomBtn) alignBottomBtn.addEventListener("click", () => alignSelection("bottom"));
+if (distributeHBtn) distributeHBtn.addEventListener("click", () => distributeSelection("x"));
+if (distributeVBtn) distributeVBtn.addEventListener("click", () => distributeSelection("y"));
 
 document.getElementById("btn-export").addEventListener("click", saveTemplateDownload);
 document.getElementById("btn-reload").addEventListener("click", () => {
@@ -2934,14 +3358,16 @@ canvas.addEventListener("click", (ev) => {
   const list = getElements();
   list.push(el);
   setElements(list);
-  selectedId = el.id;
+  setSingleSelection(el.id);
   clearPlacing();
+  dropPreview = null;
   render();
 });
 
 window.addEventListener("keydown", (ev) => {
   if (ev.key === "Escape" && placingType) {
     clearPlacing();
+    dropPreview = null;
     render();
   }
   if (ev.key === "Delete" || ev.key === "Backspace") {
@@ -2950,13 +3376,14 @@ window.addEventListener("keydown", (ev) => {
     if (active && (active.isContentEditable || active.closest && active.closest('[contenteditable="true"]'))) {
       return;
     }
-    if (!selectedId) return;
+    const selectedSet = new Set(selectedIds.length ? selectedIds : (selectedId ? [selectedId] : []));
+    if (!selectedSet.size) return;
     if (document.activeElement && ["INPUT", "TEXTAREA"].includes(document.activeElement.tagName)) return;
     const list = getElements();
-    const next = list.filter((el) => el.id !== selectedId);
+    const next = list.filter((el) => !selectedSet.has(el.id));
     if (next.length !== list.length) {
       setElements(next);
-      selectedId = null;
+      clearSelection();
       render();
     }
   }
@@ -2991,7 +3418,7 @@ function renderPartialsList() {
         previewMode = false;
         previewBtn.textContent = "Preview Data: Off";
       }
-      selectedId = null;
+      clearSelection();
       render();
       renderPartialsList();
     });
@@ -3022,7 +3449,7 @@ newPartialBtn.addEventListener("click", () => {
     previewMode = false;
     previewBtn.textContent = "Preview Data: Off";
   }
-  selectedId = null;
+  clearSelection();
   render();
   renderPartialsList();
 });
@@ -3034,4 +3461,5 @@ render = function renderWithPartials() {
   updateTemplateDirtyState();
   syncDbStatusSelect();
   syncQuickActions();
+  syncArrangeActions();
 };

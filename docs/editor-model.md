@@ -12,8 +12,8 @@
 
 **Selection and Layering**
 1. Single and multi-select.
-2. Snap-to-grid and snap-to-guides.
-3. z-index is managed in the layers panel.
+2. Snap-to-guides during drag.
+3. Align/distribute actions for selected elements.
 
 **Component Library (v1)**
 1. Text
@@ -65,9 +65,11 @@
 4. Logic section for `visibleIf`.
 
 **Drag and Drop Rules**
-1. Elements cannot overlap margins.
-2. Header/Footer elements are restricted to their regions.
-3. Table height can auto-expand only in preview mode.
+1. Palette supports true drag/drop onto canvas with ghost preview.
+2. Click-to-place remains supported for keyboard/mouse workflows.
+3. Elements cannot be moved outside region bounds.
+4. Header/Footer elements are restricted to their regions.
+5. Table height can auto-expand only in preview mode.
 
 **Undo and Versioning**
 1. Store history as a JSON patch list.

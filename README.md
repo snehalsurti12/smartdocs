@@ -8,7 +8,7 @@ Template-driven document designer and renderer for enterprise-style communicatio
 [![Node](https://img.shields.io/badge/node-%3E%3D18-339933)](https://nodejs.org/)
 
 `SmartDocs` lets you:
-- design templates with drag/drop components
+- design templates with true drag/drop placement
 - bind template fields to structured JSON payloads
 - generate print-ready HTML and PDF
 - build multi-page packs with repeated header/footer logic
@@ -32,7 +32,10 @@ Bank statement sample:
 
 - Visual editor (`editor/`) with:
   - text, flow text, image, table, line, box, qr components
-  - drag/move/resize
+  - true palette drag/drop with placement preview
+  - drag/move/resize on canvas
+  - multi-select (`Shift+Click`) + delete multi-selection
+  - snap guides, align, and distribute tools
   - inline editing for text
   - per-element property panel
   - data preview toggle + page navigation
@@ -147,8 +150,8 @@ When `DATABASE_URL` is set, the editor server exposes template APIs:
 
 ## Known Gaps (Planned)
 
-- Template versioning and environment promotion
-- Approval workflows and audit trail
+- Environment promotion
+- Approval workflows
 - Role-based access control
 - API auth, tenancy, and rate limiting
 - More robust regression test suite and golden-file visual diffs

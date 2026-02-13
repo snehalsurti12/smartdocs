@@ -134,6 +134,14 @@ body {
   padding: 8px;
 }
 
+.toggle-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #5d5345;
+}
+
 .is-hidden {
   display: none;
 }
@@ -400,6 +408,11 @@ button.active {
   box-shadow: 0 0 0 1px rgba(179, 58, 43, 0.2);
 }
 
+.element.multi-selected {
+  border-color: #d57a6f;
+  box-shadow: 0 0 0 1px rgba(213, 122, 111, 0.18);
+}
+
 .element.editing {
   border-color: #999;
   cursor: text;
@@ -422,6 +435,29 @@ button.active {
 .resize-handle.s { left: 50%; bottom: -4px; transform: translateX(-50%); cursor: ns-resize; }
 .resize-handle.e { right: -4px; top: 50%; transform: translateY(-50%); cursor: ew-resize; }
 .resize-handle.w { left: -4px; top: 50%; transform: translateY(-50%); cursor: ew-resize; }
+
+.snap-guide {
+  position: absolute;
+  pointer-events: none;
+  z-index: 20;
+  background: rgba(179, 58, 43, 0.5);
+}
+
+.snap-guide.vertical {
+  width: 1px;
+}
+
+.snap-guide.horizontal {
+  height: 1px;
+}
+
+.drop-preview {
+  position: absolute;
+  pointer-events: none;
+  border: 1px dashed #b33a2b;
+  background: rgba(179, 58, 43, 0.08);
+  z-index: 25;
+}
 
 .element.table {
   border: 1px solid #e0e0e0;

@@ -4,16 +4,16 @@
 
 - Stable pagination parity between editor preview and PDF
 - Better table controls (row height presets, overflow diagnostics)
-- Template/package management in editor:
-  - create template
-  - duplicate template
-  - import/export template pack
+- Undo/redo history in editor
+- Asset manager (logo/icon library with reusable references)
+- More layout tooling:
+  - group/ungroup and lock/unlock
+  - optional snap-to-grid
 - Improved starter template library
 
 ## v0.3 (Enterprise Foundation)
 
-- Template versioning (`draft`, `approved`, `published`)
-- Environment promotion (`dev` -> `uat` -> `prod`)
+- Template promotion pipeline (`dev` -> `uat` -> `prod`)
 - Approval workflow with comments
 - Change history and audit log
 
