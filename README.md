@@ -7,7 +7,7 @@ Open-source, AI-ready document generation engine for enterprise communications.
 [![CI](https://github.com/snehalsurti12/smartdocs/actions/workflows/ci.yml/badge.svg)](https://github.com/snehalsurti12/smartdocs/actions/workflows/ci.yml)
 [![Node](https://img.shields.io/badge/node-%3E%3D18-339933)](https://nodejs.org/)
 
-SmartDocs is built for teams that need enterprise-grade, print-ready documents from structured data without vendor lock-in.
+SmartDocs gives you a visual template editor, deterministic data binding, and print-ready PDF rendering, self-hosted and MIT licensed, with a clear roadmap for agentic AI workflows.
 
 ## The Problem
 
