@@ -1,30 +1,42 @@
 # SmartDocs (Alpha)
 
-Template-driven document designer and renderer for enterprise-style communications.
+Open-source, AI-ready document generation engine for enterprise communications.
 
 [![Status](https://img.shields.io/badge/status-alpha-orange)](https://github.com/snehalsurti12/smartdocs)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 [![CI](https://github.com/snehalsurti12/smartdocs/actions/workflows/ci.yml/badge.svg)](https://github.com/snehalsurti12/smartdocs/actions/workflows/ci.yml)
 [![Node](https://img.shields.io/badge/node-%3E%3D18-339933)](https://nodejs.org/)
 
-SmartDocs is focused on one problem: building enterprise-grade, print-ready documents from structured data without hand-coding every layout.
+SmartDocs is built for teams that need enterprise-grade, print-ready documents from structured data without vendor lock-in.
 
-## Why SmartDocs
+## The Problem
 
-- **Layout fidelity for complex documents**: multi-page packs, repeated headers/footers, paginated tables, flow text.
-- **Deterministic data binding**: structured JSON contracts, mappings, validation, and repeatable outputs.
-- **Editor + renderer parity focus**: the same template JSON drives preview and generated PDF.
-- **Open architecture**: local-first development, self-hosting path, and planned agent/MCP integration.
+Most enterprise document platforms are expensive, closed, and hard to adapt. Teams still spend too much time on template setup, mapping, and pagination quirks across systems like Salesforce and other CRMs.
+
+## What SmartDocs Does Differently
+
+- **Visual template editor**: true drag/drop authoring with text, tables, images, QR, lines, and layout tools.
+- **Deterministic rendering**: multi-page flow text, auto-paginated tables, repeatable header/footer logic, and print-ready PDF output.
+- **Structured data contracts**: explicit bindings, validation, and predictable payload-driven generation.
+- **Open and self-hostable**: MIT licensed, local-first workflow, and clear path to private deployment.
+- **Agent-ready direction**: roadmap includes MCP tools, mapping intelligence, and AI-assisted workflow automation.
+
+## Who This Is For
+
+- Salesforce and CRM teams building customer communications at scale
+- Enterprises replacing high-cost closed-source doc generation stacks
+- Regulated domains needing repeatable output and auditable template changes
+- Engineering teams that want programmable document pipelines
 
 ## Screenshots
 
 Enterprise cover + terms + EFL sample:
 
-![Enterprise communication sample](docs/screenshots/enterprise-cover-render.png)
+![Enterprise communication sample](docs/screenshots/enterprise-cover-render.jpg)
 
 Bank statement sample:
 
-![Bank statement sample](docs/screenshots/bank-statement-render.png)
+![Bank statement sample](docs/screenshots/bank-statement-render.jpg)
 
 ## Status
 
