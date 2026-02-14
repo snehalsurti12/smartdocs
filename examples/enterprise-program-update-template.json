@@ -1,0 +1,381 @@
+{
+  "id": "tmpl_enterprise_program_update_001",
+  "name": "Enterprise Program Update (2-Page)",
+  "version": "1.0.0",
+  "unit": "pt",
+  "page": {
+    "size": "Letter",
+    "width": 612,
+    "height": 792,
+    "margin": { "top": 28, "right": 36, "bottom": 30, "left": 36 },
+    "headerHeight": 110,
+    "footerHeight": 28
+  },
+  "fonts": [
+    { "name": "Arial", "source": "local", "fallback": ["Helvetica", "sans-serif"] },
+    { "name": "Times New Roman", "source": "local", "fallback": ["Times", "serif"] }
+  ],
+  "styles": {
+    "defaultText": { "font": "Arial", "size": 9, "color": "#1f2933", "lineHeight": 12 }
+  },
+  "dataSample": "examples/enterprise-program-update-data.json",
+  "elements": [
+    {
+      "id": "hdr_band",
+      "type": "box",
+      "region": "header",
+      "repeat": "all",
+      "x": 0,
+      "y": 0,
+      "w": 540,
+      "h": 26,
+      "style": { "fill": "#153c67" }
+    },
+    {
+      "id": "hdr_logo",
+      "type": "image",
+      "region": "header",
+      "repeat": "all",
+      "x": 12,
+      "y": 5,
+      "w": 128,
+      "h": 16,
+      "src": "{{company.logo}}",
+      "fit": "contain"
+    },
+    {
+      "id": "hdr_title",
+      "type": "text",
+      "region": "header",
+      "repeat": "all",
+      "x": 252,
+      "y": 6,
+      "w": 276,
+      "h": 14,
+      "text": "Program Delivery Status Report",
+      "style": { "font": "Arial", "size": 11, "weight": 700, "color": "#ffffff", "align": "right" }
+    },
+    {
+      "id": "hdr_period",
+      "type": "text",
+      "region": "header",
+      "repeat": "all",
+      "x": 252,
+      "y": 22,
+      "w": 276,
+      "h": 12,
+      "text": "{{report.periodLabel}}",
+      "style": { "font": "Arial", "size": 8, "color": "#d7e5f7", "align": "right" }
+    },
+    {
+      "id": "hdr_meta_left",
+      "type": "text",
+      "region": "header",
+      "repeat": "all",
+      "x": 0,
+      "y": 40,
+      "w": 320,
+      "h": 52,
+      "text": "Client: {{client.name}}\nProgram: {{program.name}}\nPrepared by: {{program.owner}}",
+      "style": { "font": "Arial", "size": 9, "lineHeight": 13, "color": "#1f2933" }
+    },
+    {
+      "id": "hdr_health_box",
+      "type": "box",
+      "region": "header",
+      "repeat": "all",
+      "x": 332,
+      "y": 40,
+      "w": 208,
+      "h": 54,
+      "style": { "borderColor": "#c8d4e4", "borderWidth": 1, "fill": "#f5f8fc", "borderRadius": 6 }
+    },
+    {
+      "id": "hdr_health_text",
+      "type": "text",
+      "region": "header",
+      "repeat": "all",
+      "x": 344,
+      "y": 50,
+      "w": 184,
+      "h": 34,
+      "text": "Overall Health: {{program.health}}\nRisk Level: {{program.riskLevel}}",
+      "style": { "font": "Arial", "size": 10, "weight": 700, "lineHeight": 15, "color": "#1b4d2b" }
+    },
+    {
+      "id": "hdr_line",
+      "type": "line",
+      "region": "header",
+      "repeat": "all",
+      "x": 0,
+      "y": 104,
+      "w": 540,
+      "h": 1,
+      "style": { "borderColor": "#c8d4e4", "borderWidth": 1 }
+    },
+
+    {
+      "id": "exec_title",
+      "type": "text",
+      "region": "body",
+      "repeat": "first",
+      "x": 0,
+      "y": 0,
+      "w": 540,
+      "h": 18,
+      "text": "Executive Summary",
+      "style": { "font": "Times New Roman", "size": 17, "weight": 700, "color": "#132f4d" }
+    },
+    {
+      "id": "exec_box",
+      "type": "box",
+      "region": "body",
+      "repeat": "first",
+      "x": 0,
+      "y": 22,
+      "w": 540,
+      "h": 86,
+      "style": { "borderColor": "#d4deec", "borderWidth": 1, "fill": "#f8fbff", "borderRadius": 6 }
+    },
+    {
+      "id": "exec_text",
+      "type": "text",
+      "region": "body",
+      "repeat": "first",
+      "x": 14,
+      "y": 34,
+      "w": 336,
+      "h": 60,
+      "text": "{{summary.text}}",
+      "style": { "font": "Arial", "size": 9, "lineHeight": 13, "color": "#23303d" }
+    },
+    {
+      "id": "exec_photo",
+      "type": "image",
+      "region": "body",
+      "repeat": "first",
+      "x": 364,
+      "y": 34,
+      "w": 62,
+      "h": 62,
+      "src": "{{summary.photo}}",
+      "fit": "cover"
+    },
+    {
+      "id": "exec_lead",
+      "type": "text",
+      "region": "body",
+      "repeat": "first",
+      "x": 434,
+      "y": 44,
+      "w": 94,
+      "h": 48,
+      "text": "{{summary.leadName}}\n{{summary.leadRole}}",
+      "style": { "font": "Arial", "size": 8, "lineHeight": 11, "weight": 700, "color": "#2d3f54" }
+    },
+
+    {
+      "id": "metrics_title",
+      "type": "text",
+      "region": "body",
+      "repeat": "first",
+      "x": 0,
+      "y": 118,
+      "w": 540,
+      "h": 16,
+      "text": "Program KPIs",
+      "style": { "font": "Arial", "size": 12, "weight": 700, "color": "#153c67" }
+    },
+    {
+      "id": "kpi_box_1",
+      "type": "box",
+      "region": "body",
+      "repeat": "first",
+      "x": 0,
+      "y": 136,
+      "w": 172,
+      "h": 58,
+      "style": { "borderColor": "#cdd9e8", "borderWidth": 1, "fill": "#f4f8fc", "borderRadius": 6 }
+    },
+    {
+      "id": "kpi_1",
+      "type": "text",
+      "region": "body",
+      "repeat": "first",
+      "x": 12,
+      "y": 150,
+      "w": 148,
+      "h": 34,
+      "text": "On-Time Milestones\n{{kpi.onTime}}",
+      "style": { "font": "Arial", "size": 10, "weight": 700, "lineHeight": 14, "color": "#1f2933", "align": "center" }
+    },
+    {
+      "id": "kpi_box_2",
+      "type": "box",
+      "region": "body",
+      "repeat": "first",
+      "x": 184,
+      "y": 136,
+      "w": 172,
+      "h": 58,
+      "style": { "borderColor": "#cdd9e8", "borderWidth": 1, "fill": "#f4f8fc", "borderRadius": 6 }
+    },
+    {
+      "id": "kpi_2",
+      "type": "text",
+      "region": "body",
+      "repeat": "first",
+      "x": 196,
+      "y": 150,
+      "w": 148,
+      "h": 34,
+      "text": "Budget Variance\n{{kpi.budgetVariance}}",
+      "style": { "font": "Arial", "size": 10, "weight": 700, "lineHeight": 14, "color": "#1f2933", "align": "center" }
+    },
+    {
+      "id": "kpi_box_3",
+      "type": "box",
+      "region": "body",
+      "repeat": "first",
+      "x": 368,
+      "y": 136,
+      "w": 172,
+      "h": 58,
+      "style": { "borderColor": "#cdd9e8", "borderWidth": 1, "fill": "#f4f8fc", "borderRadius": 6 }
+    },
+    {
+      "id": "kpi_3",
+      "type": "text",
+      "region": "body",
+      "repeat": "first",
+      "x": 380,
+      "y": 150,
+      "w": 148,
+      "h": 34,
+      "text": "Critical Defects\n{{kpi.criticalDefects}}",
+      "style": { "font": "Arial", "size": 10, "weight": 700, "lineHeight": 14, "color": "#1f2933", "align": "center" }
+    },
+
+    {
+      "id": "activity_title_first",
+      "type": "text",
+      "region": "body",
+      "repeat": "first",
+      "x": 0,
+      "y": 208,
+      "w": 540,
+      "h": 16,
+      "text": "Implementation Activity Log",
+      "style": { "font": "Arial", "size": 12, "weight": 700, "color": "#153c67" }
+    },
+    {
+      "id": "activity_title_cont",
+      "type": "text",
+      "region": "body",
+      "repeat": "afterFirst",
+      "x": 0,
+      "y": 0,
+      "w": 540,
+      "h": 16,
+      "text": "Implementation Activity Log (continued)",
+      "style": { "font": "Arial", "size": 12, "weight": 700, "color": "#153c67" }
+    },
+    {
+      "id": "activity_subtitle_cont",
+      "type": "text",
+      "region": "body",
+      "repeat": "afterFirst",
+      "x": 0,
+      "y": 16,
+      "w": 540,
+      "h": 10,
+      "text": "As of {{report.asOfDate}}",
+      "style": { "font": "Arial", "size": 8, "color": "#4f6176" }
+    },
+    {
+      "id": "activity_table",
+      "type": "table",
+      "region": "body",
+      "x": 0,
+      "y": 228,
+      "w": 540,
+      "h": 316,
+      "continuationY": 28,
+      "continuationH": 568,
+      "rows": "{{activities}}",
+      "columns": [
+        { "header": "Date", "field": "date", "w": 66 },
+        { "header": "Workstream", "field": "workstream", "w": 96 },
+        { "header": "Activity", "field": "activity", "w": 208 },
+        { "header": "Owner", "field": "owner", "w": 90 },
+        { "header": "Status", "field": "status", "w": 80 }
+      ],
+      "rowStyle": { "font": "Arial", "size": 8, "lineHeight": 11, "color": "#223142" },
+      "headerStyle": { "font": "Arial", "size": 8, "weight": 700, "color": "#ffffff", "fill": "#2f4f73" },
+      "pagination": { "mode": "auto", "rowHeight": 16 }
+    },
+    {
+      "id": "risks_title",
+      "type": "text",
+      "region": "body",
+      "repeat": "first",
+      "x": 0,
+      "y": 550,
+      "w": 260,
+      "h": 14,
+      "text": "Open Risks",
+      "style": { "font": "Arial", "size": 10, "weight": 700, "color": "#153c67" }
+    },
+    {
+      "id": "risks_text",
+      "type": "text",
+      "region": "body",
+      "repeat": "first",
+      "x": 0,
+      "y": 565,
+      "w": 540,
+      "h": 30,
+      "text": "{{summary.risks}}",
+      "style": { "font": "Arial", "size": 8, "lineHeight": 11, "color": "#3d4f63" }
+    },
+
+    {
+      "id": "footer_line",
+      "type": "line",
+      "region": "footer",
+      "repeat": "all",
+      "x": 0,
+      "y": 0,
+      "w": 540,
+      "h": 1,
+      "style": { "borderColor": "#d1dbe8", "borderWidth": 1 }
+    },
+    {
+      "id": "footer_left",
+      "type": "text",
+      "region": "footer",
+      "repeat": "all",
+      "x": 0,
+      "y": 10,
+      "w": 360,
+      "h": 12,
+      "text": "Confidential - {{company.name}} Program Office",
+      "style": { "font": "Arial", "size": 8, "color": "#53667b" }
+    },
+    {
+      "id": "footer_right",
+      "type": "text",
+      "region": "footer",
+      "repeat": "all",
+      "x": 388,
+      "y": 10,
+      "w": 152,
+      "h": 12,
+      "text": "Page {{page.number}} of {{page.count}}",
+      "style": { "font": "Arial", "size": 8, "align": "right", "color": "#53667b" }
+    }
+  ],
+  "variables": {
+    "currency": "USD"
+  }
+}

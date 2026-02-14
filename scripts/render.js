@@ -567,6 +567,10 @@ function computeTablePages(el, data, template, regionH, pageSpace = {}) {
 }
 
 function shouldRenderInPage(el, pageIndex, pageCount, region) {
+  const explicitPage = Number(el.page);
+  if (Number.isFinite(explicitPage) && explicitPage >= 1) {
+    return pageIndex === Math.floor(explicitPage) - 1;
+  }
   const repeat = el.repeat || (region === "body" ? "first" : "all");
   if (repeat === "all") return true;
   if (repeat === "first") return pageIndex === 0;
@@ -676,12 +680,20 @@ function renderHtml(template, data, options = {}) {
     const firstPageBlockers = bodyElements
       .filter((el) => el.id !== pagedTable.id && (el.y || 0) > firstTableY)
       .filter((el) => {
+        const explicitPage = Number(el.page);
+        if (Number.isFinite(explicitPage) && explicitPage >= 1) {
+          return Math.floor(explicitPage) === 1;
+        }
         const repeat = el.repeat || "first";
         return repeat === "first" || repeat === "all";
       });
     const allPagesBlockers = bodyElements
       .filter((el) => el.id !== pagedTable.id && (el.y || 0) > otherTableY)
       .filter((el) => {
+        const explicitPage = Number(el.page);
+        if (Number.isFinite(explicitPage) && explicitPage >= 1) {
+          return Math.floor(explicitPage) > 1;
+        }
         const repeat = el.repeat || "first";
         return repeat === "all" || repeat === "afterFirst";
       });
@@ -707,16 +719,23 @@ function renderHtml(template, data, options = {}) {
     : tableData
     ? tableData.pages.length
     : 1;
+  const manualPageCount = Math.max(1, Math.floor(Number(template.pageCount) || 1));
+  const explicitElementPageMax = elements.reduce((max, el) => {
+    const p = Number(el.page);
+    if (!Number.isFinite(p) || p < 1) return max;
+    return Math.max(max, Math.floor(p));
+  }, 1);
+  const finalPageCount = Math.max(pageCount, manualPageCount, explicitElementPageMax);
 
   const pagesHtml = [];
-  for (let p = 0; p < pageCount; p += 1) {
-    const ctx = { pageNumber: p + 1, pageCount };
+  for (let p = 0; p < finalPageCount; p += 1) {
+    const ctx = { pageNumber: p + 1, pageCount: finalPageCount };
     const headerElements = elements
-      .filter((el) => el.region === "header" && shouldRenderInPage(el, p, pageCount, "header"))
+      .filter((el) => el.region === "header" && shouldRenderInPage(el, p, finalPageCount, "header"))
       .map((el) => renderElement(el, renderData, template, ctx))
       .join("");
     const footerElements = elements
-      .filter((el) => el.region === "footer" && shouldRenderInPage(el, p, pageCount, "footer"))
+      .filter((el) => el.region === "footer" && shouldRenderInPage(el, p, finalPageCount, "footer"))
       .map((el) => renderElement(el, renderData, template, ctx))
       .join("");
 
@@ -725,6 +744,7 @@ function renderHtml(template, data, options = {}) {
       .map((el) => {
         if (pagedTable && el.id === pagedTable.id) {
           const rows = tableData.pages[p] || [];
+          if (!rows.length && p >= tableData.pages.length) return "";
           const tableY = p === 0 ? (el.y || 0) : (el.continuationY != null ? el.continuationY : (el.y || 0));
           const explicitFirstH = el.h && el.h > 0 ? el.h : null;
           const explicitOtherH = el.continuationH && el.continuationH > 0 ? el.continuationH : null;
@@ -752,9 +772,9 @@ function renderHtml(template, data, options = {}) {
           const textStyle = styleToCss(mergedStyle, template);
           let flowIndex = p;
           if (flowRepeat === "afterFirst") flowIndex = p - 1;
-          if (flowRepeat === "middle") flowIndex = p > 0 && p < pageCount - 1 ? p - 1 : -1;
+          if (flowRepeat === "middle") flowIndex = p > 0 && p < finalPageCount - 1 ? p - 1 : -1;
           if (flowRepeat === "first") flowIndex = p === 0 ? 0 : -1;
-          if (flowRepeat === "last") flowIndex = p === pageCount - 1 ? flowData.pages.length - 1 : -1;
+          if (flowRepeat === "last") flowIndex = p === finalPageCount - 1 ? flowData.pages.length - 1 : -1;
 
           if (flowData.mode === "browser") {
             const text = flowIndex >= 0 ? flowData.pages[flowIndex] || "" : "";
@@ -793,7 +813,7 @@ function renderHtml(template, data, options = {}) {
             .join("");
           return columnEls;
         }
-        if (!shouldRenderInPage(el, p, pageCount, "body")) return "";
+        if (!shouldRenderInPage(el, p, finalPageCount, "body")) return "";
         return renderElement(el, renderData, template, ctx);
       })
       .join("");

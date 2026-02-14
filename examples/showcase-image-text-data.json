@@ -1,0 +1,44 @@
+{
+  "profile": {
+    "name": "Avery Thompson",
+    "role": "Senior Customer Success Consultant",
+    "tagline": "Helping enterprise teams simplify high-volume communication journeys.",
+    "badge": "Top Performer 2025",
+    "photo": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSczMDAnIGhlaWdodD0nMjQwJz48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9J2cnIHgxPScwJyB5MT0nMCcgeDI9JzEnIHkyPScxJz48c3RvcCBvZmZzZXQ9JzAlJyBzdG9wLWNvbG9yPScjNmVjMWZmJy8+PHN0b3Agb2Zmc2V0PScxMDAlJyBzdG9wLWNvbG9yPScjMjQ1YTk4Jy8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PHJlY3Qgd2lkdGg9JzMwMCcgaGVpZ2h0PScyNDAnIGZpbGw9J3VybCgjZyknLz48Y2lyY2xlIGN4PScxNTAnIGN5PSc5Micgcj0nNDYnIGZpbGw9JyNmZmZmZmYnIGZpbGwtb3BhY2l0eT0nMC44NicvPjxyZWN0IHg9JzgyJyB5PScxNDInIHdpZHRoPScxMzYnIGhlaWdodD0nNzgnIHJ4PScyOCcgZmlsbD0nI2ZmZmZmZicgZmlsbC1vcGFjaXR5PScwLjg2Jy8+PC9zdmc+"
+  },
+  "contact": {
+    "phoneLabel": "Phone",
+    "phone": "+1 (555) 010-1845",
+    "emailLabel": "Email",
+    "email": "avery.thompson@northstar.example",
+    "location": "Austin, TX"
+  },
+  "section": {
+    "title": "Why Teams Like This Layout",
+    "feature1": {
+      "title": "Visual hierarchy",
+      "body": "Profile image and headline align naturally with supporting context for quick scanning."
+    },
+    "feature2": {
+      "title": "Reusable icon + text blocks",
+      "body": "Small icons and adjacent text can be replicated for contact rows and feature bullets."
+    },
+    "feature3": {
+      "title": "Color-safe sections",
+      "body": "Each section card uses clear color coding while preserving print readability."
+    }
+  },
+  "cta": {
+    "text": "Schedule a solution walkthrough: northstar.example/demo"
+  },
+  "footer": {
+    "left": "Northstar Customer Programs",
+    "right": "Internal showcase template"
+  },
+  "icons": {
+    "phone": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPScyNCcgaGVpZ2h0PScyNCc+PHJlY3Qgd2lkdGg9JzI0JyBoZWlnaHQ9JzI0JyByeD0nNicgZmlsbD0nIzBmNGM4MScvPjxwYXRoIGQ9J003IDZoNGwxIDMtMiAxYTkgOSAwIDAwNCA0bDEtMiAzIDF2NGgtMUExMCAxMCAwIDAxNiA3VjZoMXonIGZpbGw9JyNmZmYnLz48L3N2Zz4=",
+    "mail": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPScyNCcgaGVpZ2h0PScyNCc+PHJlY3Qgd2lkdGg9JzI0JyBoZWlnaHQ9JzI0JyByeD0nNicgZmlsbD0nIzNjYTM3MCcvPjxwYXRoIGQ9J001IDdoMTR2MTBINXonIGZpbGw9JyNmZmYnLz48cGF0aCBkPSdNNSA4bDcgNSA3LTUnIGZpbGw9J25vbmUnIHN0cm9rZT0nIzNjYTM3MCcgc3Ryb2tlLXdpZHRoPScxLjQnLz48L3N2Zz4=",
+    "location": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPScyNCcgaGVpZ2h0PScyNCc+PHJlY3Qgd2lkdGg9JzI0JyBoZWlnaHQ9JzI0JyByeD0nNicgZmlsbD0nI2MwNmEyYicvPjxwYXRoIGQ9J00xMiA0YTQgNCAwIDAwLTQgNGMwIDIuNiA0IDggNCA4czQtNS40IDQtOGE0IDQgMCAwMC00LTR6bTAgNS40QTEuNCAxLjQgMCAxMTEyIDYuNmExLjQgMS40IDAgMDEwIDIuOHonIGZpbGw9JyNmZmYnLz48L3N2Zz4=",
+    "star": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPScyNCcgaGVpZ2h0PScyNCc+PHJlY3Qgd2lkdGg9JzI0JyBoZWlnaHQ9JzI0JyByeD0nNicgZmlsbD0nIzVkNGJiNycvPjxwYXRoIGQ9J00xMiA1bDIgNCA0IC42LTMgMyAuOCA0LjQtMy44LTItMy44IDIgLjgtNC40LTMtMyA0LS42eicgZmlsbD0nI2ZmZicvPjwvc3ZnPg=="
+  }
+}

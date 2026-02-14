@@ -46,6 +46,10 @@
               <input id="snap-enabled" type="checkbox" checked />
               <span>Snap guides</span>
             </label>
+            <label class="toggle-row">
+              <input id="show-bounds" type="checkbox" checked />
+              <span>Show component bounds</span>
+            </label>
             <div class="button-row button-row-3">
               <button id="btn-align-left">Left</button>
               <button id="btn-align-center">Center</button>
@@ -145,6 +149,8 @@
 
       <main class="canvas-wrap">
         <div class="canvas-nav">
+          <button id="btn-page-add" type="button">Add Page</button>
+          <button id="btn-page-delete" type="button">Delete Page</button>
           <button id="btn-page-prev" type="button">Prev Page</button>
           <span id="page-indicator">Page 1 / 1</span>
           <button id="btn-page-next" type="button">Next Page</button>

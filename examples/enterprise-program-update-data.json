@@ -1,0 +1,73 @@
+{
+  "company": {
+    "name": "Northstar Solutions",
+    "logo": "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='40'><rect width='240' height='40' fill='none'/><rect x='2' y='4' width='32' height='32' rx='6' fill='%23f8c530'/><text x='42' y='21' font-family='Arial' font-size='14' font-weight='700' fill='%23ffffff'>NORTHSTAR</text><text x='42' y='33' font-family='Arial' font-size='9' fill='%23d7e5f7'>SOLUTIONS</text></svg>"
+  },
+  "client": {
+    "name": "Summit Health Network"
+  },
+  "program": {
+    "name": "Claims Platform Modernization",
+    "owner": "Priya Nair",
+    "health": "GREEN",
+    "riskLevel": "Low"
+  },
+  "report": {
+    "periodLabel": "Weekly Report: Jan 6, 2026 - Jan 31, 2026",
+    "asOfDate": "Jan 31, 2026"
+  },
+  "summary": {
+    "text": "Core migration tracks remain on schedule. API throughput tests completed at 1.8x target. User acceptance pilot in Region 2 launched with no blocking defects. Remaining focus is cutover readiness and production runbook sign-off.",
+    "leadName": "Daniel Cho",
+    "leadRole": "Program Director",
+    "risks": "1) Vendor SSO certificate renewal due Feb 10. 2) Data retention legal review pending for two archival fields.",
+    "photo": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPScxMjAnIGhlaWdodD0nMTIwJz48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9J2cnIHgxPScwJyB5MT0nMCcgeDI9JzEnIHkyPScxJz48c3RvcCBvZmZzZXQ9JzAlJyBzdG9wLWNvbG9yPScjY2VkOWU4Jy8+PHN0b3Agb2Zmc2V0PScxMDAlJyBzdG9wLWNvbG9yPScjOGFiM2Q2Jy8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PHJlY3Qgd2lkdGg9JzEyMCcgaGVpZ2h0PScxMjAnIGZpbGw9J3VybCgjZyknLz48Y2lyY2xlIGN4PSc2MCcgY3k9JzQ0JyByPScyMCcgZmlsbD0nI2ZmZmZmZicgZmlsbC1vcGFjaXR5PScwLjg4Jy8+PHJlY3QgeD0nMzEnIHk9JzcwJyB3aWR0aD0nNTgnIGhlaWdodD0nMzYnIHJ4PScxNCcgZmlsbD0nI2ZmZmZmZicgZmlsbC1vcGFjaXR5PScwLjg4Jy8+PC9zdmc+"
+  },
+  "kpi": {
+    "onTime": "92%",
+    "budgetVariance": "+1.8%",
+    "criticalDefects": "2"
+  },
+  "activities": [
+    { "date": "01-06", "workstream": "Data", "activity": "Cutover mapping validation completed", "owner": "M. Patel", "status": "Done" },
+    { "date": "01-06", "workstream": "API", "activity": "Load test batch #3 baseline captured", "owner": "J. Romero", "status": "Done" },
+    { "date": "01-07", "workstream": "QA", "activity": "Regression suite wave 4 executed", "owner": "A. Brown", "status": "Done" },
+    { "date": "01-07", "workstream": "Security", "activity": "Static analysis exceptions reviewed", "owner": "I. Khan", "status": "Done" },
+    { "date": "01-08", "workstream": "Infra", "activity": "DR environment failover drill", "owner": "R. Lin", "status": "Done" },
+    { "date": "01-08", "workstream": "Data", "activity": "Historical claim backfill batch 11", "owner": "M. Patel", "status": "Done" },
+    { "date": "01-09", "workstream": "API", "activity": "Partner endpoint schema v5 published", "owner": "J. Romero", "status": "Done" },
+    { "date": "01-09", "workstream": "UI", "activity": "Adjudication queue filter UX updates", "owner": "K. Silva", "status": "Done" },
+    { "date": "01-10", "workstream": "QA", "activity": "Automation flaky test remediation", "owner": "A. Brown", "status": "In Progress" },
+    { "date": "01-10", "workstream": "Program", "activity": "Steering committee prep deck finalized", "owner": "P. Nair", "status": "Done" },
+    { "date": "01-11", "workstream": "Security", "activity": "Pen-test findings triage session", "owner": "I. Khan", "status": "Done" },
+    { "date": "01-11", "workstream": "Infra", "activity": "Autoscaling threshold tuned", "owner": "R. Lin", "status": "Done" },
+    { "date": "01-12", "workstream": "Data", "activity": "Member eligibility reconciliation run", "owner": "M. Patel", "status": "Done" },
+    { "date": "01-12", "workstream": "API", "activity": "Claims intake throttling patch", "owner": "J. Romero", "status": "Done" },
+    { "date": "01-13", "workstream": "UI", "activity": "Provider portal search latency fix", "owner": "K. Silva", "status": "Done" },
+    { "date": "01-13", "workstream": "QA", "activity": "UAT cycle 2 test charter update", "owner": "A. Brown", "status": "Done" },
+    { "date": "01-14", "workstream": "Program", "activity": "Cross-team dependency risk review", "owner": "P. Nair", "status": "Done" },
+    { "date": "01-14", "workstream": "Security", "activity": "IAM role matrix approval", "owner": "I. Khan", "status": "Done" },
+    { "date": "01-15", "workstream": "Infra", "activity": "Blue/green deployment rehearsal", "owner": "R. Lin", "status": "Done" },
+    { "date": "01-15", "workstream": "Data", "activity": "Adjudication reference sync", "owner": "M. Patel", "status": "Done" },
+    { "date": "01-16", "workstream": "API", "activity": "Provider auth token retry logic", "owner": "J. Romero", "status": "Done" },
+    { "date": "01-16", "workstream": "UI", "activity": "Claims detail drilldown polish", "owner": "K. Silva", "status": "Done" },
+    { "date": "01-17", "workstream": "QA", "activity": "Perf suite against RC build", "owner": "A. Brown", "status": "In Progress" },
+    { "date": "01-17", "workstream": "Program", "activity": "Cutover playbook v2 distributed", "owner": "P. Nair", "status": "Done" },
+    { "date": "01-18", "workstream": "Security", "activity": "SOC runbook tabletop review", "owner": "I. Khan", "status": "Done" },
+    { "date": "01-18", "workstream": "Infra", "activity": "Queue depth alert tuning", "owner": "R. Lin", "status": "Done" },
+    { "date": "01-19", "workstream": "Data", "activity": "Provider master dedupe rules update", "owner": "M. Patel", "status": "Done" },
+    { "date": "01-19", "workstream": "API", "activity": "Duplicate claim suppression release", "owner": "J. Romero", "status": "Done" },
+    { "date": "01-20", "workstream": "UI", "activity": "A11y contrast fixes merged", "owner": "K. Silva", "status": "Done" },
+    { "date": "01-20", "workstream": "QA", "activity": "RC candidate signoff checklist", "owner": "A. Brown", "status": "Done" },
+    { "date": "01-21", "workstream": "Program", "activity": "Readiness review with operations", "owner": "P. Nair", "status": "Done" },
+    { "date": "01-22", "workstream": "Security", "activity": "Credential rotation dry run", "owner": "I. Khan", "status": "In Progress" },
+    { "date": "01-23", "workstream": "Infra", "activity": "Storage IO baseline report", "owner": "R. Lin", "status": "Done" },
+    { "date": "01-24", "workstream": "Data", "activity": "Final mock migration pack", "owner": "M. Patel", "status": "Done" },
+    { "date": "01-25", "workstream": "API", "activity": "Partner webhook retry window update", "owner": "J. Romero", "status": "Done" },
+    { "date": "01-26", "workstream": "UI", "activity": "Claims export watermarking", "owner": "K. Silva", "status": "Done" },
+    { "date": "01-27", "workstream": "QA", "activity": "Hypercare defect triage simulation", "owner": "A. Brown", "status": "Done" },
+    { "date": "01-28", "workstream": "Program", "activity": "Go-live criteria final review", "owner": "P. Nair", "status": "Done" },
+    { "date": "01-29", "workstream": "Infra", "activity": "Rollback script checksum validation", "owner": "R. Lin", "status": "Done" },
+    { "date": "01-30", "workstream": "Security", "activity": "Production access recertification", "owner": "I. Khan", "status": "Done" }
+  ]
+}

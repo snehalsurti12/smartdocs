@@ -32,6 +32,8 @@ Run:
 
 ```bash
 npm run check
+npx playwright install chromium
+npm run golden:pdf
 ```
 
 And if your change affects PDF output:

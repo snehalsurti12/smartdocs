@@ -27,6 +27,8 @@ const templateState = document.getElementById("template-state");
 const dbStatus = document.getElementById("db-status");
 const pagePrevBtn = document.getElementById("btn-page-prev");
 const pageNextBtn = document.getElementById("btn-page-next");
+const pageAddBtn = document.getElementById("btn-page-add");
+const pageDeleteBtn = document.getElementById("btn-page-delete");
 const pageIndicator = document.getElementById("page-indicator");
 const textToolbar = document.getElementById("text-toolbar");
 const toolbarStatus = document.getElementById("toolbar-status");
@@ -35,6 +37,7 @@ const toolbarSize = document.getElementById("toolbar-size");
 const toolbarColor = document.getElementById("toolbar-color");
 const dataStatus = document.getElementById("data-status");
 const snapEnabledInput = document.getElementById("snap-enabled");
+const showBoundsInput = document.getElementById("show-bounds");
 const alignLeftBtn = document.getElementById("btn-align-left");
 const alignCenterBtn = document.getElementById("btn-align-center");
 const alignRightBtn = document.getElementById("btn-align-right");
@@ -68,6 +71,7 @@ let templateDirty = false;
 let activeLeftMode = "design";
 let selectedIds = [];
 let snapEnabled = true;
+let showComponentBounds = true;
 let activeGuides = { x: null, y: null, region: "body" };
 let dragPaletteType = null;
 let dropPreview = null;
@@ -77,6 +81,8 @@ const STARTER_TEMPLATES = [
   { label: "Credit Card Statement", path: "/examples/cc-template.json" },
   { label: "Bank Statement", path: "/examples/bank-statement-template.json" },
   { label: "Terms & Conditions", path: "/examples/terms-template.json" },
+  { label: "Image + Text Showcase", path: "/examples/showcase-image-text-template.json" },
+  { label: "Enterprise Program Update (2-Page)", path: "/examples/enterprise-program-update-template.json" },
   { label: "Enterprise Cover Package", path: "/examples/enterprise-cover-template.json" }
 ];
 
@@ -99,6 +105,12 @@ function setLeftMode(mode) {
     // ignore storage failures
   }
   syncQuickActions();
+  syncCanvasDecorations();
+}
+
+function syncCanvasDecorations() {
+  const show = showComponentBounds && activeLeftMode === "design";
+  canvas.classList.toggle("show-component-bounds", show);
 }
 
 function syncQuickActions() {
@@ -232,6 +244,7 @@ function createBlankTemplate(name) {
     name: name || "Untitled Template",
     version: "1.0.0",
     unit: "pt",
+    pageCount: 1,
     page: {
       size: "A4",
       width: 595,
@@ -775,6 +788,16 @@ function findMissingBindings() {
 
 function setTemplate(next, options = {}) {
   template = next;
+  const maxElementPage = (template.elements || []).reduce((max, el) => {
+    const p = Number(el.page);
+    if (!Number.isFinite(p) || p < 1) return max;
+    return Math.max(max, Math.floor(p));
+  }, 1);
+  if (!template.pageCount || Number(template.pageCount) < 1) {
+    template.pageCount = maxElementPage;
+  } else {
+    template.pageCount = Math.max(maxElementPage, Math.floor(Number(template.pageCount) || 1));
+  }
   if (!options.keepDbContext) {
     activeDbTemplateId = null;
     activeDbTemplateStatus = "DRAFT";
@@ -882,14 +905,56 @@ function enableTextEdit(div, el) {
     previewMode = false;
     previewBtn.textContent = "Preview Data: Off";
   }
+  const defaultText = (template && template.styles && template.styles.defaultText) || {};
+  const mergedStyle = { ...defaultText, ...(el.style || {}) };
+  const minLinePt = mergedStyle.lineHeight || ((mergedStyle.size || 11) * 1.2);
+  const minContentPt = Math.max(8, Math.ceil(minLinePt + 4));
+  const measureContentHeightPt = () => {
+    const probe = div.cloneNode(true);
+    probe.querySelectorAll(".resize-handle").forEach((node) => node.remove());
+    probe.classList.remove("selected", "multi-selected", "editing");
+    probe.contentEditable = "false";
+    probe.style.position = "absolute";
+    probe.style.left = "-100000px";
+    probe.style.top = "-100000px";
+    probe.style.height = "auto";
+    probe.style.minHeight = "0";
+    probe.style.maxHeight = "none";
+    probe.style.overflow = "visible";
+    probe.style.pointerEvents = "none";
+    document.body.appendChild(probe);
+    const px = Math.ceil(probe.scrollHeight + 2);
+    probe.remove();
+    return pxToPt(px);
+  };
+  const autoGrowIfNeeded = () => {
+    if (!editingText || editingText.el.id !== el.id) return;
+    if (el.type !== "text") return;
+    const bounds = getRegionBounds(el.region || "body");
+    const maxH = Math.max(6, bounds.h - (el.y || 0));
+    const neededPt = Math.ceil(measureContentHeightPt());
+    const nextH = clamp(neededPt, minContentPt, maxH);
+    el.h = nextH;
+    div.style.height = `${ptToPx(nextH)}px`;
+  };
+  const prevOverflow = div.style.overflow || "";
   div.contentEditable = "true";
   div.classList.add("editing");
+  div.style.overflow = "hidden";
   div.focus();
   editingText = { el, div };
+  const onInput = () => {
+    el.text = el.richText ? div.innerHTML : div.innerText;
+    autoGrowIfNeeded();
+  };
+  div.addEventListener("input", onInput);
+  autoGrowIfNeeded();
   showToolbar();
   const onBlur = () => {
+    div.removeEventListener("input", onInput);
     div.contentEditable = "false";
     div.classList.remove("editing");
+    div.style.overflow = prevOverflow;
     el.text = el.richText ? div.innerHTML : div.innerText;
     editingText = null;
     hideToolbar();
@@ -1435,8 +1500,28 @@ function getDefaultRepeat(el) {
   return (el.region || "body") === "body" ? "first" : "all";
 }
 
+function getManualPageCount() {
+  if (!template || editingPartial) return 1;
+  return Math.max(1, Math.floor(Number(template.pageCount) || 1));
+}
+
+function getExplicitElementPageMax() {
+  if (!template) return 1;
+  const list = getElements();
+  const maxPage = list.reduce((max, el) => {
+    const p = Number(el.page);
+    if (!Number.isFinite(p) || p < 1) return max;
+    return Math.max(max, Math.floor(p));
+  }, 1);
+  return Math.max(1, maxPage);
+}
+
 function shouldRenderInPage(el, pageIndex, pageCount) {
   if (editingPartial) return true;
+  const explicitPage = Number(el.page);
+  if (Number.isFinite(explicitPage) && explicitPage >= 1) {
+    return pageIndex === Math.floor(explicitPage) - 1;
+  }
   const repeat = el.repeat || getDefaultRepeat(el);
   if (repeat === "all") return true;
   if (repeat === "first") return pageIndex === 0;
@@ -1630,12 +1715,43 @@ function updatePageNav() {
   if (pageIndicator) pageIndicator.textContent = `Page ${previewPageIndex + 1} / ${previewPageCount}`;
   if (pagePrevBtn) pagePrevBtn.disabled = previewPageIndex <= 0;
   if (pageNextBtn) pageNextBtn.disabled = previewPageIndex >= previewPageCount - 1;
+  if (pageAddBtn) pageAddBtn.disabled = Boolean(editingPartial);
+  if (pageDeleteBtn) pageDeleteBtn.disabled = Boolean(editingPartial) || getManualPageCount() <= 1;
 }
 
 function setPreviewPage(nextIndex) {
   const clamped = clamp(nextIndex, 0, Math.max(0, previewPageCount - 1));
   if (clamped === previewPageIndex) return;
   previewPageIndex = clamped;
+  render();
+}
+
+function addManualPage() {
+  if (!template || editingPartial) return;
+  template.pageCount = getManualPageCount() + 1;
+  previewPageIndex = template.pageCount - 1;
+  render();
+}
+
+function deleteCurrentManualPage() {
+  if (!template || editingPartial) return;
+  const count = getManualPageCount();
+  if (count <= 1) return;
+  const removePage = previewPageIndex + 1;
+  const list = getElements();
+  list.forEach((el) => {
+    const p = Number(el.page);
+    if (!Number.isFinite(p) || p < 1) return;
+    if (p === removePage) {
+      el.page = Math.max(1, removePage - 1);
+      return;
+    }
+    if (p > removePage) {
+      el.page = p - 1;
+    }
+  });
+  template.pageCount = count - 1;
+  previewPageIndex = clamp(previewPageIndex, 0, template.pageCount - 1);
   render();
 }
 
@@ -1713,6 +1829,7 @@ function renderElement(el, ctx = {}) {
     } else {
       div.textContent = resolved;
     }
+    div.style.overflow = "hidden";
     div.addEventListener("dblclick", (ev) => {
       ev.stopPropagation();
       enableTextEdit(div, el);
@@ -1795,6 +1912,7 @@ function renderElement(el, ctx = {}) {
       render();
       return;
     }
+    const wasSingleSelected = selectedId === el.id && selectedIds.length === 1;
     if (!isSelected(el.id)) {
       setSingleSelection(el.id);
     } else if (selectedIds.length > 1 && selectedId !== el.id) {
@@ -1815,7 +1933,14 @@ function renderElement(el, ctx = {}) {
       originX: el.x,
       originY: el.y,
       region: el.region || "body",
-      selectionOrigins
+      selectionOrigins,
+      mode: "move",
+      moved: false,
+      inlineEditCandidate:
+        !ev.shiftKey &&
+        !div.classList.contains("editing") &&
+        wasSingleSelected &&
+        (el.type === "text" || el.type === "flowText")
     };
     const afterSelection = `${selectedId || ""}|${selectedIds.join(",")}`;
     if (beforeSelection !== afterSelection) {
@@ -1913,7 +2038,9 @@ function render() {
   const flowRepeat = flowElement ? (flowElement.repeat || getDefaultRepeat(flowElement)) : "all";
   const tablePageCount = tablePreview ? tablePreview.pages.length : 1;
   const flowPageCount = flowPreview ? computeFlowPageCount(flowPreview, flowRepeat) : 1;
-  const pageCount = Math.max(1, tablePageCount, flowPageCount);
+  const manualCount = getManualPageCount();
+  const explicitElementMax = getExplicitElementPageMax();
+  const pageCount = Math.max(1, tablePageCount, flowPageCount, manualCount, explicitElementMax);
   previewPageCount = pageCount;
   previewPageIndex = clamp(previewPageIndex, 0, Math.max(0, pageCount - 1));
   const currentPage = previewPageIndex;
@@ -1924,6 +2051,9 @@ function render() {
     const target = el.region === "header" ? header : el.region === "footer" ? footer : body;
     if (pagedTable && el.id === pagedTable.id && tablePreview) {
       const tableRows = tablePreview.pages[currentPage] || [];
+      if (!tableRows.length && currentPage >= tablePreview.pages.length) {
+        return;
+      }
       const tableHeight = currentPage === 0 ? tablePreview.firstAvailable : tablePreview.otherAvailable;
       target.appendChild(
         renderElement(el, {
@@ -2054,6 +2184,28 @@ function renderProps() {
     render();
   });
   addRow("region", regionField);
+
+  const pageField = document.createElement("input");
+  pageField.type = "number";
+  pageField.min = "1";
+  pageField.step = "1";
+  pageField.placeholder = "auto";
+  pageField.value = el.page != null ? String(el.page) : "";
+  pageField.addEventListener("input", () => {
+    const val = String(pageField.value || "").trim();
+    if (!val) {
+      delete el.page;
+      render();
+      return;
+    }
+    const num = Math.max(1, Math.floor(Number(val) || 1));
+    el.page = num;
+    if (!template.pageCount || template.pageCount < num) {
+      template.pageCount = num;
+    }
+    render();
+  });
+  addRow("page", pageField);
 
   const repeatField = document.createElement("select");
   ["", "all", "first", "afterFirst", "middle", "last"].forEach((opt) => {
@@ -2514,6 +2666,26 @@ function renderPageSettings() {
     addRow(key, input);
   });
 
+  const pageCountInput = document.createElement("input");
+  pageCountInput.type = "number";
+  pageCountInput.min = "1";
+  pageCountInput.step = "1";
+  pageCountInput.value = String(getManualPageCount());
+  pageCountInput.addEventListener("input", () => {
+    const next = Math.max(1, Math.floor(Number(pageCountInput.value) || 1));
+    template.pageCount = next;
+    const list = getElements();
+    list.forEach((el) => {
+      const p = Number(el.page);
+      if (Number.isFinite(p) && p > next) {
+        el.page = next;
+      }
+    });
+    previewPageIndex = clamp(previewPageIndex, 0, Math.max(0, next - 1));
+    render();
+  });
+  addRow("pageCount", pageCountInput);
+
   const contractTitle = document.createElement("div");
   contractTitle.className = "panel-title";
   contractTitle.textContent = "Data Contract";
@@ -2890,6 +3062,10 @@ function onPointerMove(ev) {
   if (!el) return;
   const dx = pxToPt(ev.clientX - dragState.startX);
   const dy = pxToPt(ev.clientY - dragState.startY);
+  if (Math.abs(dx) > 0.5 || Math.abs(dy) > 0.5) {
+    dragState.moved = true;
+    dragState.inlineEditCandidate = false;
+  }
 
   const minSize = 6;
   const bounds = getRegionBounds(el.region || "body");
@@ -2954,7 +3130,21 @@ function onPointerMove(ev) {
 
 function onPointerUp() {
   if (!dragState) return;
+  const state = dragState;
   dragState = null;
+  if (state.inlineEditCandidate && !state.moved && !editingText) {
+    const el = getElementById(state.id);
+    const div = canvas.querySelector(`.element[data-id="${state.id}"]`);
+    if (el && div && (el.type === "text" || el.type === "flowText")) {
+      activeGuides = { x: null, y: null, region: "body" };
+      enableTextEdit(div, el);
+      return;
+    }
+  }
+  if (!state.moved && state.mode !== "resize") {
+    activeGuides = { x: null, y: null, region: "body" };
+    return;
+  }
   activeGuides = { x: null, y: null, region: "body" };
   render();
 }
@@ -2996,6 +3186,9 @@ canvas.addEventListener("drop", (ev) => {
   el.region = placement.region;
   el.x = placement.x;
   el.y = placement.y;
+  if (previewPageIndex > 0) {
+    el.page = previewPageIndex + 1;
+  }
   const list = getElements();
   list.push(el);
   setElements(list);
@@ -3078,6 +3271,24 @@ if (snapEnabledInput) {
       activeGuides = { x: null, y: null, region: "body" };
       render();
     }
+  });
+}
+
+if (showBoundsInput) {
+  try {
+    showComponentBounds = window.localStorage.getItem("smartdocs.showComponentBounds") !== "off";
+  } catch (_err) {
+    showComponentBounds = true;
+  }
+  showBoundsInput.checked = showComponentBounds;
+  showBoundsInput.addEventListener("change", () => {
+    showComponentBounds = showBoundsInput.checked;
+    try {
+      window.localStorage.setItem("smartdocs.showComponentBounds", showComponentBounds ? "on" : "off");
+    } catch (_err) {
+      // ignore storage failures
+    }
+    syncCanvasDecorations();
   });
 }
 
@@ -3249,6 +3460,14 @@ if (pageNextBtn) {
   pageNextBtn.addEventListener("click", () => setPreviewPage(previewPageIndex + 1));
 }
 
+if (pageAddBtn) {
+  pageAddBtn.addEventListener("click", () => addManualPage());
+}
+
+if (pageDeleteBtn) {
+  pageDeleteBtn.addEventListener("click", () => deleteCurrentManualPage());
+}
+
 populateStarterTemplates();
 renderDbTemplateSelect();
 setTemplate(createBlankTemplate("Untitled Template"));
@@ -3260,6 +3479,7 @@ try {
 } catch (_err) {
   setLeftMode("design");
 }
+syncCanvasDecorations();
 
 previewPdfBtn.addEventListener("click", async () => {
   const evaluation = evaluateDataContractLocal(data || {});
@@ -3355,6 +3575,9 @@ canvas.addEventListener("click", (ev) => {
   el.region = placement.region;
   el.x = placement.x;
   el.y = placement.y;
+  if (previewPageIndex > 0) {
+    el.page = previewPageIndex + 1;
+  }
   const list = getElements();
   list.push(el);
   setElements(list);
