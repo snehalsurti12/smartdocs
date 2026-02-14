@@ -7,12 +7,14 @@ Template-driven document designer and renderer for enterprise-style communicatio
 [![CI](https://github.com/snehalsurti12/smartdocs/actions/workflows/ci.yml/badge.svg)](https://github.com/snehalsurti12/smartdocs/actions/workflows/ci.yml)
 [![Node](https://img.shields.io/badge/node-%3E%3D18-339933)](https://nodejs.org/)
 
-`SmartDocs` lets you:
-- design templates with true drag/drop placement
-- bind template fields to structured JSON payloads
-- generate print-ready HTML and PDF
-- build multi-page packs with repeated header/footer logic
-- validate templates against a strict schema
+SmartDocs is focused on one problem: building enterprise-grade, print-ready documents from structured data without hand-coding every layout.
+
+## Why SmartDocs
+
+- **Layout fidelity for complex documents**: multi-page packs, repeated headers/footers, paginated tables, flow text.
+- **Deterministic data binding**: structured JSON contracts, mappings, validation, and repeatable outputs.
+- **Editor + renderer parity focus**: the same template JSON drives preview and generated PDF.
+- **Open architecture**: local-first development, self-hosting path, and planned agent/MCP integration.
 
 ## Screenshots
 
@@ -26,33 +28,9 @@ Bank statement sample:
 
 ## Status
 
-`Alpha` (0.x): suitable for evaluation and POCs, not yet production-hardened.
+`Alpha` (`0.x`): suitable for evaluation and POCs, not yet production-hardened.
 
-## What Exists Today
-
-- Visual editor (`editor/`) with:
-  - text, flow text, image, table, line, box, qr components
-  - true palette drag/drop with placement preview
-  - drag/move/resize on canvas
-  - multi-select (`Shift+Click`) + delete multi-selection
-  - snap guides, align, and distribute tools
-  - inline editing for text
-  - per-element property panel
-  - data preview toggle + page navigation
-- Rendering engine (`scripts/render.js`) with:
-  - template + data merge
-  - data contract mapping/transforms
-  - multi-page flow text and table pagination
-  - repeat modes: `first`, `afterFirst`, `middle`, `last`, `all`
-- PDF generation (`scripts/render-pdf.js`) via Playwright
-- JSON schema validation (`schemas/template.schema.json`)
-- Starter templates:
-  - invoice
-  - credit-card statement
-  - bank statement
-  - terms + cover package (enterprise sample)
-
-## Quickstart
+## 5-Minute Quickstart
 
 ```bash
 npm install
@@ -64,8 +42,59 @@ Open `http://localhost:5177`.
 Try a production-like starter:
 
 1. Click `Load Starter`
-2. Choose `Enterprise Cover Package`
+2. Choose `Enterprise Program Update (2-Page)` or `Enterprise Cover Package`
 3. Click `Preview PDF`
+
+## Capabilities
+
+### Available today
+
+- Visual editor (`editor/`) with:
+  - text, flow text, image, table, line, box, qr components
+  - true palette drag/drop with placement preview
+  - drag/move/resize on canvas
+  - multi-select (`Shift+Click`) + delete multi-selection
+  - snap guides, align, and distribute tools
+  - inline editing for text
+  - manual page authoring (`Add Page`/`Delete Page`)
+  - per-element property panel
+  - data preview toggle + page navigation
+- Rendering engine (`scripts/render.js`) with:
+  - template + data merge
+  - data contract mapping/transforms
+  - multi-page flow text and table pagination
+  - repeat modes: `first`, `afterFirst`, `middle`, `last`, `all`
+  - explicit per-element page targeting
+- PDF generation (`scripts/render-pdf.js`) via Playwright
+- JSON schema validation (`schemas/template.schema.json`)
+- Golden PDF regression checks (`scripts/golden-pdf.js`)
+- Starter templates:
+  - invoice
+  - credit-card statement
+  - bank statement
+  - image + text showcase (icons + colored sections)
+  - enterprise communication pack (cover + terms + EFL)
+
+### In progress / next
+
+- stronger governance (`dev` -> `uat` -> `prod` promotion)
+- approval workflow and richer change history
+- public API auth + tenant controls
+- Salesforce mapping layer
+- agentic/MCP tool surface for automated document workflows
+
+See `docs/ROADMAP.md` for milestones.
+
+## Capability Matrix
+
+| Area | Current | Planned |
+|---|---|---|
+| Template editing | Rich visual editor, inline editing, drag/resize, align/distribute | Group/lock layers, advanced table tooling, richer rich text |
+| Pagination | Multi-page flow text + auto table pagination + repeat modes | Better keep-together controls and finer pagination constraints |
+| Data contracts | Binding extraction, contract checks, transform skeleton | Visual mapping UX, stronger validation diagnostics |
+| Regression safety | Schema checks + golden PDF tests | Broader visual diff coverage and stricter CI gating |
+| Lifecycle governance | Versioning skeleton + audit model | Approvals, environment promotion, release controls |
+| Integrations | Local APIs, Postgres persistence skeleton | Authenticated public APIs, Salesforce integration, MCP server |
 
 ## CLI Usage
 
@@ -99,9 +128,23 @@ Run baseline checks:
 npm run check
 ```
 
+Run PDF golden regression gate locally:
+
+```bash
+npx playwright install chromium
+npm run golden:pdf
+```
+
+Refresh golden snapshots after intentional layout changes:
+
+```bash
+npm run golden:pdf:update
+```
+
 ## Postgres Persistence (Prisma Skeleton)
 
-SmartDocs now includes a DB persistence skeleton for template lifecycle:
+SmartDocs includes a DB persistence skeleton for template lifecycle:
+
 - `Template`
 - `TemplateVersion` (immutable versions)
 - `AuditEvent` (append-only history)
@@ -131,6 +174,7 @@ npm run db:smoke
 If you prefer a non-Docker DB, point `DATABASE_URL` to any compatible Postgres instance and run the same Prisma commands.
 
 When `DATABASE_URL` is set, the editor server exposes template APIs:
+
 - `GET /api/templates`
 - `POST /api/templates`
 - `GET /api/templates/:id`
@@ -147,29 +191,30 @@ When `DATABASE_URL` is set, the editor server exposes template APIs:
 - `schemas/` template JSON schema
 - `examples/` sample templates + sample data
 - `docs/` model/spec/roadmap docs
+- `tests/` golden PDF and regression coverage
 
-## Known Gaps (Planned)
+## Additional Docs
 
-- Environment promotion
-- Approval workflows
-- Role-based access control
-- API auth, tenancy, and rate limiting
-- More robust regression test suite and golden-file visual diffs
-
-See `docs/ROADMAP.md` for planned milestones.
-Launch checklist is in `docs/OPEN_SOURCE_LAUNCH.md`.
-Launch post templates are in `docs/LAUNCH_POSTS.md`.
-Persistence model details are in `docs/persistence-model.md`.
+- Open-source launch checklist: `docs/OPEN_SOURCE_LAUNCH.md`
+- Launch post drafts: `docs/LAUNCH_POSTS.md`
+- Persistence model details: `docs/persistence-model.md`
 
 ## Contributing
 
 See `CONTRIBUTING.md`.
 
+High-value contribution areas:
+
+- pagination parity and page-break controls
+- richer table authoring controls
+- governance workflow primitives (approval/promotion)
+- API + integration hardening
+
 ## Community
 
-- Share feature ideas in Discussions: `Ideas`
-- Ask usage questions in Discussions: `Q&A`
-- Open Issues for implementation-ready bugs/features
+- Feature ideas: https://github.com/snehalsurti12/smartdocs/discussions/categories/ideas
+- Q&A: https://github.com/snehalsurti12/smartdocs/discussions/categories/q-a
+- Bug/feature issues: https://github.com/snehalsurti12/smartdocs/issues
 
 ## Security
 
