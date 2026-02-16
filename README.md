@@ -55,13 +55,15 @@ Try a production-like starter:
 
 1. Click `Load Starter`
 2. Choose `Enterprise Program Update (2-Page)` or `Enterprise Cover Package`
-3. Click `Preview PDF`
+3. Follow the workflow strip: `Design -> Data -> Test -> Publish`
+4. Click `Preview PDF`
 
 ## Capabilities
 
 ### Available today
 
 - Visual editor (`editor/`) with:
+  - guided workflow strip (`Design`, `Data`, `Test`, `Publish`) and top primary actions (`New`, `Check`, `Save`, `Preview PDF`)
   - text, flow text, image, table, line, box, qr components
   - true palette drag/drop with placement preview
   - drag/move/resize on canvas

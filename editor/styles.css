@@ -59,7 +59,7 @@ body {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 5px;
-  margin-top: 2px;
+  margin-top: 0;
   margin-bottom: 4px;
 }
 
@@ -147,15 +147,12 @@ body {
 }
 
 .quick-manage-bar {
-  position: sticky;
-  top: 0;
-  z-index: 3;
   background: var(--panel);
   border: 1px solid var(--panel-border);
   border-radius: 8px;
   padding: 6px;
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 6px;
 }
 
@@ -170,6 +167,59 @@ body {
   color: #8e2f23;
   background: #fff1ee;
   font-weight: 600;
+}
+
+.workflow-shell {
+  position: sticky;
+  top: 0;
+  z-index: 6;
+  background: var(--panel);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-bottom: 4px;
+}
+
+.workflow-card {
+  border: 1px solid var(--panel-border);
+  background: #fff;
+  border-radius: 8px;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.workflow-steps {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.workflow-step {
+  border: 1px solid #d8cfbf;
+  border-radius: 6px;
+  background: #fff;
+  color: #5c5245;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 5px;
+}
+
+.workflow-step.active {
+  border-color: #8e2f23;
+  background: #fff1ee;
+  color: #7f2b20;
+}
+
+.workflow-help {
+  font-size: 12px;
+  line-height: 1.35;
+  color: #6d6255;
+  padding: 6px 7px;
+  border: 1px dashed #e1d8c8;
+  border-radius: 6px;
+  background: #fcfaf4;
 }
 
 .template-card {

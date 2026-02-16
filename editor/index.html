@@ -14,16 +14,26 @@
           <div class="panel-subtitle">Template Builder</div>
         </div>
 
-        <div class="mode-toggle" id="left-mode-toggle">
-          <button type="button" class="mode-btn active" data-mode="design">Design</button>
-          <button type="button" class="mode-btn" data-mode="data">Data</button>
-          <button type="button" class="mode-btn" data-mode="manage">Manage</button>
-        </div>
+        <div class="workflow-shell">
+          <div class="workflow-card">
+            <div class="panel-subtitle">Start Here</div>
+            <div class="workflow-steps">
+              <button type="button" class="workflow-step active" data-workflow-step="design">1. Design</button>
+              <button type="button" class="workflow-step" data-workflow-step="data">2. Data</button>
+              <button type="button" class="workflow-step" data-workflow-step="test">3. Test</button>
+              <button type="button" class="workflow-step" data-workflow-step="publish">4. Publish</button>
+            </div>
+            <div id="workflow-help" class="workflow-help">
+              Drag components onto the page and arrange your layout.
+            </div>
+          </div>
 
-        <div class="quick-manage-bar" data-mode-section="manage">
-          <button type="button" class="quick-action" data-proxy-click="btn-new-template">New</button>
-          <button type="button" class="quick-action" data-proxy-click="btn-db-load">Open</button>
-          <button type="button" class="quick-action quick-action-primary" data-proxy-click="btn-db-save">Save</button>
+          <div class="quick-manage-bar">
+            <button type="button" id="btn-action-new" class="quick-action">New</button>
+            <button type="button" id="btn-action-check" class="quick-action">Check</button>
+            <button type="button" id="btn-action-save" class="quick-action quick-action-primary">Save</button>
+            <button type="button" id="btn-action-preview-pdf" class="quick-action">Preview PDF</button>
+          </div>
         </div>
 
         <details class="left-section" data-mode-section="design" open>
@@ -39,7 +49,7 @@
           </div>
         </details>
 
-        <details class="left-section" data-mode-section="design" open>
+        <details class="left-section" data-mode-section="design">
           <summary data-icon="ARR">Arrange</summary>
           <div class="section-body">
             <label class="toggle-row">
@@ -67,7 +77,7 @@
           </div>
         </details>
 
-        <details class="left-section" data-mode-section="design" open>
+        <details class="left-section" data-mode-section="design">
           <summary data-icon="PRT">Partials</summary>
           <div class="section-body">
             <button id="btn-new-partial">New Partial</button>
@@ -76,7 +86,7 @@
         </details>
 
         <details class="left-section" data-mode-section="data" open>
-          <summary data-icon="DAT">Preview & Data</summary>
+          <summary data-icon="DAT">Test & Sample Data</summary>
           <div class="section-body">
             <button id="btn-preview">Preview Data: On</button>
             <button id="btn-load-data">Load Data</button>
@@ -85,25 +95,25 @@
         </details>
 
         <details class="left-section" data-mode-section="manage" open>
-          <summary data-icon="TPL">Template Setup</summary>
+          <summary data-icon="TPL">Create or Open</summary>
           <div class="section-body">
             <div class="template-card">
-              <div class="panel-subtitle">Create</div>
+              <div class="panel-subtitle">New or Import</div>
               <div class="button-row button-row-2">
                 <button id="btn-new-template">New Template</button>
                 <button id="btn-load-template">Import JSON</button>
               </div>
             </div>
             <div class="template-card">
-              <div class="panel-subtitle">Starter Templates</div>
+              <div class="panel-subtitle">Sample Templates</div>
               <select id="starter-template-select"></select>
               <button id="btn-load-starter">Load Starter</button>
             </div>
           </div>
         </details>
 
-        <details class="left-section" data-mode-section="manage" open>
-          <summary data-icon="DB">Database Templates</summary>
+        <details class="left-section" data-mode-section="manage">
+          <summary data-icon="DB">Template Library</summary>
           <div class="section-body">
             <select id="db-template-select"></select>
             <div class="button-row button-row-3">
@@ -130,7 +140,7 @@
         </details>
 
         <details class="left-section" data-mode-section="manage">
-          <summary data-icon="FIL">File Actions</summary>
+          <summary data-icon="FIL">Import / Export</summary>
           <div class="section-body">
             <button id="btn-export">Export JSON</button>
             <button id="btn-reload">Reload Template</button>

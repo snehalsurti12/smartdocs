@@ -2,8 +2,14 @@ const canvas = document.getElementById("canvas");
 const props = document.getElementById("props");
 const addButtons = document.querySelectorAll("[data-add]");
 const modeButtons = document.querySelectorAll(".mode-btn[data-mode]");
+const workflowStepButtons = document.querySelectorAll(".workflow-step[data-workflow-step]");
+const workflowHelp = document.getElementById("workflow-help");
 const modeSections = document.querySelectorAll("[data-mode-section]");
 const quickProxyButtons = document.querySelectorAll("[data-proxy-click]");
+const actionNewBtn = document.getElementById("btn-action-new");
+const actionCheckBtn = document.getElementById("btn-action-check");
+const actionSaveBtn = document.getElementById("btn-action-save");
+const actionPreviewPdfBtn = document.getElementById("btn-action-preview-pdf");
 const previewBtn = document.getElementById("btn-preview");
 const loadDataBtn = document.getElementById("btn-load-data");
 const dataFileInput = document.getElementById("file-data");
@@ -69,6 +75,7 @@ let activeDbTemplateStatus = "DRAFT";
 let savedTemplateSnapshot = "";
 let templateDirty = false;
 let activeLeftMode = "design";
+let activeWorkflowStep = "design";
 let selectedIds = [];
 let snapEnabled = true;
 let showComponentBounds = true;
@@ -85,6 +92,13 @@ const STARTER_TEMPLATES = [
   { label: "Enterprise Program Update (2-Page)", path: "/examples/enterprise-program-update-template.json" },
   { label: "Enterprise Cover Package", path: "/examples/enterprise-cover-template.json" }
 ];
+
+const WORKFLOW_HELP = {
+  design: "Drag components onto the page and arrange your layout.",
+  data: "Load sample data and connect merge fields.",
+  test: "Turn preview on, run checks, and verify pagination/output.",
+  publish: "Save versions, set status, and prepare for release."
+};
 
 function setLeftMode(mode) {
   const next = ["design", "data", "manage"].includes(mode) ? mode : "design";
@@ -106,6 +120,53 @@ function setLeftMode(mode) {
   }
   syncQuickActions();
   syncCanvasDecorations();
+  syncWorkflowFromState();
+}
+
+function inferWorkflowStepFromState() {
+  if (activeLeftMode === "design") return "design";
+  if (activeLeftMode === "data") return previewMode ? "test" : "data";
+  return "publish";
+}
+
+function setWorkflowStep(step, options = {}) {
+  const next = ["design", "data", "test", "publish"].includes(step) ? step : "design";
+  activeWorkflowStep = next;
+  workflowStepButtons.forEach((btn) => {
+    btn.classList.toggle("active", btn.dataset.workflowStep === next);
+  });
+  if (workflowHelp) workflowHelp.textContent = WORKFLOW_HELP[next] || "";
+
+  if (options.applyMode === false) return;
+  if (next === "design") {
+    setLeftMode("design");
+    return;
+  }
+  if (next === "data") {
+    if (previewMode) {
+      previewMode = false;
+      if (previewBtn) previewBtn.textContent = "Preview Data: Off";
+    }
+    setLeftMode("data");
+    render();
+    return;
+  }
+  if (next === "test") {
+    if (!previewMode) {
+      previewMode = true;
+      if (previewBtn) previewBtn.textContent = "Preview Data: On";
+    }
+    setLeftMode("data");
+    render();
+    return;
+  }
+  setLeftMode("manage");
+}
+
+function syncWorkflowFromState() {
+  const inferred = inferWorkflowStepFromState();
+  if (inferred === activeWorkflowStep && workflowHelp && workflowHelp.textContent) return;
+  setWorkflowStep(inferred, { applyMode: false });
 }
 
 function syncCanvasDecorations() {
@@ -119,6 +180,13 @@ function syncQuickActions() {
     const target = targetId ? document.getElementById(targetId) : null;
     proxyBtn.disabled = !target || target.disabled;
   });
+}
+
+function syncPrimaryActions() {
+  const hasTemplate = Boolean(template);
+  if (actionSaveBtn) actionSaveBtn.disabled = !hasTemplate;
+  if (actionCheckBtn) actionCheckBtn.disabled = !hasTemplate;
+  if (actionPreviewPdfBtn) actionPreviewPdfBtn.disabled = !hasTemplate;
 }
 
 function syncArrangeActions() {
@@ -784,6 +852,40 @@ function findMissingBindings() {
       });
   });
   return Array.from(missing);
+}
+
+function runQuickTemplateCheck(options = {}) {
+  if (!template) return false;
+  syncDataContractBindings();
+  contractDiagnostics = evaluateDataContractLocal(data || {});
+  const issues = summarizeContractDiagnostics(contractDiagnostics);
+  const missingBindings = findMissingBindings();
+  const messages = [];
+  if (issues.missingRequired.length) {
+    messages.push(`Required data missing: ${issues.missingRequired.join(", ")}`);
+  }
+  if (issues.errors.length) {
+    messages.push(`Transform issues: ${issues.errors.join(" | ")}`);
+  }
+  if (missingBindings.length) {
+    messages.push(`Unresolved merge fields in current sample data: ${missingBindings.join(", ")}`);
+  }
+  const passed = messages.length === 0;
+  setDbStatus(
+    passed
+      ? "Template check passed: no required data or transform issues."
+      : `Template check found ${messages.length} issue${messages.length === 1 ? "" : "s"}.`,
+    !passed
+  );
+  if (options.showAlert !== false) {
+    if (passed) {
+      alert("Template check passed.\nNo required data, transform, or binding issues found.");
+    } else {
+      alert(`Template check found issues:\n\n- ${messages.join("\n- ")}`);
+    }
+  }
+  render();
+  return passed;
 }
 
 function setTemplate(next, options = {}) {
@@ -2688,7 +2790,7 @@ function renderPageSettings() {
 
   const contractTitle = document.createElement("div");
   contractTitle.className = "panel-title";
-  contractTitle.textContent = "Data Contract";
+  contractTitle.textContent = "Data Fields";
   props.appendChild(contractTitle);
 
   const actions = document.createElement("div");
@@ -2696,7 +2798,7 @@ function renderPageSettings() {
   actions.style.gap = "8px";
   actions.style.marginBottom = "8px";
   const syncBtn = document.createElement("button");
-  syncBtn.textContent = "Sync Bindings";
+  syncBtn.textContent = "Sync Merge Fields";
   syncBtn.addEventListener("click", () => {
     syncDataContractBindings();
     render();
@@ -2709,7 +2811,7 @@ function renderPageSettings() {
     const empty = document.createElement("div");
     empty.style.fontSize = "12px";
     empty.style.color = "#7a6f5f";
-    empty.textContent = "No bindings detected. Add components with {{field.path}} first.";
+    empty.textContent = "No merge fields detected yet. Add components with {{field.path}} first.";
     props.appendChild(empty);
   }
 
@@ -2719,8 +2821,8 @@ function renderPageSettings() {
   issueSummary.style.color = currentIssues.missingRequired.length || currentIssues.errors.length ? "#9f2f23" : "#3c6f3a";
   issueSummary.style.marginBottom = "8px";
   issueSummary.textContent = currentIssues.missingRequired.length || currentIssues.errors.length
-    ? `Contract issues: ${currentIssues.missingRequired.length} required missing, ${currentIssues.errors.length} transform errors`
-    : "Contract issues: none";
+    ? `Data issues: ${currentIssues.missingRequired.length} required missing, ${currentIssues.errors.length} transform errors`
+    : "Data issues: none";
   props.appendChild(issueSummary);
 
   contract.fields.forEach((field) => {
@@ -2943,14 +3045,14 @@ function renderPageSettings() {
 
   const testTitle = document.createElement("div");
   testTitle.className = "panel-title";
-  testTitle.textContent = "Contract Test";
+  testTitle.textContent = "Payload Test";
   props.appendChild(testTitle);
 
   const testInfo = document.createElement("div");
   testInfo.style.fontSize = "12px";
   testInfo.style.color = "#6f6352";
   testInfo.style.marginBottom = "6px";
-  testInfo.textContent = "Paste external payload JSON and validate mapping + required fields.";
+  testInfo.textContent = "Paste sample payload JSON to test mapping and required fields.";
   props.appendChild(testInfo);
 
   const payloadInput = document.createElement("textarea");
@@ -2967,7 +3069,7 @@ function renderPageSettings() {
   testActions.style.marginBottom = "6px";
 
   const runTestBtn = document.createElement("button");
-  runTestBtn.textContent = "Run Contract Test";
+  runTestBtn.textContent = "Run Payload Check";
   runTestBtn.addEventListener("click", () => {
     contractTestPayload = payloadInput.value;
     try {
@@ -3253,6 +3355,12 @@ modeButtons.forEach((btn) => {
   });
 });
 
+workflowStepButtons.forEach((btn) => {
+  btn.addEventListener("click", () => {
+    setWorkflowStep(btn.dataset.workflowStep);
+  });
+});
+
 quickProxyButtons.forEach((proxyBtn) => {
   proxyBtn.addEventListener("click", () => {
     const targetId = proxyBtn.dataset.proxyClick;
@@ -3262,6 +3370,34 @@ quickProxyButtons.forEach((proxyBtn) => {
     syncQuickActions();
   });
 });
+
+if (actionNewBtn) {
+  actionNewBtn.addEventListener("click", () => {
+    if (newTemplateBtn) newTemplateBtn.click();
+    setWorkflowStep("design");
+  });
+}
+
+if (actionSaveBtn) {
+  actionSaveBtn.addEventListener("click", () => {
+    if (dbSaveBtn) dbSaveBtn.click();
+    setWorkflowStep("publish", { applyMode: false });
+  });
+}
+
+if (actionCheckBtn) {
+  actionCheckBtn.addEventListener("click", () => {
+    setWorkflowStep("test");
+    runQuickTemplateCheck();
+  });
+}
+
+if (actionPreviewPdfBtn) {
+  actionPreviewPdfBtn.addEventListener("click", () => {
+    setWorkflowStep("test");
+    if (previewPdfBtn) previewPdfBtn.click();
+  });
+}
 
 if (snapEnabledInput) {
   snapEnabledInput.checked = snapEnabled;
@@ -3311,6 +3447,7 @@ previewBtn.addEventListener("click", () => {
   previewMode = !previewMode;
   previewBtn.textContent = `Preview Data: ${previewMode ? "On" : "Off"}`;
   render();
+  syncWorkflowFromState();
 });
 loadDataBtn.addEventListener("click", () => dataFileInput.click());
 dataFileInput.addEventListener("change", () => {
@@ -3359,6 +3496,7 @@ if (newTemplateBtn) {
     contractTestResult = null;
     activeStarterPath = null;
     setTemplate(createBlankTemplate(name || "Untitled Template"));
+    setWorkflowStep("design");
   });
 }
 
@@ -3366,6 +3504,7 @@ if (loadStarterBtn) {
   loadStarterBtn.addEventListener("click", () => {
     if (!starterTemplateSelect || !starterTemplateSelect.value) return;
     loadTemplateFromUrl(starterTemplateSelect.value);
+    setWorkflowStep("design");
   });
 }
 
@@ -3684,5 +3823,6 @@ render = function renderWithPartials() {
   updateTemplateDirtyState();
   syncDbStatusSelect();
   syncQuickActions();
+  syncPrimaryActions();
   syncArrangeActions();
 };
