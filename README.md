@@ -38,6 +38,10 @@ Bank statement sample:
 
 ![Bank statement sample](docs/screenshots/bank-statement-render.jpg)
 
+Editor workflow (guided steps + primary actions):
+
+![Editor workflow sample](docs/screenshots/editor-workflow.jpg)
+
 ## Status
 
 `Alpha` (`0.x`): suitable for evaluation and POCs, not yet production-hardened.
