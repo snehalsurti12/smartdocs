@@ -97,6 +97,46 @@ setInterval(() => {
   }
 }, 5 * 60 * 1000);
 
+// Simple analytics — in-memory counters, exposed via /api/stats
+const stats = {
+  startedAt: new Date().toISOString(),
+  pageViews: 0,
+  pdfRenders: 0,
+  templateLoads: 0,
+  uniqueVisitors: new Set(),
+  dailyVisitors: new Map() // date -> Set of IPs
+};
+
+function trackVisit(req, event) {
+  const ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress || "unknown";
+  const today = new Date().toISOString().slice(0, 10);
+  if (event === "pageView") {
+    stats.pageViews++;
+    stats.uniqueVisitors.add(ip);
+    if (!stats.dailyVisitors.has(today)) stats.dailyVisitors.set(today, new Set());
+    stats.dailyVisitors.get(today).add(ip);
+  } else if (event === "pdfRender") {
+    stats.pdfRenders++;
+  } else if (event === "templateLoad") {
+    stats.templateLoads++;
+  }
+}
+
+function getStats() {
+  const daily = {};
+  for (const [date, visitors] of stats.dailyVisitors) {
+    daily[date] = visitors.size;
+  }
+  return {
+    startedAt: stats.startedAt,
+    pageViews: stats.pageViews,
+    uniqueVisitors: stats.uniqueVisitors.size,
+    pdfRenders: stats.pdfRenders,
+    templateLoads: stats.templateLoads,
+    dailyVisitors: daily
+  };
+}
+
 function addSecurityHeaders(res) {
   res.setHeader("X-Content-Type-Options", "nosniff");
   res.setHeader("X-Frame-Options", "SAMEORIGIN");
@@ -226,6 +266,7 @@ const server = http.createServer(async (req, res) => {
   }
 
   if (req.method === "POST" && urlPath === "/api/render-pdf") {
+    trackVisit(req, "pdfRender");
     if (!rateLimit(req, "pdf", RATE_MAX_PDF)) {
       respondJson(res, 429, { error: "PDF rate limit exceeded. Max " + RATE_MAX_PDF + " per minute." });
       return;
@@ -283,6 +324,30 @@ const server = http.createServer(async (req, res) => {
       db: templateStoreDb.canUseDb()
     });
     return;
+  }
+
+  // Stats endpoint (protected with simple token in production)
+  if (urlPath === "/api/stats") {
+    const token = process.env.STATS_TOKEN;
+    if (token) {
+      const query = req.url.includes("?") ? req.url.split("?")[1] : "";
+      const params = new URLSearchParams(query);
+      if (params.get("token") !== token) {
+        respondJson(res, 401, { error: "Unauthorized" });
+        return;
+      }
+    }
+    respondJson(res, 200, getStats());
+    return;
+  }
+
+  // Track page views
+  if (urlPath === "/" || urlPath === "/editor/index.html") {
+    trackVisit(req, "pageView");
+  }
+  // Track template loads (example JSON fetches)
+  if (urlPath.startsWith("/examples/") && urlPath.endsWith("-template.json")) {
+    trackVisit(req, "templateLoad");
   }
 
   const filePath = path.join(root, urlPath === "/" ? "/editor/index.html" : urlPath);

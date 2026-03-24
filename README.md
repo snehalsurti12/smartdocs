@@ -6,6 +6,8 @@ Open-source document generation engine with a visual template editor, determinis
 [![Node](https://img.shields.io/badge/node-%3E%3D18-339933)](https://nodejs.org/)
 [![Version](https://img.shields.io/badge/version-1.0.0--beta-green)](https://github.com/snehalsurti12/smartdocs)
 
+**[Try the Live Demo](https://smartdocs-production-b0fa.up.railway.app/)** — no signup, no install. Open the editor and start building templates instantly.
+
 ## Quick Start
 
 ```bash
