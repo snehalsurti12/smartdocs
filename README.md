@@ -4,7 +4,7 @@ Open-source document generation engine with a visual template editor, determinis
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 [![Node](https://img.shields.io/badge/node-%3E%3D18-339933)](https://nodejs.org/)
-[![Version](https://img.shields.io/badge/version-0.2.0-green)](https://github.com/snehalsurti12/smartdocs)
+[![Version](https://img.shields.io/badge/version-1.0.0--beta-green)](https://github.com/snehalsurti12/smartdocs)
 
 ## Quick Start
 
@@ -118,6 +118,16 @@ GET/PATCH  /api/templates/:id
 GET/POST   /api/templates/:id/versions
 GET        /api/templates/:id/audit
 ```
+
+## Known Limitations (Beta)
+
+- **QR codes**: Supports versions 1-10 (max ~271 characters). Very long URLs or payloads may be truncated.
+- **API authentication**: No auth layer on template APIs — do not expose to public networks without a reverse proxy.
+- **Charts**: SVG-based rendering covers bar, line, pie, doughnut. No legends, axis labels, or tooltips yet.
+- **Barcodes**: Code 128B only. EAN-13, UPC, and other symbologies are not yet implemented.
+- **Undo/redo**: Snapshot-based (50 steps). Large templates may use more memory.
+- **Browser support**: Editor tested in Chromium-based browsers. Firefox and Safari may have minor rendering differences.
+- **PDF rendering**: Requires Playwright/Chromium. No server-side rendering without a headless browser.
 
 ## Roadmap
 
