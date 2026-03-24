@@ -1,0 +1,44 @@
+{
+  "event": {
+    "name": "TechForward Summit 2025",
+    "date": "2025-11-14",
+    "venue": "Moscone Center",
+    "city": "San Francisco",
+    "tagline": "Where innovation meets execution",
+    "website": "https://techforward-summit.example.com",
+    "venueMapUrl": "https://maps.example.com/moscone-center",
+    "supportEmail": "help@techforward-summit.example.com"
+  },
+  "attendee": {
+    "name": "Sarah Chen",
+    "title": "VP of Engineering",
+    "company": "Nexus Dynamics",
+    "email": "sarah.chen@nexus-dynamics.example.com",
+    "id": "TFS-2025-04821",
+    "type": "VIP SPEAKER",
+    "photo": "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=300&h=300&fit=crop&crop=face",
+    "checkinUrl": "https://techforward-summit.example.com/checkin/TFS-2025-04821"
+  },
+  "wifi": {
+    "network": "TFS-Guest-2025",
+    "password": "innovate2025!"
+  },
+  "schedule": [
+    { "time": "8:00 AM", "session": "Registration & Breakfast", "speaker": "", "room": "Main Lobby" },
+    { "time": "9:00 AM", "session": "Opening Keynote: The Future of AI", "speaker": "Dr. Maya Patel", "room": "Hall A" },
+    { "time": "10:15 AM", "session": "Building Scalable Data Pipelines", "speaker": "Sarah Chen", "room": "Room 201" },
+    { "time": "11:30 AM", "session": "Zero Trust Security in Practice", "speaker": "James Morrison", "room": "Room 305" },
+    { "time": "12:30 PM", "session": "Networking Lunch", "speaker": "", "room": "Terrace" },
+    { "time": "2:00 PM", "session": "Panel: Engineering Leadership", "speaker": "Multiple", "room": "Hall B" },
+    { "time": "3:15 PM", "session": "Hands-on: Cloud-Native Architecture", "speaker": "Priya Sharma", "room": "Lab 1" },
+    { "time": "4:30 PM", "session": "Closing Keynote: What's Next", "speaker": "Alex Rivera", "room": "Hall A" },
+    { "time": "5:30 PM", "session": "Evening Reception & Awards", "speaker": "", "room": "Rooftop" }
+  ],
+  "topicBreakdown": [
+    { "topic": "AI/ML", "count": 12 },
+    { "topic": "Security", "count": 8 },
+    { "topic": "Data", "count": 10 },
+    { "topic": "Cloud", "count": 7 },
+    { "topic": "Leadership", "count": 5 }
+  ]
+}

@@ -144,7 +144,11 @@
         { "$ref": "#/$defs/qrElement" },
         { "$ref": "#/$defs/lineElement" },
         { "$ref": "#/$defs/boxElement" },
-        { "$ref": "#/$defs/includeElement" }
+        { "$ref": "#/$defs/includeElement" },
+        { "$ref": "#/$defs/barcodeElement" },
+        { "$ref": "#/$defs/linkElement" },
+        { "$ref": "#/$defs/pageBreakElement" },
+        { "$ref": "#/$defs/chartElement" }
       ]
     },
     "textElement": {
@@ -320,6 +324,71 @@
           "properties": {
             "type": { "const": "include" },
             "ref": { "type": "string", "minLength": 1 }
+          }
+        }
+      ]
+    },
+    "barcodeElement": {
+      "type": "object",
+      "unevaluatedProperties": false,
+      "allOf": [
+        { "$ref": "#/$defs/elementBase" },
+        {
+          "required": ["type", "value"],
+          "properties": {
+            "type": { "const": "barcode" },
+            "value": { "type": "string", "minLength": 1 },
+            "format": { "type": "string", "enum": ["code128", "code39", "ean13", "ean8", "upc", "itf14", "codabar"], "default": "code128" }
+          }
+        }
+      ]
+    },
+    "linkElement": {
+      "type": "object",
+      "unevaluatedProperties": false,
+      "allOf": [
+        { "$ref": "#/$defs/elementBase" },
+        {
+          "required": ["type", "text", "url"],
+          "properties": {
+            "type": { "const": "link" },
+            "text": { "type": "string" },
+            "url": { "type": "string", "minLength": 1 }
+          }
+        }
+      ]
+    },
+    "pageBreakElement": {
+      "type": "object",
+      "unevaluatedProperties": false,
+      "allOf": [
+        { "$ref": "#/$defs/elementBase" },
+        {
+          "required": ["type"],
+          "properties": {
+            "type": { "const": "pageBreak" }
+          }
+        }
+      ]
+    },
+    "chartElement": {
+      "type": "object",
+      "unevaluatedProperties": false,
+      "allOf": [
+        { "$ref": "#/$defs/elementBase" },
+        {
+          "required": ["type", "chartType"],
+          "properties": {
+            "type": { "const": "chart" },
+            "chartType": { "type": "string", "enum": ["bar", "line", "pie", "doughnut"], "default": "bar" },
+            "dataSource": { "type": "string" },
+            "labelField": { "type": "string" },
+            "valueField": { "type": "string" },
+            "title": { "type": "string" },
+            "colors": {
+              "type": "array",
+              "items": { "type": "string" }
+            }
           }
         }
       ]

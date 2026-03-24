@@ -617,8 +617,8 @@ function renderElement(el, data, template, ctx) {
 
   if (el.type === "qr") {
     const value = resolveText(el.value, data, ctx);
-    const boxStyle = styleToCss(el.style, template);
-    return `<div class="el qr" data-id="${el.id}" style="${baseStyle};${boxStyle};border:1pt solid #333;"></div>`;
+    const qrSvg = renderQrSvg(value, el.w, el.h);
+    return `<div class="el qr" data-id="${el.id}" style="${baseStyle};background:#fff;overflow:hidden;">${qrSvg}</div>`;
   }
 
   if (el.type === "line") {
@@ -632,7 +632,193 @@ function renderElement(el, data, template, ctx) {
     return `<div class="el box" data-id="${el.id}" style="${baseStyle};${boxStyle};"></div>`;
   }
 
+  if (el.type === "barcode") {
+    const value = resolveText(el.value, data, ctx);
+    const format = el.format || "code128";
+    const barH = el.h - 12;
+    return `<div class="el barcode" data-id="${el.id}" data-format="${format}" style="${baseStyle};display:flex;flex-direction:column;overflow:hidden;background:#fff;padding:3pt 6pt;border-radius:2pt;">` +
+      `<svg viewBox="0 0 ${el.w} ${barH}" preserveAspectRatio="none" style="width:100%;height:${barH}pt;display:block;flex-shrink:0;" xmlns="http://www.w3.org/2000/svg">${renderBarcodeSvg(value, el.w, barH)}</svg>` +
+      `<div style="text-align:center;font-size:7pt;font-family:monospace;line-height:11pt;letter-spacing:0.5pt;color:#333;">${escapeHtml(value)}</div>` +
+      `</div>`;
+  }
+
+  if (el.type === "link") {
+    const text = resolveText(el.text, data, ctx);
+    const url = resolveText(el.url, data, ctx);
+    return `<a class="el link" data-id="${el.id}" href="${url}" style="${baseStyle};${textStyle};color:${(el.style && el.style.color) || '#1a6daf'};text-decoration:underline;display:flex;align-items:center;">${escapeHtml(text)}</a>`;
+  }
+
+  if (el.type === "pageBreak") {
+    return `<div class="el page-break" data-id="${el.id}" style="${baseStyle};border-top:2pt dashed #b33a2b;display:flex;align-items:center;justify-content:center;font-size:8pt;color:#b33a2b;">PAGE BREAK</div>`;
+  }
+
+  if (el.type === "chart") {
+    const chartType = el.chartType || "bar";
+    const dataPath = normalizeBinding(el.dataSource || "");
+    const items = dataPath ? (resolvePath(data, dataPath) || []) : [];
+    const labelField = el.labelField || "label";
+    const valueField = el.valueField || "value";
+    const labels = items.map((item) => String(resolvePath(item, labelField) || ""));
+    const values = items.map((item) => Number(resolvePath(item, valueField) || 0));
+    const colors = el.colors || ["#b33a2b", "#2b6cb3", "#3c8f3a", "#d4a017", "#7b3cb3"];
+    const title = resolveText(el.title || "", data, ctx);
+    return `<div class="el chart" data-id="${el.id}" style="${baseStyle};overflow:hidden;">` +
+      renderChartSvg(chartType, labels, values, colors, el.w, el.h, title) +
+      `</div>`;
+  }
+
   return "";
+}
+
+const qrEncoder = require("./qr-encode");
+
+function renderQrSvg(value, w, h) {
+  if (!value) return `<svg viewBox="0 0 ${w} ${h}" style="width:100%;height:100%;" xmlns="http://www.w3.org/2000/svg"><rect width="${w}" height="${h}" fill="#fff"/><text x="${w/2}" y="${h/2}" text-anchor="middle" font-size="8" fill="#999">No QR data</text></svg>`;
+  const modules = qrEncoder.encode(value, "M");
+  const size = modules.length;
+  const margin = 2;
+  const total = size + margin * 2;
+  const cellW = w / total;
+  const cellH = h / total;
+  const cell = Math.min(cellW, cellH);
+  const offsetX = (w - total * cell) / 2;
+  const offsetY = (h - total * cell) / 2;
+  let svg = `<svg viewBox="0 0 ${w} ${h}" style="width:100%;height:100%;display:block;" xmlns="http://www.w3.org/2000/svg">`;
+  svg += `<rect width="${w}" height="${h}" fill="#fff"/>`;
+  for (let row = 0; row < size; row++) {
+    for (let col = 0; col < size; col++) {
+      if (modules[row][col]) {
+        const x = offsetX + (col + margin) * cell;
+        const y = offsetY + (row + margin) * cell;
+        svg += `<rect x="${x.toFixed(2)}" y="${y.toFixed(2)}" width="${cell.toFixed(2)}" height="${cell.toFixed(2)}" fill="#000"/>`;
+      }
+    }
+  }
+  svg += `</svg>`;
+  return svg;
+}
+
+
+
+function renderBarcodeSvg(value, width, height) {
+  if (!value) return "";
+  const CODE128B = [
+    "11011001100","11001101100","11001100110","10010011000","10010001100",
+    "10001001100","10011001000","10011000100","10001100100","11001001000",
+    "11001000100","11000100100","10110011100","10011011100","10011001110",
+    "10111001100","10011101100","10011100110","11001110010","11001011100",
+    "11001001110","11011100100","11001110100","11100101100","11100100110",
+    "11101100100","11100110100","11100110010","11011011000","11011000110",
+    "11000110110","10100011000","10001011000","10001000110","10110001000",
+    "10001101000","10001100010","11010001000","11000101000","11000100010",
+    "10110111000","10110001110","10001101110","10111011000","10111000110",
+    "10001110110","11101110110","11010001110","11000101110","11011101000",
+    "11011100010","11011101110","11101011000","11101000110","11100010110",
+    "11101101000","11101100010","11100011010","11101111010","11001000010",
+    "11110001010","10100110000","10100001100","10010110000","10010000110",
+    "10000101100","10000100110","10110010000","10110000100","10011010000",
+    "10011000010","10000110100","10000110010","11000010010","11001010000",
+    "11110111010","11000010100","10001111010","10100111100","10010111100",
+    "10010011110","10111100100","10011110100","10011110010","11110100100",
+    "11110010100","11110010010","11011011110","11011110110","11110110110",
+    "10101111000","10100011110","10001011110","10111101000","10111100010",
+    "11110101000","11110100010","10111011110","10111101110","11101011110",
+    "11110101110","11010000100","11010010000","11010011100","1100011101011"
+  ];
+  const START_B = 104;
+  const STOP = 106;
+  let checksum = START_B;
+  let bits = CODE128B[START_B];
+  for (let i = 0; i < value.length; i++) {
+    const code = value.charCodeAt(i) - 32;
+    const idx = Math.max(0, Math.min(code, 94));
+    bits += CODE128B[idx];
+    checksum += idx * (i + 1);
+  }
+  bits += CODE128B[checksum % 103];
+  bits += CODE128B[STOP];
+  const quietZone = 10;
+  const totalBits = bits.length + quietZone * 2;
+  const unitW = width / totalBits;
+  const bars = [];
+  for (let i = 0; i < bits.length; i++) {
+    if (bits[i] === "1") {
+      const x = (quietZone + i) * unitW;
+      bars.push(`<rect x="${x.toFixed(2)}" y="0" width="${Math.max(unitW, 0.5).toFixed(2)}" height="${height}" fill="#000"/>`);
+    }
+  }
+  return bars.join("");
+}
+
+function renderChartSvg(chartType, labels, values, colors, w, h, title) {
+  const maxVal = Math.max(...values, 1);
+  const titleH = title ? 16 : 0;
+  const padTop = 8 + titleH;
+  const padBottom = 20;
+  const padLeft = 6;
+  const padRight = 6;
+  const chartW = w - padLeft - padRight;
+  const chartH = h - padTop - padBottom;
+  let svg = `<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;display:block;">`;
+  if (title) {
+    svg += `<text x="${w / 2}" y="${14}" text-anchor="middle" font-size="10" font-weight="600" fill="#333">${title}</text>`;
+  }
+  if (chartType === "bar") {
+    const barGap = 4;
+    const barW = Math.max(4, (chartW - barGap * (values.length - 1)) / Math.max(1, values.length));
+    values.forEach((v, i) => {
+      const barH = (v / maxVal) * chartH;
+      const x = padLeft + i * (barW + barGap);
+      const y = padTop + chartH - barH;
+      svg += `<rect x="${x}" y="${y}" width="${barW}" height="${barH}" fill="${colors[i % colors.length]}" rx="2"/>`;
+      if (labels[i]) {
+        svg += `<text x="${x + barW / 2}" y="${h - 4}" text-anchor="middle" font-size="7" fill="#555">${labels[i].slice(0, 8)}</text>`;
+      }
+    });
+  } else if (chartType === "line") {
+    const stepX = values.length > 1 ? chartW / (values.length - 1) : chartW;
+    const points = values.map((v, i) => {
+      const x = padLeft + i * stepX;
+      const y = padTop + chartH - (v / maxVal) * chartH;
+      return `${x},${y}`;
+    });
+    svg += `<polyline points="${points.join(" ")}" fill="none" stroke="${colors[0]}" stroke-width="2"/>`;
+    values.forEach((v, i) => {
+      const x = padLeft + i * stepX;
+      const y = padTop + chartH - (v / maxVal) * chartH;
+      svg += `<circle cx="${x}" cy="${y}" r="3" fill="${colors[0]}"/>`;
+      if (labels[i]) {
+        svg += `<text x="${x}" y="${h - 4}" text-anchor="middle" font-size="7" fill="#555">${labels[i].slice(0, 8)}</text>`;
+      }
+    });
+  } else if (chartType === "pie" || chartType === "doughnut") {
+    const cx = w / 2;
+    const cy = padTop + chartH / 2;
+    const r = Math.min(chartW, chartH) / 2 - 4;
+    const innerR = chartType === "doughnut" ? r * 0.55 : 0;
+    const total = values.reduce((a, b) => a + b, 0) || 1;
+    let angle = -Math.PI / 2;
+    values.forEach((v, i) => {
+      const sweep = (v / total) * Math.PI * 2;
+      const x1 = cx + r * Math.cos(angle);
+      const y1 = cy + r * Math.sin(angle);
+      const x2 = cx + r * Math.cos(angle + sweep);
+      const y2 = cy + r * Math.sin(angle + sweep);
+      const large = sweep > Math.PI ? 1 : 0;
+      let d = `M ${cx} ${cy} L ${x1} ${y1} A ${r} ${r} 0 ${large} 1 ${x2} ${y2} Z`;
+      if (innerR > 0) {
+        const ix1 = cx + innerR * Math.cos(angle);
+        const iy1 = cy + innerR * Math.sin(angle);
+        const ix2 = cx + innerR * Math.cos(angle + sweep);
+        const iy2 = cy + innerR * Math.sin(angle + sweep);
+        d = `M ${ix1} ${iy1} L ${x1} ${y1} A ${r} ${r} 0 ${large} 1 ${x2} ${y2} L ${ix2} ${iy2} A ${innerR} ${innerR} 0 ${large} 0 ${ix1} ${iy1} Z`;
+      }
+      svg += `<path d="${d}" fill="${colors[i % colors.length]}"/>`;
+      angle += sweep;
+    });
+  }
+  svg += `</svg>`;
+  return svg;
 }
 
 function escapeHtml(str) {
@@ -705,6 +891,7 @@ function renderHtml(template, data, options = {}) {
     };
   }
   const tableData = pagedTable ? computeTablePages(pagedTable, renderData, template, bodyH, tablePageSpace || {}) : null;
+  const pagedTableStartPage = pagedTable ? Math.max(0, Math.floor(Number(pagedTable.page) || 1) - 1) : 0;
 
   const pageCount = flowData
     ? (flowRepeat === "afterFirst"
@@ -717,7 +904,7 @@ function renderHtml(template, data, options = {}) {
       ? flowData.pages.length + 1
       : flowData.pages.length)
     : tableData
-    ? tableData.pages.length
+    ? tableData.pages.length + pagedTableStartPage
     : 1;
   const manualPageCount = Math.max(1, Math.floor(Number(template.pageCount) || 1));
   const explicitElementPageMax = elements.reduce((max, el) => {
@@ -743,12 +930,15 @@ function renderHtml(template, data, options = {}) {
       .filter((el) => !el.region || el.region === "body")
       .map((el) => {
         if (pagedTable && el.id === pagedTable.id) {
-          const rows = tableData.pages[p] || [];
-          if (!rows.length && p >= tableData.pages.length) return "";
-          const tableY = p === 0 ? (el.y || 0) : (el.continuationY != null ? el.continuationY : (el.y || 0));
+          if (p < pagedTableStartPage) return "";
+          const tablePageIndex = p - pagedTableStartPage;
+          const rows = tableData.pages[tablePageIndex] || [];
+          if (!rows.length && tablePageIndex >= tableData.pages.length) return "";
+          const isFirstTablePage = tablePageIndex === 0;
+          const tableY = isFirstTablePage ? (el.y || 0) : (el.continuationY != null ? el.continuationY : (el.y || 0));
           const explicitFirstH = el.h && el.h > 0 ? el.h : null;
           const explicitOtherH = el.continuationH && el.continuationH > 0 ? el.continuationH : null;
-          const tableH = p === 0
+          const tableH = isFirstTablePage
             ? (explicitFirstH != null
               ? explicitFirstH
               : (tableData.firstAvailable != null ? tableData.firstAvailable : bodyH - (el.y || 0)))

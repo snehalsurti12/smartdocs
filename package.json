@@ -1,12 +1,16 @@
 {
   "name": "smartdocs",
-  "version": "0.1.0-alpha.3",
+  "version": "0.2.0",
   "description": "Template-driven, enterprise-style document designer and HTML/PDF renderer.",
   "license": "MIT",
   "type": "commonjs",
   "scripts": {
     "render": "node scripts/render.js",
     "render:pdf": "node scripts/render-pdf.js",
+    "demo:video": "node scripts/record-demo-video.js",
+    "demo:video:bank": "node scripts/record-demo-bank-integration.js",
+    "demo:video:bank:sf": "node scripts/record-demo-bank-salesforce.js",
+    "demo:video:bank:sf:desktop": "node scripts/record-demo-bank-salesforce-desktop.js",
     "editor": "node scripts/serve-editor.js",
     "validate": "node scripts/validate.js",
     "check": "npm run validate -- --template examples/template.json && npm run validate -- --template examples/cc-template.json && npm run validate -- --template examples/bank-statement-template.json && npm run validate -- --template examples/terms-template.json && npm run validate -- --template examples/showcase-image-text-template.json && npm run validate -- --template examples/enterprise-program-update-template.json && npm run validate -- --template examples/enterprise-cover-template.json && npm run render -- --template examples/template.json --data examples/data.json --out out/render.html",

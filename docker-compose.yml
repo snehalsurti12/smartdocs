@@ -19,5 +19,18 @@ services:
       timeout: 5s
       retries: 10
 
+  app:
+    build: .
+    container_name: smartdocs-app
+    restart: unless-stopped
+    ports:
+      - "5177:5177"
+    environment:
+      PORT: 5177
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/smartdocs
+    depends_on:
+      postgres:
+        condition: service_healthy
+
 volumes:
   smartdocs_pgdata:

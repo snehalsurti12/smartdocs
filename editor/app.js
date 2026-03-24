@@ -10,6 +10,8 @@ const actionNewBtn = document.getElementById("btn-action-new");
 const actionCheckBtn = document.getElementById("btn-action-check");
 const actionSaveBtn = document.getElementById("btn-action-save");
 const actionPreviewPdfBtn = document.getElementById("btn-action-preview-pdf");
+const undoBtn = document.getElementById("btn-undo");
+const redoBtn = document.getElementById("btn-redo");
 const previewBtn = document.getElementById("btn-preview");
 const loadDataBtn = document.getElementById("btn-load-data");
 const dataFileInput = document.getElementById("file-data");
@@ -83,6 +85,61 @@ let activeGuides = { x: null, y: null, region: "body" };
 let dragPaletteType = null;
 let dropPreview = null;
 
+const undoStack = [];
+const redoStack = [];
+const MAX_UNDO = 50;
+let lastUndoSnapshot = "";
+
+function pushUndo() {
+  if (!template) return;
+  const snap = JSON.stringify(template);
+  if (snap === lastUndoSnapshot) return;
+  undoStack.push(lastUndoSnapshot);
+  if (undoStack.length > MAX_UNDO) undoStack.shift();
+  redoStack.length = 0;
+  lastUndoSnapshot = snap;
+}
+
+function performUndo() {
+  if (!undoStack.length || !template) return;
+  const current = JSON.stringify(template);
+  redoStack.push(current);
+  const prev = undoStack.pop();
+  if (!prev) return;
+  lastUndoSnapshot = prev;
+  try {
+    const restored = JSON.parse(prev);
+    template.elements = restored.elements || [];
+    template.partials = restored.partials || {};
+    template.pageCount = restored.pageCount;
+    template.page = restored.page;
+    template.dataContract = restored.dataContract;
+    render();
+  } catch (_err) {
+    // ignore parse errors
+  }
+}
+
+function performRedo() {
+  if (!redoStack.length || !template) return;
+  const current = JSON.stringify(template);
+  undoStack.push(current);
+  const next = redoStack.pop();
+  if (!next) return;
+  lastUndoSnapshot = next;
+  try {
+    const restored = JSON.parse(next);
+    template.elements = restored.elements || [];
+    template.partials = restored.partials || {};
+    template.pageCount = restored.pageCount;
+    template.page = restored.page;
+    template.dataContract = restored.dataContract;
+    render();
+  } catch (_err) {
+    // ignore parse errors
+  }
+}
+
 const STARTER_TEMPLATES = [
   { label: "Invoice Starter", path: "/examples/template.json" },
   { label: "Credit Card Statement", path: "/examples/cc-template.json" },
@@ -90,7 +147,9 @@ const STARTER_TEMPLATES = [
   { label: "Terms & Conditions", path: "/examples/terms-template.json" },
   { label: "Image + Text Showcase", path: "/examples/showcase-image-text-template.json" },
   { label: "Enterprise Program Update (2-Page)", path: "/examples/enterprise-program-update-template.json" },
-  { label: "Enterprise Cover Package", path: "/examples/enterprise-cover-template.json" }
+  { label: "Enterprise Cover Package", path: "/examples/enterprise-cover-template.json" },
+  { label: "Quarterly Report (All Components)", path: "/examples/showcase-all-template.json" },
+  { label: "Conference Event Pass (QR Codes)", path: "/examples/event-pass-template.json" }
 ];
 
 const WORKFLOW_HELP = {
@@ -145,7 +204,7 @@ function setWorkflowStep(step, options = {}) {
   if (next === "data") {
     if (previewMode) {
       previewMode = false;
-      if (previewBtn) previewBtn.textContent = "Preview Data: Off";
+      if (previewBtn) previewBtn.textContent = "Hide Live Data";
     }
     setLeftMode("data");
     render();
@@ -154,7 +213,7 @@ function setWorkflowStep(step, options = {}) {
   if (next === "test") {
     if (!previewMode) {
       previewMode = true;
-      if (previewBtn) previewBtn.textContent = "Preview Data: On";
+      if (previewBtn) previewBtn.textContent = "Show Live Data";
     }
     setLeftMode("data");
     render();
@@ -338,6 +397,12 @@ function createBlankTemplate(name) {
 function populateStarterTemplates() {
   if (!starterTemplateSelect) return;
   starterTemplateSelect.innerHTML = "";
+  const placeholder = document.createElement("option");
+  placeholder.value = "";
+  placeholder.textContent = "Open a sample template\u2026";
+  placeholder.disabled = true;
+  placeholder.selected = true;
+  starterTemplateSelect.appendChild(placeholder);
   STARTER_TEMPLATES.forEach((starter) => {
     const opt = document.createElement("option");
     opt.value = starter.path;
@@ -890,6 +955,9 @@ function runQuickTemplateCheck(options = {}) {
 
 function setTemplate(next, options = {}) {
   template = next;
+  undoStack.length = 0;
+  redoStack.length = 0;
+  lastUndoSnapshot = JSON.stringify(next);
   const maxElementPage = (template.elements || []).reduce((max, el) => {
     const p = Number(el.page);
     if (!Number.isFinite(p) || p < 1) return max;
@@ -1005,7 +1073,7 @@ function ensureFontFaces() {
 function enableTextEdit(div, el) {
   if (previewMode && !editingPartial) {
     previewMode = false;
-    previewBtn.textContent = "Preview Data: Off";
+    previewBtn.textContent = "Hide Live Data";
   }
   const defaultText = (template && template.styles && template.styles.defaultText) || {};
   const mergedStyle = { ...defaultText, ...(el.style || {}) };
@@ -1392,6 +1460,10 @@ function createDefaultElement(type) {
   if (type === "qr") return { ...base, w: 80, h: 80, value: "{{qr.value}}", ecc: "M" };
   if (type === "line") return { ...base, w: 200, h: 1 };
   if (type === "box") return { ...base, w: 200, h: 60 };
+  if (type === "barcode") return { ...base, w: 180, h: 50, value: "{{barcode.value}}", format: "code128" };
+  if (type === "link") return { ...base, w: 140, h: 20, text: "Click here", url: "https://example.com" };
+  if (type === "pageBreak") return { ...base, w: 400, h: 4, region: "body" };
+  if (type === "chart") return { ...base, w: 250, h: 180, chartType: "bar", dataSource: "{{chartData}}", labelField: "label", valueField: "value", title: "Chart", colors: ["#b33a2b", "#2b6cb3", "#3c8f3a", "#d4a017", "#7b3cb3"] };
   return base;
 }
 
@@ -1987,11 +2059,249 @@ function renderElement(el, ctx = {}) {
     div.innerHTML = "";
     div.appendChild(table);
   } else if (el.type === "qr") {
-    div.textContent = previewMode ? "" : "QR";
+    div.style.background = "#fff";
+    div.style.display = "flex";
+    div.style.alignItems = "center";
+    div.style.justifyContent = "center";
+    const value = previewMode ? resolveText(el.value || "", resolvedData || {}, ctx.textCtx || null) : (el.value || "");
+    if (value) {
+      const qrSize = 21;
+      const margin = 2;
+      const total = qrSize + margin * 2;
+      const pxW = ptToPx(el.w);
+      const pxH = ptToPx(el.h);
+      const cell = Math.min(pxW, pxH) / total;
+      const cnv = document.createElement("canvas");
+      cnv.width = pxW;
+      cnv.height = pxH;
+      cnv.style.width = "100%";
+      cnv.style.height = "100%";
+      const cx = cnv.getContext("2d");
+      cx.fillStyle = "#fff";
+      cx.fillRect(0, 0, pxW, pxH);
+      cx.fillStyle = "#000";
+      const offsetX = (pxW - total * cell) / 2;
+      const offsetY = (pxH - total * cell) / 2;
+      const fp = [[0,0],[0,qrSize-7],[qrSize-7,0]];
+      fp.forEach(([fr,fc]) => {
+        for (let r = 0; r <= 6; r++) {
+          for (let c = 0; c <= 6; c++) {
+            const inner = r >= 2 && r <= 4 && c >= 2 && c <= 4;
+            const border = r === 0 || r === 6 || c === 0 || c === 6;
+            if (inner || border) {
+              cx.fillRect(offsetX + (fc + c + margin) * cell, offsetY + (fr + r + margin) * cell, cell, cell);
+            }
+          }
+        }
+      });
+      for (let i = 8; i < qrSize - 8; i++) {
+        if (i % 2 === 0) {
+          cx.fillRect(offsetX + (i + margin) * cell, offsetY + (6 + margin) * cell, cell, cell);
+          cx.fillRect(offsetX + (6 + margin) * cell, offsetY + (i + margin) * cell, cell, cell);
+        }
+      }
+      const bytes = [];
+      for (let i = 0; i < value.length; i++) bytes.push(value.charCodeAt(i) & 0xff);
+      let hash = 0;
+      for (const b of bytes) hash = ((hash << 5) - hash + b) | 0;
+      for (let r = 9; r < qrSize - 8; r++) {
+        for (let c = 9; c < qrSize - 8; c++) {
+          const seed = hash ^ (r * 31 + c * 17);
+          if ((seed & 3) === 0) {
+            cx.fillRect(offsetX + (c + margin) * cell, offsetY + (r + margin) * cell, cell, cell);
+          }
+        }
+      }
+      div.appendChild(cnv);
+    } else {
+      div.textContent = "QR";
+      div.style.fontSize = "10px";
+      div.style.color = "#999";
+      div.style.border = "1px solid #ddd";
+    }
   } else if (el.type === "line") {
     div.textContent = "";
   } else if (el.type === "box") {
     div.textContent = "";
+  } else if (el.type === "barcode") {
+    const value = previewMode ? resolveText(el.value || "", resolvedData || {}, ctx.textCtx || null) : (el.value || "");
+    div.style.display = "flex";
+    div.style.flexDirection = "column";
+    div.style.alignItems = "stretch";
+    div.style.background = "#fff";
+    div.style.overflow = "hidden";
+    const barsDiv = document.createElement("div");
+    barsDiv.style.flex = "1";
+    barsDiv.style.width = "100%";
+    barsDiv.style.display = "flex";
+    barsDiv.style.alignItems = "stretch";
+    const text = value || "BARCODE";
+    for (let i = 0; i < text.length; i++) {
+      const code = text.charCodeAt(i);
+      for (let bit = 7; bit >= 0; bit--) {
+        const on = (code >> bit) & 1;
+        const bar = document.createElement("div");
+        bar.style.flex = "1";
+        bar.style.minWidth = "1px";
+        bar.style.background = on ? "#000" : "#fff";
+        barsDiv.appendChild(bar);
+      }
+      if (i < text.length - 1) {
+        const spacer = document.createElement("div");
+        spacer.style.flex = "0.5";
+        spacer.style.minWidth = "1px";
+        spacer.style.background = "#fff";
+        barsDiv.appendChild(spacer);
+      }
+    }
+    div.appendChild(barsDiv);
+    const label = document.createElement("div");
+    label.style.flexShrink = "0";
+    label.style.height = "12px";
+    label.style.fontSize = "8px";
+    label.style.fontFamily = "monospace";
+    label.style.textAlign = "center";
+    label.style.lineHeight = "12px";
+    label.style.letterSpacing = "0.5px";
+    label.style.color = "#333";
+    label.textContent = text;
+    div.appendChild(label);
+  } else if (el.type === "link") {
+    const text = previewMode ? resolveText(el.text || "", resolvedData || {}, ctx.textCtx || null) : (el.text || "");
+    div.textContent = text;
+    div.style.color = (el.style && el.style.color) || "#1a6daf";
+    div.style.textDecoration = "underline";
+    div.style.cursor = "pointer";
+    div.style.overflow = "hidden";
+    div.style.display = "flex";
+    div.style.alignItems = "center";
+    applyStyle(div, el.style, defaultText);
+    if (!el.style || !el.style.color) div.style.color = "#1a6daf";
+    div.style.textDecoration = "underline";
+  } else if (el.type === "pageBreak") {
+    div.style.borderTop = "2px dashed #b33a2b";
+    div.style.display = "flex";
+    div.style.alignItems = "center";
+    div.style.justifyContent = "center";
+    div.style.fontSize = "9px";
+    div.style.color = "#b33a2b";
+    div.style.fontWeight = "600";
+    div.style.letterSpacing = "0.05em";
+    div.textContent = "PAGE BREAK";
+  } else if (el.type === "chart") {
+    const chartType = el.chartType || "bar";
+    const dataPath = (el.dataSource || "").replace(/\{\{|\}\}/g, "").trim();
+    const items = previewMode && dataPath ? (resolvePath(resolvedData || {}, dataPath) || []) : [];
+    const labels = items.map((item) => String(resolvePath(item, el.labelField || "label") || ""));
+    const values = items.map((item) => Number(resolvePath(item, el.valueField || "value") || 0));
+    const colors = el.colors || ["#b33a2b", "#2b6cb3", "#3c8f3a", "#d4a017", "#7b3cb3"];
+    div.style.overflow = "hidden";
+    div.style.background = "#fff";
+    div.style.border = "1px solid #e0e0e0";
+    if (!items.length) {
+      div.style.display = "flex";
+      div.style.alignItems = "center";
+      div.style.justifyContent = "center";
+      div.style.fontSize = "11px";
+      div.style.color = "#999";
+      div.textContent = `Chart (${chartType})${el.title ? ": " + el.title : ""}`;
+    } else {
+      const svgNs = "http://www.w3.org/2000/svg";
+      const svg = document.createElementNS(svgNs, "svg");
+      svg.setAttribute("viewBox", `0 0 ${el.w} ${el.h}`);
+      svg.style.width = "100%";
+      svg.style.height = "100%";
+      const maxVal = Math.max(...values, 1);
+      const titleH = el.title ? 16 : 0;
+      const padTop = 8 + titleH;
+      const padBottom = 20;
+      const chartW = el.w - 12;
+      const chartH = el.h - padTop - padBottom;
+      if (el.title) {
+        const titleEl = document.createElementNS(svgNs, "text");
+        titleEl.setAttribute("x", el.w / 2);
+        titleEl.setAttribute("y", 14);
+        titleEl.setAttribute("text-anchor", "middle");
+        titleEl.setAttribute("font-size", "10");
+        titleEl.setAttribute("font-weight", "600");
+        titleEl.setAttribute("fill", "#333");
+        titleEl.textContent = el.title;
+        svg.appendChild(titleEl);
+      }
+      if (chartType === "bar") {
+        const barGap = 4;
+        const barW = Math.max(4, (chartW - barGap * (values.length - 1)) / Math.max(1, values.length));
+        values.forEach((v, i) => {
+          const barH = (v / maxVal) * chartH;
+          const rect = document.createElementNS(svgNs, "rect");
+          rect.setAttribute("x", 6 + i * (barW + barGap));
+          rect.setAttribute("y", padTop + chartH - barH);
+          rect.setAttribute("width", barW);
+          rect.setAttribute("height", barH);
+          rect.setAttribute("fill", colors[i % colors.length]);
+          rect.setAttribute("rx", "2");
+          svg.appendChild(rect);
+          if (labels[i]) {
+            const t = document.createElementNS(svgNs, "text");
+            t.setAttribute("x", 6 + i * (barW + barGap) + barW / 2);
+            t.setAttribute("y", el.h - 4);
+            t.setAttribute("text-anchor", "middle");
+            t.setAttribute("font-size", "7");
+            t.setAttribute("fill", "#555");
+            t.textContent = labels[i].slice(0, 8);
+            svg.appendChild(t);
+          }
+        });
+      } else if (chartType === "line") {
+        const stepX = values.length > 1 ? chartW / (values.length - 1) : chartW;
+        const points = values.map((v, i) => `${6 + i * stepX},${padTop + chartH - (v / maxVal) * chartH}`).join(" ");
+        const polyline = document.createElementNS(svgNs, "polyline");
+        polyline.setAttribute("points", points);
+        polyline.setAttribute("fill", "none");
+        polyline.setAttribute("stroke", colors[0]);
+        polyline.setAttribute("stroke-width", "2");
+        svg.appendChild(polyline);
+        values.forEach((v, i) => {
+          const circle = document.createElementNS(svgNs, "circle");
+          circle.setAttribute("cx", 6 + i * stepX);
+          circle.setAttribute("cy", padTop + chartH - (v / maxVal) * chartH);
+          circle.setAttribute("r", "3");
+          circle.setAttribute("fill", colors[0]);
+          svg.appendChild(circle);
+        });
+      } else if (chartType === "pie" || chartType === "doughnut") {
+        const cx = el.w / 2;
+        const cy = padTop + chartH / 2;
+        const r = Math.min(chartW, chartH) / 2 - 4;
+        const innerR = chartType === "doughnut" ? r * 0.55 : 0;
+        const total = values.reduce((a, b) => a + b, 0) || 1;
+        let angle = -Math.PI / 2;
+        values.forEach((v, i) => {
+          const sweep = (v / total) * Math.PI * 2;
+          const x1 = cx + r * Math.cos(angle);
+          const y1 = cy + r * Math.sin(angle);
+          const x2 = cx + r * Math.cos(angle + sweep);
+          const y2 = cy + r * Math.sin(angle + sweep);
+          const large = sweep > Math.PI ? 1 : 0;
+          let d;
+          if (innerR > 0) {
+            const ix1 = cx + innerR * Math.cos(angle);
+            const iy1 = cy + innerR * Math.sin(angle);
+            const ix2 = cx + innerR * Math.cos(angle + sweep);
+            const iy2 = cy + innerR * Math.sin(angle + sweep);
+            d = `M ${ix1} ${iy1} L ${x1} ${y1} A ${r} ${r} 0 ${large} 1 ${x2} ${y2} L ${ix2} ${iy2} A ${innerR} ${innerR} 0 ${large} 0 ${ix1} ${iy1} Z`;
+          } else {
+            d = `M ${cx} ${cy} L ${x1} ${y1} A ${r} ${r} 0 ${large} 1 ${x2} ${y2} Z`;
+          }
+          const path = document.createElementNS(svgNs, "path");
+          path.setAttribute("d", d);
+          path.setAttribute("fill", colors[i % colors.length]);
+          svg.appendChild(path);
+          angle += sweep;
+        });
+      }
+      div.appendChild(svg);
+    }
   } else if (el.type === "include") {
     div.textContent = `Include: ${el.ref}`;
     div.style.border = "1px dashed #999";
@@ -2081,6 +2391,7 @@ function addResizeHandles(container, id) {
 
 function render() {
   if (!template) return;
+  pushUndo();
   syncDataContractBindings();
   contractDiagnostics = evaluateDataContractLocal(data || {});
   resolvedData = contractDiagnostics.data || {};
@@ -2216,7 +2527,11 @@ function render() {
   canvas.appendChild(pageEl);
   updatePageNav();
 
-  renderProps();
+  const activeEl = document.activeElement;
+  const propsHasFocus = activeEl && props.contains(activeEl) && (activeEl.tagName === "INPUT" || activeEl.tagName === "TEXTAREA" || activeEl.tagName === "SELECT");
+  if (!propsHasFocus) {
+    renderProps();
+  }
   if (dataStatus) {
     const missing = findMissingBindings();
     const missingRequired = (contractDiagnostics && contractDiagnostics.missingRequired) || [];
@@ -2253,15 +2568,26 @@ function renderProps() {
     props.appendChild(row);
   }
 
+  function addSectionHeader(text) {
+    const hdr = document.createElement("div");
+    hdr.className = "prop-section-header";
+    hdr.textContent = text;
+    props.appendChild(hdr);
+  }
+
+  const typeLabels = { flowText: "Long Text", qr: "QR Code", include: "Reusable Block", barcode: "Barcode", link: "Hyperlink", pageBreak: "Page Break", chart: "Chart" };
+
+  addSectionHeader("Identity");
+
   const idField = document.createElement("input");
   idField.value = el.id;
   idField.disabled = true;
-  addRow("id", idField);
+  addRow("ID", idField);
 
   const typeField = document.createElement("input");
-  typeField.value = el.type;
+  typeField.value = typeLabels[el.type] || el.type;
   typeField.disabled = true;
-  addRow("type", typeField);
+  addRow("Type", typeField);
 
   if (el.type === "include") {
     const refField = document.createElement("input");
@@ -2270,14 +2596,17 @@ function renderProps() {
       el.ref = refField.value;
       render();
     });
-    addRow("ref", refField);
+    addRow("Partial Name", refField);
   }
 
+  addSectionHeader("Placement");
+
+  const regionLabels = { body: "Body", header: "Header", footer: "Footer" };
   const regionField = document.createElement("select");
   ["body", "header", "footer"].forEach((opt) => {
     const o = document.createElement("option");
     o.value = opt;
-    o.textContent = opt;
+    o.textContent = regionLabels[opt] || opt;
     if ((el.region || "body") === opt) o.selected = true;
     regionField.appendChild(o);
   });
@@ -2285,7 +2614,7 @@ function renderProps() {
     el.region = regionField.value;
     render();
   });
-  addRow("region", regionField);
+  addRow("Page Area", regionField);
 
   const pageField = document.createElement("input");
   pageField.type = "number";
@@ -2310,10 +2639,11 @@ function renderProps() {
   addRow("page", pageField);
 
   const repeatField = document.createElement("select");
+  const repeatLabels = { "": "Auto", all: "All Pages", first: "First Only", afterFirst: "Pages 2+", middle: "Middle Pages", last: "Last Only" };
   ["", "all", "first", "afterFirst", "middle", "last"].forEach((opt) => {
     const o = document.createElement("option");
     o.value = opt;
-    o.textContent = opt || "auto";
+    o.textContent = repeatLabels[opt] || opt;
     const defaultRepeat = (el.region || "body") === "body" ? "first" : "all";
     if (String(el.repeat || defaultRepeat) === opt) o.selected = true;
     repeatField.appendChild(o);
@@ -2322,7 +2652,7 @@ function renderProps() {
     el.repeat = repeatField.value || undefined;
     render();
   });
-  addRow("repeat", repeatField);
+  addRow("Show On Pages", repeatField);
 
   const visibleIfField = document.createElement("input");
   visibleIfField.value = el.visibleIf || "";
@@ -2331,8 +2661,11 @@ function renderProps() {
     el.visibleIf = visibleIfField.value.trim() || undefined;
     render();
   });
-  addRow("visibleIf", visibleIfField);
+  addRow("Show When", visibleIfField);
 
+  addSectionHeader("Position");
+
+  const posLabels = { x: "Left", y: "Top", w: "Width", h: "Height" };
   ["x", "y", "w", "h"].forEach((key) => {
     const input = document.createElement("input");
     input.type = "number";
@@ -2341,17 +2674,19 @@ function renderProps() {
       el[key] = Number(input.value);
       render();
     });
-    addRow(key, input);
+    addRow(posLabels[key], input);
   });
 
   if (el.type === "text" || el.type === "flowText") {
+    addSectionHeader("Content");
+
     const t = document.createElement("textarea");
     t.value = el.text || "";
     t.addEventListener("input", () => {
       el.text = t.value;
       render();
     });
-    addRow("text", t);
+    addRow("Text", t);
 
     if (el.type === "text") {
       const rich = document.createElement("input");
@@ -2361,7 +2696,7 @@ function renderProps() {
         el.richText = rich.checked;
         render();
       });
-      addRow("richText", rich);
+      addRow("Enable Formatting", rich);
     }
 
     if (el.type === "flowText") {
@@ -2372,7 +2707,7 @@ function renderProps() {
         el.columns = Math.max(1, Number(cols.value) || 1);
         render();
       });
-      addRow("columns", cols);
+      addRow("Columns", cols);
 
       const gap = document.createElement("input");
       gap.type = "number";
@@ -2381,7 +2716,7 @@ function renderProps() {
         el.gap = Math.max(0, Number(gap.value) || 0);
         render();
       });
-      addRow("gap", gap);
+      addRow("Column Gap", gap);
     }
 
     const fontSelect = document.createElement("select");
@@ -2402,7 +2737,9 @@ function renderProps() {
       style.font = fontSelect.value || undefined;
       render();
     });
-    addRow("font", fontSelect);
+    addSectionHeader("Style");
+
+    addRow("Font", fontSelect);
 
     const size = document.createElement("input");
     size.type = "number";
@@ -2412,7 +2749,7 @@ function renderProps() {
       style.size = Number(size.value) || undefined;
       render();
     });
-    addRow("fontSize", size);
+    addRow("Size", size);
 
     const weight = document.createElement("select");
     ["", "400", "500", "600", "700"].forEach((val) => {
@@ -2427,7 +2764,7 @@ function renderProps() {
       style.weight = weight.value ? Number(weight.value) : undefined;
       render();
     });
-    addRow("weight", weight);
+    addRow("Weight", weight);
 
     const fontStyle = document.createElement("select");
     ["", "normal", "italic"].forEach((val) => {
@@ -2442,7 +2779,7 @@ function renderProps() {
       style.fontStyle = fontStyle.value || undefined;
       render();
     });
-    addRow("style", fontStyle);
+    addRow("Font Style", fontStyle);
 
     const color = document.createElement("input");
     color.type = "color";
@@ -2452,7 +2789,7 @@ function renderProps() {
       style.color = color.value;
       render();
     });
-    addRow("color", color);
+    addRow("Color", color);
 
     const align = document.createElement("select");
     ["", "left", "center", "right", "justify"].forEach((val) => {
@@ -2467,7 +2804,7 @@ function renderProps() {
       style.align = align.value || undefined;
       render();
     });
-    addRow("align", align);
+    addRow("Align", align);
 
     const lh = document.createElement("input");
     lh.type = "number";
@@ -2477,12 +2814,12 @@ function renderProps() {
       style.lineHeight = Number(lh.value) || undefined;
       render();
     });
-    addRow("lineHeight", lh);
+    addRow("Line Spacing", lh);
 
     const presetSelect = document.createElement("select");
     const autoPreset = document.createElement("option");
     autoPreset.value = "";
-    autoPreset.textContent = "preset";
+    autoPreset.textContent = "Choose style...";
     presetSelect.appendChild(autoPreset);
     const presets = getStylePresets();
     Object.keys(presets).forEach((name) => {
@@ -2498,17 +2835,19 @@ function renderProps() {
       Object.assign(style, presets[name]);
       render();
     });
-    addRow("preset", presetSelect);
+    addRow("Style Preset", presetSelect);
   }
 
   if (el.type === "image") {
+    addSectionHeader("Content");
+
     const src = document.createElement("input");
     src.value = el.src || "";
     src.addEventListener("input", () => {
       el.src = src.value;
       render();
     });
-    addRow("src", src);
+    addRow("Image URL", src);
 
     const upload = document.createElement("input");
     upload.type = "file";
@@ -2523,27 +2862,31 @@ function renderProps() {
       };
       reader.readAsDataURL(file);
     });
-    addRow("upload", upload);
+    addRow("Upload", upload);
   }
 
   if (el.type === "qr") {
+    addSectionHeader("Content");
+
     const val = document.createElement("input");
     val.value = el.value || "";
     val.addEventListener("input", () => {
       el.value = val.value;
       render();
     });
-    addRow("value", val);
+    addRow("QR Value", val);
   }
 
   if (el.type === "table") {
+    addSectionHeader("Content");
+
     const rows = document.createElement("input");
     rows.value = el.rows || "";
     rows.addEventListener("input", () => {
       el.rows = rows.value;
       render();
     });
-    addRow("rows", rows);
+    addRow("Row Source", rows);
 
     const colsEditor = document.createElement("div");
     colsEditor.style.display = "flex";
@@ -2633,7 +2976,7 @@ function renderProps() {
       el.continuationY = continuationY.value === "" ? undefined : Number(continuationY.value);
       render();
     });
-    addRow("continuationY", continuationY);
+    addRow("Next Page Top", continuationY);
 
     const continuationH = document.createElement("input");
     continuationH.type = "number";
@@ -2642,7 +2985,7 @@ function renderProps() {
       el.continuationH = continuationH.value === "" ? undefined : Number(continuationH.value);
       render();
     });
-    addRow("continuationH", continuationH);
+    addRow("Next Page Height", continuationH);
 
     const fillMode = document.createElement("select");
     ["none", "pad"].forEach((mode) => {
@@ -2657,10 +3000,12 @@ function renderProps() {
       el.fillMode = next === "none" ? undefined : next;
       render();
     });
-    addRow("fillMode", fillMode);
+    addRow("Empty Row Fill", fillMode);
   }
 
   if (el.type === "box") {
+    addSectionHeader("Style");
+
     const borderColor = document.createElement("input");
     borderColor.type = "color";
     borderColor.value = (el.style && el.style.borderColor) || "#cccccc";
@@ -2670,7 +3015,7 @@ function renderProps() {
       if (style.borderWidth == null) style.borderWidth = 1;
       render();
     });
-    addRow("borderColor", borderColor);
+    addRow("Border Color", borderColor);
 
     const borderWidth = document.createElement("input");
     borderWidth.type = "number";
@@ -2680,7 +3025,7 @@ function renderProps() {
       style.borderWidth = Number(borderWidth.value) || 0;
       render();
     });
-    addRow("borderWidth", borderWidth);
+    addRow("Border Width", borderWidth);
 
     const fill = document.createElement("input");
     fill.type = "color";
@@ -2690,7 +3035,7 @@ function renderProps() {
       style.fill = fill.value;
       render();
     });
-    addRow("fill", fill);
+    addRow("Fill Color", fill);
 
     const radius = document.createElement("input");
     radius.type = "number";
@@ -2700,7 +3045,119 @@ function renderProps() {
       style.borderRadius = Number(radius.value) || 0;
       render();
     });
-    addRow("radius", radius);
+    addRow("Corner Radius", radius);
+  }
+
+  if (el.type === "barcode") {
+    addSectionHeader("Content");
+
+    const val = document.createElement("input");
+    val.value = el.value || "";
+    val.addEventListener("input", () => {
+      el.value = val.value;
+      render();
+    });
+    addRow("Value", val);
+
+    const format = document.createElement("select");
+    const formatLabels = { code128: "Code 128", code39: "Code 39", ean13: "EAN-13", ean8: "EAN-8", upc: "UPC-A", itf14: "ITF-14", codabar: "Codabar" };
+    ["code128", "code39", "ean13", "ean8", "upc", "itf14", "codabar"].forEach((opt) => {
+      const o = document.createElement("option");
+      o.value = opt;
+      o.textContent = formatLabels[opt] || opt;
+      if ((el.format || "code128") === opt) o.selected = true;
+      format.appendChild(o);
+    });
+    format.addEventListener("change", () => {
+      el.format = format.value;
+      render();
+    });
+    addRow("Format", format);
+  }
+
+  if (el.type === "link") {
+    addSectionHeader("Content");
+
+    const text = document.createElement("input");
+    text.value = el.text || "";
+    text.addEventListener("input", () => {
+      el.text = text.value;
+      render();
+    });
+    addRow("Label", text);
+
+    const url = document.createElement("input");
+    url.value = el.url || "";
+    url.placeholder = "https://...";
+    url.addEventListener("input", () => {
+      el.url = url.value;
+      render();
+    });
+    addRow("URL", url);
+
+    addSectionHeader("Style");
+
+    const color = document.createElement("input");
+    color.type = "color";
+    color.value = (el.style && el.style.color) || "#1a6daf";
+    color.addEventListener("input", () => {
+      const style = ensureStyle(el);
+      style.color = color.value;
+      render();
+    });
+    addRow("Color", color);
+  }
+
+  if (el.type === "chart") {
+    addSectionHeader("Content");
+
+    const chartType = document.createElement("select");
+    const chartTypeLabels = { bar: "Bar", line: "Line", pie: "Pie", doughnut: "Doughnut" };
+    ["bar", "line", "pie", "doughnut"].forEach((opt) => {
+      const o = document.createElement("option");
+      o.value = opt;
+      o.textContent = chartTypeLabels[opt] || opt;
+      if ((el.chartType || "bar") === opt) o.selected = true;
+      chartType.appendChild(o);
+    });
+    chartType.addEventListener("change", () => {
+      el.chartType = chartType.value;
+      render();
+    });
+    addRow("Chart Type", chartType);
+
+    const titleInput = document.createElement("input");
+    titleInput.value = el.title || "";
+    titleInput.addEventListener("input", () => {
+      el.title = titleInput.value;
+      render();
+    });
+    addRow("Title", titleInput);
+
+    const ds = document.createElement("input");
+    ds.value = el.dataSource || "";
+    ds.placeholder = "{{chartData}}";
+    ds.addEventListener("input", () => {
+      el.dataSource = ds.value;
+      render();
+    });
+    addRow("Data Source", ds);
+
+    const lf = document.createElement("input");
+    lf.value = el.labelField || "label";
+    lf.addEventListener("input", () => {
+      el.labelField = lf.value;
+      render();
+    });
+    addRow("Label Field", lf);
+
+    const vf = document.createElement("input");
+    vf.value = el.valueField || "value";
+    vf.addEventListener("input", () => {
+      el.valueField = vf.value;
+      render();
+    });
+    addRow("Value Field", vf);
   }
 }
 
@@ -2714,7 +3171,7 @@ function renderPageSettings() {
   if (editingPartial) {
     const banner = document.createElement("div");
     banner.className = "panel-title";
-    banner.textContent = `Editing Partial: ${editingPartial}`;
+    banner.textContent = `Editing Block: ${editingPartial}`;
     props.appendChild(banner);
   }
 
@@ -2735,6 +3192,7 @@ function renderPageSettings() {
 
   const page = template.page;
 
+  const pageSizeLabels = { width: "Page Width", height: "Page Height" };
   ["width", "height"].forEach((key) => {
     const input = document.createElement("input");
     input.type = "number";
@@ -2743,9 +3201,10 @@ function renderPageSettings() {
       page[key] = Number(input.value);
       render();
     });
-    addRow(`page.${key}`, input);
+    addRow(pageSizeLabels[key], input);
   });
 
+  const marginLabels = { top: "Margin Top", right: "Margin Right", bottom: "Margin Bottom", left: "Margin Left" };
   ["top", "right", "bottom", "left"].forEach((key) => {
     const input = document.createElement("input");
     input.type = "number";
@@ -2754,9 +3213,10 @@ function renderPageSettings() {
       page.margin[key] = Number(input.value);
       render();
     });
-    addRow(`margin.${key}`, input);
+    addRow(marginLabels[key], input);
   });
 
+  const regionLabels = { headerHeight: "Header Height", footerHeight: "Footer Height" };
   ["headerHeight", "footerHeight"].forEach((key) => {
     const input = document.createElement("input");
     input.type = "number";
@@ -2765,7 +3225,7 @@ function renderPageSettings() {
       page[key] = Number(input.value);
       render();
     });
-    addRow(key, input);
+    addRow(regionLabels[key], input);
   });
 
   const pageCountInput = document.createElement("input");
@@ -2786,11 +3246,11 @@ function renderPageSettings() {
     previewPageIndex = clamp(previewPageIndex, 0, Math.max(0, next - 1));
     render();
   });
-  addRow("pageCount", pageCountInput);
+  addRow("Page Count", pageCountInput);
 
   const contractTitle = document.createElement("div");
   contractTitle.className = "panel-title";
-  contractTitle.textContent = "Data Fields";
+  contractTitle.textContent = "Merge Fields";
   props.appendChild(contractTitle);
 
   const actions = document.createElement("div");
@@ -2798,7 +3258,7 @@ function renderPageSettings() {
   actions.style.gap = "8px";
   actions.style.marginBottom = "8px";
   const syncBtn = document.createElement("button");
-  syncBtn.textContent = "Sync Merge Fields";
+  syncBtn.textContent = "Detect Data Fields";
   syncBtn.addEventListener("click", () => {
     syncDataContractBindings();
     render();
@@ -2828,40 +3288,48 @@ function renderPageSettings() {
   contract.fields.forEach((field) => {
     const fieldDiag = (contractDiagnostics.fields || []).find((f) => f.path === field.path);
     const card = document.createElement("div");
-    card.style.border = "1px solid #ddd";
-    card.style.padding = "8px";
-    card.style.marginBottom = "8px";
-    card.style.background = "#fff";
+    card.className = "field-card";
+
+    const cardHeader = document.createElement("div");
+    cardHeader.className = "field-card-header";
 
     const path = document.createElement("div");
-    path.style.fontSize = "12px";
-    path.style.fontWeight = "600";
-    path.style.marginBottom = "6px";
+    path.className = "field-card-name";
     path.textContent = field.path;
-    card.appendChild(path);
+    cardHeader.appendChild(path);
+
+    const badges = document.createElement("div");
+    badges.className = "field-card-badges";
+    if (field.required) {
+      const badge = document.createElement("span");
+      badge.className = "field-badge field-badge-required";
+      badge.textContent = "Required";
+      badges.appendChild(badge);
+    }
+    if (field.transform && field.transform !== "none") {
+      const badge = document.createElement("span");
+      badge.className = "field-badge";
+      badge.textContent = field.transform;
+      badges.appendChild(badge);
+    }
+    cardHeader.appendChild(badges);
+    card.appendChild(cardHeader);
 
     if (fieldDiag && (fieldDiag.missing || fieldDiag.error)) {
       const diag = document.createElement("div");
-      diag.style.fontSize = "11px";
-      diag.style.color = "#9f2f23";
-      diag.style.marginBottom = "6px";
+      diag.className = "field-card-error";
       const parts = [];
-      if (fieldDiag.missing) parts.push("Missing required in current data");
-      if (fieldDiag.error) parts.push(`Transform error: ${fieldDiag.error}`);
-      diag.textContent = parts.join(" | ");
+      if (fieldDiag.missing) parts.push("Missing in current data");
+      if (fieldDiag.error) parts.push(fieldDiag.error);
+      diag.textContent = parts.join(" \u2022 ");
       card.appendChild(diag);
     }
 
-    const row1 = document.createElement("div");
-    row1.style.display = "grid";
-    row1.style.gridTemplateColumns = "auto 1fr auto 1fr";
-    row1.style.gap = "6px";
-    row1.style.alignItems = "center";
-    row1.style.marginBottom = "6px";
+    const basicRow = document.createElement("div");
+    basicRow.className = "field-card-row";
 
-    const reqLabel = document.createElement("span");
-    reqLabel.textContent = "required";
-    reqLabel.style.fontSize = "12px";
+    const reqWrap = document.createElement("label");
+    reqWrap.className = "field-inline-toggle";
     const req = document.createElement("input");
     req.type = "checkbox";
     req.checked = Boolean(field.required);
@@ -2869,109 +3337,21 @@ function renderPageSettings() {
       field.required = req.checked;
       render();
     });
+    reqWrap.appendChild(req);
+    reqWrap.appendChild(document.createTextNode(" Required"));
+    basicRow.appendChild(reqWrap);
 
-    const typeLabel = document.createElement("span");
-    typeLabel.textContent = "type";
-    typeLabel.style.fontSize = "12px";
-    const type = document.createElement("select");
-    ["string", "number", "boolean", "array", "object"].forEach((opt) => {
-      const o = document.createElement("option");
-      o.value = opt;
-      o.textContent = opt;
-      if ((field.type || "string") === opt) o.selected = true;
-      type.appendChild(o);
-    });
-    type.addEventListener("change", () => {
-      field.type = type.value;
-      render();
-    });
-
-    row1.appendChild(reqLabel);
-    row1.appendChild(req);
-    row1.appendChild(typeLabel);
-    row1.appendChild(type);
-    card.appendChild(row1);
-
-    const row2 = document.createElement("div");
-    row2.style.display = "grid";
-    row2.style.gridTemplateColumns = "54px 1fr";
-    row2.style.gap = "6px";
-    row2.style.alignItems = "center";
-    row2.style.marginBottom = "6px";
-    const sourceLabel = document.createElement("span");
-    sourceLabel.textContent = "source";
-    sourceLabel.style.fontSize = "12px";
-    const source = document.createElement("select");
-    ["external", "template", "computed"].forEach((opt) => {
-      const o = document.createElement("option");
-      o.value = opt;
-      o.textContent = opt;
-      if ((field.source || "external") === opt) o.selected = true;
-      source.appendChild(o);
-    });
-    source.addEventListener("change", () => {
-      field.source = source.value;
-      render();
-    });
-    row2.appendChild(sourceLabel);
-    row2.appendChild(source);
-    card.appendChild(row2);
-
-    const row3 = document.createElement("div");
-    row3.style.display = "grid";
-    row3.style.gridTemplateColumns = "54px 1fr";
-    row3.style.gap = "6px";
-    row3.style.alignItems = "center";
-    row3.style.marginBottom = "6px";
-    const externalLabel = document.createElement("span");
-    externalLabel.textContent = "external";
-    externalLabel.style.fontSize = "12px";
-    const external = document.createElement("input");
-    external.value = field.externalPath || field.path;
-    external.placeholder = "upstream.payload.path";
-    external.addEventListener("input", () => {
-      field.externalPath = external.value.trim() || field.path;
-      render();
-    });
-    row3.appendChild(externalLabel);
-    row3.appendChild(external);
-    card.appendChild(row3);
-
-    const row4 = document.createElement("div");
-    row4.style.display = "grid";
-    row4.style.gridTemplateColumns = "54px 1fr";
-    row4.style.gap = "6px";
-    row4.style.alignItems = "center";
-    row4.style.marginBottom = "6px";
-    const defLabel = document.createElement("span");
-    defLabel.textContent = "default";
-    defLabel.style.fontSize = "12px";
-    const def = document.createElement("input");
-    def.value = field.defaultValue == null ? "" : String(field.defaultValue);
-    def.placeholder = "fallback value";
-    def.addEventListener("input", () => {
-      field.defaultValue = def.value;
-      render();
-    });
-    row4.appendChild(defLabel);
-    row4.appendChild(def);
-    card.appendChild(row4);
-
-    const row5 = document.createElement("div");
-    row5.style.display = "grid";
-    row5.style.gridTemplateColumns = "64px 1fr";
-    row5.style.gap = "6px";
-    row5.style.alignItems = "center";
-    row5.style.marginBottom = "6px";
-    const transformLabel = document.createElement("span");
-    transformLabel.textContent = "transform";
-    transformLabel.style.fontSize = "12px";
+    const transformWrap = document.createElement("div");
+    transformWrap.className = "field-inline-select";
+    const transformSelectLabel = document.createElement("span");
+    transformSelectLabel.textContent = "Format:";
     const transform = document.createElement("select");
+    const transformLabels = { none: "None", trim: "Trim", uppercase: "UPPERCASE", lowercase: "lowercase", titlecase: "Title Case", number: "Number", boolean: "Yes/No", date: "Date", currency: "Currency" };
     ["none", "trim", "uppercase", "lowercase", "titlecase", "number", "boolean", "date", "currency"].forEach(
       (opt) => {
         const o = document.createElement("option");
         o.value = opt;
-        o.textContent = opt;
+        o.textContent = transformLabels[opt] || opt;
         if ((field.transform || "none") === opt) o.selected = true;
         transform.appendChild(o);
       }
@@ -2980,19 +3360,79 @@ function renderPageSettings() {
       field.transform = transform.value;
       render();
     });
-    row5.appendChild(transformLabel);
-    row5.appendChild(transform);
-    card.appendChild(row5);
+    transformWrap.appendChild(transformSelectLabel);
+    transformWrap.appendChild(transform);
+    basicRow.appendChild(transformWrap);
+    card.appendChild(basicRow);
 
-    const row6 = document.createElement("div");
-    row6.style.display = "grid";
-    row6.style.gridTemplateColumns = "64px 1fr 58px 1fr";
-    row6.style.gap = "6px";
-    row6.style.alignItems = "center";
-    row6.style.marginBottom = "6px";
-    const localeLabel = document.createElement("span");
-    localeLabel.textContent = "locale";
-    localeLabel.style.fontSize = "12px";
+    const def = document.createElement("input");
+    def.className = "field-card-input";
+    def.value = field.defaultValue == null ? "" : String(field.defaultValue);
+    def.placeholder = "Default value (if missing)";
+    def.addEventListener("input", () => {
+      field.defaultValue = def.value;
+      render();
+    });
+    card.appendChild(def);
+
+    const advanced = document.createElement("details");
+    advanced.className = "field-card-advanced";
+    const advSummary = document.createElement("summary");
+    advSummary.textContent = "Advanced";
+    advanced.appendChild(advSummary);
+
+    const advBody = document.createElement("div");
+    advBody.className = "field-card-advanced-body";
+
+    function advRow(label, inputEl) {
+      const row = document.createElement("div");
+      row.className = "field-adv-row";
+      const lbl = document.createElement("span");
+      lbl.textContent = label;
+      row.appendChild(lbl);
+      row.appendChild(inputEl);
+      advBody.appendChild(row);
+    }
+
+    const type = document.createElement("select");
+    const typeDisplayLabels = { string: "Text", number: "Number", boolean: "Yes/No", array: "List", object: "Object" };
+    ["string", "number", "boolean", "array", "object"].forEach((opt) => {
+      const o = document.createElement("option");
+      o.value = opt;
+      o.textContent = typeDisplayLabels[opt] || opt;
+      if ((field.type || "string") === opt) o.selected = true;
+      type.appendChild(o);
+    });
+    type.addEventListener("change", () => {
+      field.type = type.value;
+      render();
+    });
+    advRow("Data Type", type);
+
+    const sourceDisplayLabels = { external: "From Input Data", template: "From Template", computed: "Computed" };
+    const source = document.createElement("select");
+    ["external", "template", "computed"].forEach((opt) => {
+      const o = document.createElement("option");
+      o.value = opt;
+      o.textContent = sourceDisplayLabels[opt] || opt;
+      if ((field.source || "external") === opt) o.selected = true;
+      source.appendChild(o);
+    });
+    source.addEventListener("change", () => {
+      field.source = source.value;
+      render();
+    });
+    advRow("Source", source);
+
+    const external = document.createElement("input");
+    external.value = field.externalPath || field.path;
+    external.placeholder = "Path in source data";
+    external.addEventListener("input", () => {
+      field.externalPath = external.value.trim() || field.path;
+      render();
+    });
+    advRow("Input Path", external);
+
     const locale = document.createElement("input");
     locale.value = field.transformLocale || "";
     locale.placeholder = "en-US";
@@ -3000,9 +3440,8 @@ function renderPageSettings() {
       field.transformLocale = locale.value.trim() || undefined;
       render();
     });
-    const curLabel = document.createElement("span");
-    curLabel.textContent = "currency";
-    curLabel.style.fontSize = "12px";
+    advRow("Locale", locale);
+
     const cur = document.createElement("input");
     cur.value = field.transformCurrency || "";
     cur.placeholder = "USD";
@@ -3010,25 +3449,14 @@ function renderPageSettings() {
       field.transformCurrency = cur.value.trim() || undefined;
       render();
     });
-    row6.appendChild(localeLabel);
-    row6.appendChild(locale);
-    row6.appendChild(curLabel);
-    row6.appendChild(cur);
-    card.appendChild(row6);
+    advRow("Currency", cur);
 
-    const row7 = document.createElement("div");
-    row7.style.display = "grid";
-    row7.style.gridTemplateColumns = "64px 1fr";
-    row7.style.gap = "6px";
-    row7.style.alignItems = "center";
-    const dateStyleLabel = document.createElement("span");
-    dateStyleLabel.textContent = "dateStyle";
-    dateStyleLabel.style.fontSize = "12px";
     const dateStyle = document.createElement("select");
+    const dateStyleLabels = { "": "Auto", short: "Short (1/1/24)", medium: "Medium (Jan 1, 2024)", long: "Long (January 1, 2024)", full: "Full (Monday, January 1, 2024)" };
     ["", "short", "medium", "long", "full"].forEach((opt) => {
       const o = document.createElement("option");
       o.value = opt;
-      o.textContent = opt || "auto";
+      o.textContent = dateStyleLabels[opt] || opt;
       if (String(field.transformDateStyle || "") === opt) o.selected = true;
       dateStyle.appendChild(o);
     });
@@ -3036,31 +3464,34 @@ function renderPageSettings() {
       field.transformDateStyle = dateStyle.value || undefined;
       render();
     });
-    row7.appendChild(dateStyleLabel);
-    row7.appendChild(dateStyle);
-    card.appendChild(row7);
+    advRow("Date Format", dateStyle);
 
+    advanced.appendChild(advBody);
+    card.appendChild(advanced);
     props.appendChild(card);
   });
 
-  const testTitle = document.createElement("div");
-  testTitle.className = "panel-title";
-  testTitle.textContent = "Payload Test";
-  props.appendChild(testTitle);
+  const devSection = document.createElement("details");
+  devSection.className = "dev-tools-section";
+  const devSummary = document.createElement("summary");
+  devSummary.className = "dev-tools-toggle";
+  devSummary.textContent = "Developer Tools";
+  devSection.appendChild(devSummary);
+
+  const devBody = document.createElement("div");
+  devBody.className = "dev-tools-body";
 
   const testInfo = document.createElement("div");
   testInfo.style.fontSize = "12px";
   testInfo.style.color = "#6f6352";
   testInfo.style.marginBottom = "6px";
-  testInfo.textContent = "Paste sample payload JSON to test mapping and required fields.";
-  props.appendChild(testInfo);
+  testInfo.textContent = "Paste JSON data to test field mapping and validation.";
+  devBody.appendChild(testInfo);
 
   const payloadInput = document.createElement("textarea");
-  payloadInput.style.width = "100%";
-  payloadInput.style.height = "120px";
-  payloadInput.style.fontFamily = "ui-monospace, SFMono-Regular, Menlo, monospace";
+  payloadInput.className = "dev-tools-textarea";
   payloadInput.value = contractTestPayload || JSON.stringify(data || {}, null, 2);
-  props.appendChild(payloadInput);
+  devBody.appendChild(payloadInput);
 
   const testActions = document.createElement("div");
   testActions.style.display = "flex";
@@ -3069,7 +3500,7 @@ function renderPageSettings() {
   testActions.style.marginBottom = "6px";
 
   const runTestBtn = document.createElement("button");
-  runTestBtn.textContent = "Run Payload Check";
+  runTestBtn.textContent = "Validate Data";
   runTestBtn.addEventListener("click", () => {
     contractTestPayload = payloadInput.value;
     try {
@@ -3077,35 +3508,32 @@ function renderPageSettings() {
       contractTestResult = evaluateDataContractLocal(parsed);
       render();
     } catch (_err) {
-      contractTestResult = { parseError: "Invalid JSON payload" };
+      contractTestResult = { parseError: "Invalid JSON" };
       render();
     }
   });
   testActions.appendChild(runTestBtn);
 
   const usePayloadBtn = document.createElement("button");
-  usePayloadBtn.textContent = "Use As Data";
+  usePayloadBtn.textContent = "Use As Preview Data";
   usePayloadBtn.addEventListener("click", () => {
     try {
       const parsed = JSON.parse(payloadInput.value || "{}");
       data = parsed;
-      dataName = "(contract test payload)";
+      dataName = "(test data)";
       contractTestPayload = payloadInput.value;
       contractTestResult = evaluateDataContractLocal(parsed);
       render();
     } catch (_err) {
-      alert("Invalid JSON payload");
+      alert("Invalid JSON");
     }
   });
   testActions.appendChild(usePayloadBtn);
-  props.appendChild(testActions);
+  devBody.appendChild(testActions);
 
   if (contractTestResult) {
     const resultBox = document.createElement("div");
-    resultBox.style.border = "1px solid #ddd";
-    resultBox.style.background = "#fff";
-    resultBox.style.padding = "8px";
-    resultBox.style.marginBottom = "8px";
+    resultBox.className = "dev-tools-result";
     if (contractTestResult.parseError) {
       const err = document.createElement("div");
       err.style.color = "#9f2f23";
@@ -3119,43 +3547,47 @@ function renderPageSettings() {
       summary.style.marginBottom = "6px";
       summary.style.color = issues.missingRequired.length || issues.errors.length ? "#9f2f23" : "#3c6f3a";
       summary.textContent = issues.missingRequired.length || issues.errors.length
-        ? `Issues: ${issues.missingRequired.length} required missing, ${issues.errors.length} transform errors`
-        : "Issues: none";
+        ? `${issues.missingRequired.length} missing, ${issues.errors.length} errors`
+        : "All fields valid";
       resultBox.appendChild(summary);
 
       if (issues.missingRequired.length) {
         const miss = document.createElement("div");
         miss.style.fontSize = "12px";
         miss.style.marginBottom = "6px";
-        miss.textContent = `Missing required: ${issues.missingRequired.join(", ")}`;
+        miss.textContent = `Missing: ${issues.missingRequired.join(", ")}`;
         resultBox.appendChild(miss);
       }
       if (issues.errors.length) {
         const errs = document.createElement("div");
         errs.style.fontSize = "12px";
         errs.style.marginBottom = "6px";
-        errs.textContent = `Transform errors: ${issues.errors.join(" | ")}`;
+        errs.textContent = `Errors: ${issues.errors.join(" | ")}`;
         resultBox.appendChild(errs);
       }
 
-      const mappedTitle = document.createElement("div");
-      mappedTitle.style.fontSize = "12px";
-      mappedTitle.style.fontWeight = "600";
-      mappedTitle.style.marginBottom = "4px";
-      mappedTitle.textContent = "Mapped payload";
-      resultBox.appendChild(mappedTitle);
-
+      const mappedToggle = document.createElement("details");
+      const mappedSummary = document.createElement("summary");
+      mappedSummary.style.fontSize = "12px";
+      mappedSummary.style.fontWeight = "600";
+      mappedSummary.style.cursor = "pointer";
+      mappedSummary.textContent = "Resolved data";
+      mappedToggle.appendChild(mappedSummary);
       const mapped = document.createElement("pre");
-      mapped.style.margin = "0";
+      mapped.style.margin = "4px 0 0";
       mapped.style.maxHeight = "140px";
       mapped.style.overflow = "auto";
       mapped.style.fontSize = "11px";
       mapped.style.whiteSpace = "pre-wrap";
       mapped.textContent = JSON.stringify(contractTestResult.data || {}, null, 2);
-      resultBox.appendChild(mapped);
+      mappedToggle.appendChild(mapped);
+      resultBox.appendChild(mappedToggle);
     }
-    props.appendChild(resultBox);
+    devBody.appendChild(resultBox);
   }
+
+  devSection.appendChild(devBody);
+  props.appendChild(devSection);
 }
 
 function onPointerMove(ev) {
@@ -3361,6 +3793,18 @@ workflowStepButtons.forEach((btn) => {
   });
 });
 
+modeSections.forEach((section) => {
+  if (section.tagName !== "DETAILS") return;
+  section.addEventListener("toggle", () => {
+    if (!section.open) return;
+    modeSections.forEach((other) => {
+      if (other !== section && other.tagName === "DETAILS" && other.dataset.modeSection === section.dataset.modeSection && other.open) {
+        other.removeAttribute("open");
+      }
+    });
+  });
+});
+
 quickProxyButtons.forEach((proxyBtn) => {
   proxyBtn.addEventListener("click", () => {
     const targetId = proxyBtn.dataset.proxyClick;
@@ -3397,6 +3841,13 @@ if (actionPreviewPdfBtn) {
     setWorkflowStep("test");
     if (previewPdfBtn) previewPdfBtn.click();
   });
+}
+
+if (undoBtn) {
+  undoBtn.addEventListener("click", () => { performUndo(); });
+}
+if (redoBtn) {
+  redoBtn.addEventListener("click", () => { performRedo(); });
 }
 
 if (snapEnabledInput) {
@@ -3445,7 +3896,7 @@ document.getElementById("btn-reload").addEventListener("click", () => {
 });
 previewBtn.addEventListener("click", () => {
   previewMode = !previewMode;
-  previewBtn.textContent = `Preview Data: ${previewMode ? "On" : "Off"}`;
+  previewBtn.textContent = previewMode ? "Hide Live Data" : "Show Live Data";
   render();
   syncWorkflowFromState();
 });
@@ -3500,9 +3951,9 @@ if (newTemplateBtn) {
   });
 }
 
-if (loadStarterBtn) {
-  loadStarterBtn.addEventListener("click", () => {
-    if (!starterTemplateSelect || !starterTemplateSelect.value) return;
+if (starterTemplateSelect) {
+  starterTemplateSelect.addEventListener("change", () => {
+    if (!starterTemplateSelect.value) return;
     loadTemplateFromUrl(starterTemplateSelect.value);
     setWorkflowStep("design");
   });
@@ -3610,7 +4061,7 @@ if (pageDeleteBtn) {
 populateStarterTemplates();
 renderDbTemplateSelect();
 setTemplate(createBlankTemplate("Untitled Template"));
-previewBtn.textContent = `Preview Data: ${previewMode ? "On" : "Off"}`;
+previewBtn.textContent = previewMode ? "Hide Live Data" : "Show Live Data";
 refreshDbTemplates({ silent: true });
 syncDbStatusSelect();
 try {
@@ -3727,6 +4178,22 @@ canvas.addEventListener("click", (ev) => {
 });
 
 window.addEventListener("keydown", (ev) => {
+  const mod = ev.metaKey || ev.ctrlKey;
+  if (mod && ev.key === "z" && !ev.shiftKey) {
+    ev.preventDefault();
+    performUndo();
+    return;
+  }
+  if (mod && ev.key === "z" && ev.shiftKey) {
+    ev.preventDefault();
+    performRedo();
+    return;
+  }
+  if (mod && ev.key === "y") {
+    ev.preventDefault();
+    performRedo();
+    return;
+  }
   if (ev.key === "Escape" && placingType) {
     clearPlacing();
     dropPreview = null;
@@ -3778,7 +4245,7 @@ function renderPartialsList() {
       editingPartial = editingPartial === name ? null : name;
       if (editingPartial && previewMode) {
         previewMode = false;
-        previewBtn.textContent = "Preview Data: Off";
+        previewBtn.textContent = "Hide Live Data";
       }
       clearSelection();
       render();
@@ -3809,7 +4276,7 @@ newPartialBtn.addEventListener("click", () => {
   editingPartial = name;
   if (previewMode) {
     previewMode = false;
-    previewBtn.textContent = "Preview Data: Off";
+    previewBtn.textContent = "Hide Live Data";
   }
   clearSelection();
   render();
