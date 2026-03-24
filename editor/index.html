@@ -37,8 +37,6 @@
             <button type="button" id="btn-action-check" class="quick-action">Check</button>
             <button type="button" id="btn-action-save" class="quick-action quick-action-primary">Save</button>
             <button type="button" id="btn-action-preview-pdf" class="quick-action">Preview PDF</button>
-            <button type="button" id="btn-undo" class="quick-action" title="Undo (Ctrl+Z)">Undo</button>
-            <button type="button" id="btn-redo" class="quick-action" title="Redo (Ctrl+Shift+Z)">Redo</button>
           </div>
         </div>
 
@@ -176,11 +174,15 @@
 
       <main class="canvas-wrap">
         <div class="canvas-nav">
+          <button id="btn-undo" type="button" class="icon-btn" title="Undo (Ctrl+Z)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg></button>
+          <button id="btn-redo" type="button" class="icon-btn" title="Redo (Ctrl+Shift+Z)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.13-9.36L23 10"/></svg></button>
+          <span class="nav-divider"></span>
           <button id="btn-page-add" type="button">Add Page</button>
           <button id="btn-page-delete" type="button">Delete Page</button>
-          <button id="btn-page-prev" type="button">Prev Page</button>
+          <span class="nav-divider"></span>
+          <button id="btn-page-prev" type="button" class="icon-btn" title="Previous Page"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
           <span id="page-indicator">Page 1 / 1</span>
-          <button id="btn-page-next" type="button">Next Page</button>
+          <button id="btn-page-next" type="button" class="icon-btn" title="Next Page"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></button>
         </div>
         <div id="canvas"></div>
       </main>

@@ -193,8 +193,8 @@ body {
   border-radius: 8px;
   padding: 6px;
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 5px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
 }
 
 .quick-action {
@@ -475,6 +475,32 @@ button.active {
 .canvas-nav button {
   padding: 6px 10px;
   font-size: 12px;
+}
+
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border-radius: 6px;
+  color: var(--ink);
+}
+
+.icon-btn:hover {
+  background: #f0ece3;
+}
+
+.icon-btn svg {
+  display: block;
+}
+
+.nav-divider {
+  width: 1px;
+  height: 20px;
+  background: var(--panel-border);
+  margin: 0 2px;
 }
 
 #canvas {
