@@ -4293,3 +4293,14 @@ render = function renderWithPartials() {
   syncPrimaryActions();
   syncArrangeActions();
 };
+
+// Demo mode: check /api/health and show banner if active
+fetch("/api/health").then(r => r.json()).then(info => {
+  if (info.demoMode) {
+    const banner = document.createElement("div");
+    banner.id = "demo-banner";
+    banner.innerHTML = '<strong>Demo Mode</strong> — Design and preview templates freely. Database saves are disabled. <a href="https://github.com/snehalsurti12/smartdocs" target="_blank">Run your own instance</a>';
+    document.body.prepend(banner);
+    document.body.classList.add("has-demo-banner");
+  }
+}).catch(() => {});

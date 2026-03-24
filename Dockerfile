@@ -21,6 +21,7 @@ COPY . .
 
 ENV PORT=5177
 ENV NODE_ENV=production
+ENV DEMO_MODE=false
 
 EXPOSE 5177
 

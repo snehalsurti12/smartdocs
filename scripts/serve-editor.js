@@ -9,6 +9,7 @@ const templateStoreDb = require("./template-store-db");
 
 const root = path.join(__dirname, "..");
 const port = process.env.PORT || 5177;
+const demoMode = process.env.DEMO_MODE === "true" || process.env.DEMO_MODE === "1";
 
 const mime = {
   ".html": "text/html",
@@ -27,10 +28,18 @@ function respondJson(res, statusCode, payload) {
   res.end(JSON.stringify(payload));
 }
 
-function readJsonBody(req) {
+function readJsonBody(req, maxBytes) {
+  const limit = maxBytes || 2 * 1024 * 1024; // 2MB default
   return new Promise((resolve, reject) => {
     let body = "";
+    let size = 0;
     req.on("data", (chunk) => {
+      size += chunk.length;
+      if (size > limit) {
+        reject(new Error("Request body too large"));
+        req.destroy();
+        return;
+      }
       body += chunk;
     });
     req.on("end", () => {
@@ -51,8 +60,66 @@ function dbUnavailableResponse(res) {
   });
 }
 
+function demoBlockedResponse(res) {
+  respondJson(res, 403, {
+    error: "This action is disabled in demo mode.",
+    hint: "The public demo is read-only. Run your own instance for full access."
+  });
+}
+
+// Rate limiter — per-IP, sliding window
+const rateLimits = new Map();
+const RATE_WINDOW_MS = 60 * 1000; // 1 minute
+const RATE_MAX_PDF = Number(process.env.RATE_LIMIT_PDF) || 10; // 10 PDFs/min
+const RATE_MAX_API = Number(process.env.RATE_LIMIT_API) || 60; // 60 API calls/min
+
+function rateLimit(req, bucket, maxRequests) {
+  const ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress || "unknown";
+  const key = `${ip}:${bucket}`;
+  const now = Date.now();
+  let entry = rateLimits.get(key);
+  if (!entry || now - entry.windowStart > RATE_WINDOW_MS) {
+    entry = { windowStart: now, count: 0 };
+    rateLimits.set(key, entry);
+  }
+  entry.count++;
+  if (entry.count > maxRequests) {
+    return false;
+  }
+  return true;
+}
+
+// Cleanup stale rate limit entries every 5 minutes
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, entry] of rateLimits) {
+    if (now - entry.windowStart > RATE_WINDOW_MS * 2) rateLimits.delete(key);
+  }
+}, 5 * 60 * 1000);
+
+function addSecurityHeaders(res) {
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("X-Frame-Options", "SAMEORIGIN");
+  res.setHeader("X-XSS-Protection", "1; mode=block");
+  res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
+  if (process.env.NODE_ENV === "production") {
+    res.setHeader("Content-Security-Policy", "default-src 'self' 'unsafe-inline' data: https://images.unsplash.com; img-src * data:; font-src 'self' data:;");
+  }
+}
+
 const server = http.createServer(async (req, res) => {
+  addSecurityHeaders(res);
+
   const urlPath = decodeURIComponent(req.url.split("?")[0] || "/");
+
+  // API rate limiting
+  if (urlPath.startsWith("/api/")) {
+    if (!rateLimit(req, "api", RATE_MAX_API)) {
+      respondJson(res, 429, { error: "Too many requests. Please try again later." });
+      return;
+    }
+  }
+
   try {
     if (urlPath === "/api/templates") {
       if (!templateStoreDb.canUseDb()) {
@@ -65,6 +132,7 @@ const server = http.createServer(async (req, res) => {
         return;
       }
       if (req.method === "POST") {
+        if (demoMode) { demoBlockedResponse(res); return; }
         const payload = await readJsonBody(req);
         const created = await templateStoreDb.createTemplate({
           name: payload.name,
@@ -96,6 +164,7 @@ const server = http.createServer(async (req, res) => {
         return;
       }
       if (req.method === "PATCH") {
+        if (demoMode) { demoBlockedResponse(res); return; }
         const payload = await readJsonBody(req);
         const updated = await templateStoreDb.updateTemplateMetadata(templateId, payload);
         respondJson(res, 200, { template: updated });
@@ -118,6 +187,7 @@ const server = http.createServer(async (req, res) => {
         return;
       }
       if (req.method === "POST") {
+        if (demoMode) { demoBlockedResponse(res); return; }
         const payload = await readJsonBody(req);
         const updated = await templateStoreDb.createTemplateVersion(templateId, {
           contentJson: payload.contentJson || payload.template || {},
@@ -156,8 +226,12 @@ const server = http.createServer(async (req, res) => {
   }
 
   if (req.method === "POST" && urlPath === "/api/render-pdf") {
+    if (!rateLimit(req, "pdf", RATE_MAX_PDF)) {
+      respondJson(res, 429, { error: "PDF rate limit exceeded. Max " + RATE_MAX_PDF + " per minute." });
+      return;
+    }
     try {
-      const payload = await readJsonBody(req);
+      const payload = await readJsonBody(req, 5 * 1024 * 1024); // 5MB for PDF payloads
       const template = payload.template || {};
       const evaluation = evaluateDataContract(template, payload.data || {});
       const data = evaluation.data;
@@ -200,6 +274,17 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
+  // Health check endpoint
+  if (urlPath === "/api/health") {
+    respondJson(res, 200, {
+      status: "ok",
+      version: require("../package.json").version,
+      demoMode,
+      db: templateStoreDb.canUseDb()
+    });
+    return;
+  }
+
   const filePath = path.join(root, urlPath === "/" ? "/editor/index.html" : urlPath);
 
   fs.readFile(filePath, (err, data) => {
@@ -210,10 +295,14 @@ const server = http.createServer(async (req, res) => {
     }
     const ext = path.extname(filePath);
     res.setHeader("Content-Type", mime[ext] || "application/octet-stream");
+    if (process.env.NODE_ENV === "production") {
+      res.setHeader("Cache-Control", ext === ".html" ? "no-cache" : "public, max-age=3600");
+    }
     res.end(data);
   });
 });
 
 server.listen(port, () => {
   console.log(`Editor running at http://localhost:${port}`);
+  if (demoMode) console.log("Demo mode: ON (write operations blocked)");
 });
