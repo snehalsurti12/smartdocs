@@ -6,6 +6,7 @@ const { renderHtml, evaluateDataContract } = require("./render");
 const { computeFlowPagesBrowser } = require("./flow-measure");
 const { launchChromium } = require("./playwright-launch");
 const templateStoreDb = require("./template-store-db");
+const auth = require("./auth");
 
 const root = path.join(__dirname, "..");
 const port = process.env.PORT || 5177;
@@ -265,6 +266,175 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
+  // ── Admin endpoints (protected by ADMIN_TOKEN) ──
+  try {
+    if (urlPath === "/api/tenants" && req.method === "POST") {
+      if (!auth.isAdminRequest(req)) { respondJson(res, 401, { error: "Admin token required" }); return; }
+      const payload = await readJsonBody(req);
+      const tenant = await auth.createTenant(payload.name, payload.slug);
+      respondJson(res, 201, { tenant });
+      return;
+    }
+    if (urlPath === "/api/tenants" && req.method === "GET") {
+      if (!auth.isAdminRequest(req)) { respondJson(res, 401, { error: "Admin token required" }); return; }
+      const tenants = await auth.listTenants();
+      respondJson(res, 200, { tenants });
+      return;
+    }
+    const tenantKeysMatch = urlPath.match(/^\/api\/tenants\/([^/]+)\/keys$/);
+    if (tenantKeysMatch) {
+      if (!auth.isAdminRequest(req)) { respondJson(res, 401, { error: "Admin token required" }); return; }
+      const tenantId = tenantKeysMatch[1];
+      if (req.method === "POST") {
+        const payload = await readJsonBody(req);
+        const result = await auth.createApiKey(tenantId, payload.name, payload.scopes);
+        respondJson(res, 201, result);
+        return;
+      }
+      if (req.method === "GET") {
+        const keys = await auth.listApiKeys(tenantId);
+        respondJson(res, 200, { keys });
+        return;
+      }
+      respondJson(res, 405, { error: "Method not allowed" });
+      return;
+    }
+    const revokeKeyMatch = urlPath.match(/^\/api\/keys\/([^/]+)$/);
+    if (revokeKeyMatch && req.method === "DELETE") {
+      if (!auth.isAdminRequest(req)) { respondJson(res, 401, { error: "Admin token required" }); return; }
+      await auth.revokeApiKey(revokeKeyMatch[1]);
+      respondJson(res, 200, { status: "revoked" });
+      return;
+    }
+  } catch (err) {
+    respondJson(res, 400, { error: err && err.message ? err.message : "Admin request failed" });
+    return;
+  }
+
+  // ── Authenticated render endpoint (template ID based) ──
+  if (req.method === "POST" && urlPath === "/api/render") {
+    trackVisit(req, "pdfRender");
+    if (!rateLimit(req, "pdf", RATE_MAX_PDF)) {
+      respondJson(res, 429, { error: "Rate limit exceeded" });
+      return;
+    }
+    try {
+      const authResult = await auth.authenticateRequest(req);
+      if (!authResult.authenticated && !authResult.bypass) {
+        respondJson(res, 401, { error: authResult.error || "Authentication required" });
+        return;
+      }
+      const payload = await readJsonBody(req, 5 * 1024 * 1024);
+      if (!payload.templateId) {
+        respondJson(res, 400, { error: "templateId is required" });
+        return;
+      }
+      if (!templateStoreDb.canUseDb()) {
+        respondJson(res, 501, { error: "Database not configured" });
+        return;
+      }
+      const tmpl = await templateStoreDb.getTemplate(payload.templateId);
+      if (!tmpl || !tmpl.currentVersion) {
+        respondJson(res, 404, { error: "Template not found" });
+        return;
+      }
+      // Tenant isolation: if authenticated, verify ownership
+      if (authResult.authenticated && tmpl.tenantId && tmpl.tenantId !== authResult.tenantId) {
+        respondJson(res, 404, { error: "Template not found" });
+        return;
+      }
+      const templateJson = tmpl.currentVersion.contentJson;
+      const evaluation = evaluateDataContract(templateJson, payload.data || {});
+      if (evaluation.missingRequired && evaluation.missingRequired.length) {
+        respondJson(res, 422, { error: "Missing required fields", missingRequired: evaluation.missingRequired });
+        return;
+      }
+      const format = payload.format || "pdf";
+      if (format === "html") {
+        const html = renderHtml(templateJson, evaluation.data, { dataAlreadyMapped: true });
+        res.statusCode = 200;
+        res.setHeader("Content-Type", "text/html");
+        res.setHeader("X-SmartDocs-Template-Id", payload.templateId);
+        res.end(html);
+        return;
+      }
+      // PDF render
+      let flowData = null;
+      if (templateJson.options && templateJson.options.flowMeasure === "browser") {
+        const page = templateJson.page || {};
+        const margin = page.margin || { top: 0, right: 0, bottom: 0, left: 0 };
+        const headerH = page.headerHeight || 0;
+        const footerH = page.footerHeight || 0;
+        const bodyW = page.width - margin.left - margin.right;
+        const bodyH = page.height - margin.top - margin.bottom - headerH - footerH;
+        const flowEl = (templateJson.elements || []).find((el) => el.type === "flowText");
+        if (flowEl) {
+          flowData = await computeFlowPagesBrowser(flowEl, evaluation.data, templateJson, bodyW, bodyH);
+        }
+      }
+      const html = renderHtml(templateJson, evaluation.data, { flowData, dataAlreadyMapped: true });
+      const browser = await launchChromium();
+      const page = await browser.newPage();
+      await page.setContent(html, { waitUntil: "load" });
+      await page.emulateMedia({ media: "print" });
+      const pdf = await page.pdf({ printBackground: true, preferCSSPageSize: true });
+      await browser.close();
+      res.statusCode = 200;
+      res.setHeader("Content-Type", "application/pdf");
+      res.setHeader("X-SmartDocs-Template-Id", payload.templateId);
+      res.end(pdf);
+    } catch (err) {
+      respondJson(res, 500, { error: "Render failed" });
+    }
+    return;
+  }
+
+  // ── Template fields API (for Salesforce mapping UI) ──
+  const fieldsMatch = urlPath.match(/^\/api\/templates\/([^/]+)\/fields$/);
+  if (fieldsMatch && req.method === "GET") {
+    try {
+      const authResult = await auth.authenticateRequest(req);
+      if (!authResult.authenticated && !authResult.bypass) {
+        respondJson(res, 401, { error: authResult.error || "Authentication required" });
+        return;
+      }
+      if (!templateStoreDb.canUseDb()) {
+        respondJson(res, 501, { error: "Database not configured" });
+        return;
+      }
+      const tmpl = await templateStoreDb.getTemplate(fieldsMatch[1]);
+      if (!tmpl || !tmpl.currentVersion) {
+        respondJson(res, 404, { error: "Template not found" });
+        return;
+      }
+      if (authResult.authenticated && tmpl.tenantId && tmpl.tenantId !== authResult.tenantId) {
+        respondJson(res, 404, { error: "Template not found" });
+        return;
+      }
+      const content = tmpl.currentVersion.contentJson;
+      const contract = content.dataContract || {};
+      const fields = (contract.fields || []).map((f) => ({
+        path: f.path,
+        required: Boolean(f.required),
+        type: f.type || "string",
+        transform: f.transform || "none",
+        pii: Boolean(f.pii),
+        piiCategory: f.piiCategory || null,
+        defaultValue: f.defaultValue
+      }));
+      respondJson(res, 200, {
+        templateId: tmpl.id,
+        templateName: tmpl.name,
+        version: tmpl.currentVersion.version,
+        fields
+      });
+    } catch (err) {
+      respondJson(res, 400, { error: err && err.message ? err.message : "Request failed" });
+    }
+    return;
+  }
+
+  // ── Legacy render-pdf (editor preview, no auth required) ──
   if (req.method === "POST" && urlPath === "/api/render-pdf") {
     trackVisit(req, "pdfRender");
     if (!rateLimit(req, "pdf", RATE_MAX_PDF)) {

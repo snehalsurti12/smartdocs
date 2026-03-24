@@ -15,20 +15,53 @@ enum TemplateStatus {
   ARCHIVED
 }
 
+model Tenant {
+  id          String    @id @default(cuid())
+  name        String
+  slug        String    @unique
+  active      Boolean   @default(true)
+  storageType String?
+  storageConfig Json?
+  createdAt   DateTime  @default(now())
+
+  apiKeys     ApiKey[]
+  templates   Template[]
+}
+
+model ApiKey {
+  id          String    @id @default(cuid())
+  tenantId    String
+  name        String
+  keyHash     String    @unique
+  prefix      String
+  scopes      String[]  @default(["render"])
+  active      Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  lastUsedAt  DateTime?
+
+  tenant      Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+}
+
 model Template {
   id               String         @id @default(cuid())
   name             String
   description      String?
   status           TemplateStatus @default(DRAFT)
   currentVersionId String?
+  tenantId         String?
   createdBy        String         @default("system")
   updatedBy        String         @default("system")
   createdAt        DateTime       @default(now())
   updatedAt        DateTime       @updatedAt
 
+  tenant         Tenant?          @relation(fields: [tenantId], references: [id], onDelete: SetNull)
   currentVersion TemplateVersion? @relation("CurrentTemplateVersion", fields: [currentVersionId], references: [id], onDelete: SetNull)
   versions       TemplateVersion[] @relation("TemplateVersions")
   audits         AuditEvent[]
+
+  @@index([tenantId])
 }
 
 model TemplateVersion {
