@@ -1,7 +1,6 @@
-import { LightningElement, api, wire } from 'lwc';
+import { LightningElement, api } from 'lwc';
 import { NavigationMixin } from 'lightning/navigation';
-import renderDocuments from '@salesforce/apex/SmartDocsRenderInvocable.renderDocuments';
-import { getRecord } from 'lightning/uiRecordApi';
+import renderDocumentForLwc from '@salesforce/apex/SmartDocsService.renderDocumentForLwc';
 
 export default class SmartDocsGenerator extends NavigationMixin(LightningElement) {
     @api recordId;
@@ -41,24 +40,19 @@ export default class SmartDocsGenerator extends NavigationMixin(LightningElement
         this.generatedFile = null;
 
         try {
-            const results = await renderDocuments({
-                requests: [{
-                    mappingId: this.selectedMapping,
-                    recordId: this.recordId,
-                    fileName: this.fileName || 'Document'
-                }]
+            const result = await renderDocumentForLwc({
+                mappingId: this.selectedMapping,
+                recordId: this.recordId,
+                fileName: this.fileName || 'Document'
             });
 
-            if (results && results.length > 0) {
-                const result = results[0];
-                if (result.success) {
-                    this.generatedFile = {
-                        contentVersionId: result.contentVersionId,
-                        downloadUrl: result.downloadUrl
-                    };
-                } else {
-                    this.error = result.errorMessage || 'Document generation failed.';
-                }
+            if (result && result.success) {
+                this.generatedFile = {
+                    contentVersionId: result.contentVersionId,
+                    downloadUrl: result.downloadUrl
+                };
+            } else {
+                this.error = (result && result.errorMessage) || 'Document generation failed.';
             }
         } catch (err) {
             this.error = err.body ? err.body.message : err.message || 'An unexpected error occurred.';

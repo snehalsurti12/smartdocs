@@ -131,5 +131,31 @@ public with sharing class SmartDocsService {
         return (Map<String, Object>) JSON.deserializeUntyped(res.getBody());
     }
 
+    /**
+     * AuraEnabled method for LWC — renders and attaches a document.
+     * @param mappingId - SmartDocs_Template_Mapping__c record ID
+     * @param recordId - Salesforce record ID
+     * @param fileName - Name for the generated PDF
+     * @return Map with contentVersionId, success, downloadUrl
+     */
+    @AuraEnabled
+    public static Map<String, Object> renderDocumentForLwc(Id mappingId, Id recordId, String fileName) {
+        Map<String, Object> result = new Map<String, Object>();
+        try {
+            String fName = String.isNotBlank(fileName) ? fileName : 'Document';
+            Id cvId = renderAndAttach(mappingId, recordId, fName);
+
+            ContentVersion cv = [SELECT ContentDocumentId FROM ContentVersion WHERE Id = :cvId LIMIT 1];
+
+            result.put('contentVersionId', cvId);
+            result.put('success', true);
+            result.put('downloadUrl', '/sfc/servlet.shepherd/document/download/' + cv.ContentDocumentId);
+        } catch (Exception e) {
+            result.put('success', false);
+            result.put('errorMessage', e.getMessage());
+        }
+        return result;
+    }
+
     public class SmartDocsException extends Exception {}
 }
