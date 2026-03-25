@@ -270,7 +270,9 @@
         "transformCurrency": { "type": "string", "minLength": 1 },
         "transformDateStyle": { "type": "string", "enum": ["short", "medium", "long", "full"] },
         "defaultValue": { "type": ["string", "number", "boolean", "null"] },
-        "externalPath": { "type": "string", "minLength": 1 }
+        "externalPath": { "type": "string", "minLength": 1 },
+        "pii": { "type": "boolean" },
+        "piiCategory": { "type": "string", "enum": ["name", "email", "phone", "address", "ssn", "financial", "health", "other"] }
       }
     },
     "qrElement": {
