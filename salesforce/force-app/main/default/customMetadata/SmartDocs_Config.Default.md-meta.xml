@@ -4,10 +4,10 @@
     <protected>false</protected>
     <values>
         <field>Endpoint_URL__c</field>
-        <value xsi:type="xsd:string">https://smartdocs-production-b0fa.up.railway.app</value>
+        <value xsi:type="xsd:string">https://YOUR_SMARTDOCS_URL</value>
     </values>
     <values>
         <field>API_Key__c</field>
-        <value xsi:type="xsd:string">sk_live_REPLACE_WITH_YOUR_KEY</value>
+        <value xsi:type="xsd:string">YOUR_API_KEY</value>
     </values>
 </CustomMetadata>

@@ -69,6 +69,16 @@ function demoBlockedResponse(res) {
   });
 }
 
+function isDemoBlocked(req) {
+  if (!demoMode) return false;
+  // Authenticated API requests bypass demo mode
+  const authHeader = req.headers["authorization"] || "";
+  if (authHeader.startsWith("Bearer sk_live_")) return false;
+  // Admin requests bypass demo mode
+  if (auth.isAdminRequest(req)) return false;
+  return true;
+}
+
 // Rate limiter — per-IP, sliding window
 const rateLimits = new Map();
 const RATE_WINDOW_MS = 60 * 1000; // 1 minute
@@ -174,7 +184,7 @@ const server = http.createServer(async (req, res) => {
         return;
       }
       if (req.method === "POST") {
-        if (demoMode) { demoBlockedResponse(res); return; }
+        if (isDemoBlocked(req)) { demoBlockedResponse(res); return; }
         const payload = await readJsonBody(req);
         const created = await templateStoreDb.createTemplate({
           name: payload.name,
@@ -206,7 +216,7 @@ const server = http.createServer(async (req, res) => {
         return;
       }
       if (req.method === "PATCH") {
-        if (demoMode) { demoBlockedResponse(res); return; }
+        if (isDemoBlocked(req)) { demoBlockedResponse(res); return; }
         const payload = await readJsonBody(req);
         const updated = await templateStoreDb.updateTemplateMetadata(templateId, payload);
         respondJson(res, 200, { template: updated });
@@ -229,7 +239,7 @@ const server = http.createServer(async (req, res) => {
         return;
       }
       if (req.method === "POST") {
-        if (demoMode) { demoBlockedResponse(res); return; }
+        if (isDemoBlocked(req)) { demoBlockedResponse(res); return; }
         const payload = await readJsonBody(req);
         const updated = await templateStoreDb.createTemplateVersion(templateId, {
           contentJson: payload.contentJson || payload.template || {},
