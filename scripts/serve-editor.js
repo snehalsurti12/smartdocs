@@ -5,6 +5,7 @@ const path = require("path");
 const { renderHtml, evaluateDataContract } = require("./render");
 const { computeFlowPagesBrowser } = require("./flow-measure");
 const { launchChromium } = require("./playwright-launch");
+const renderPool = require("./render-pool");
 const templateStoreDb = require("./template-store-db");
 const auth = require("./auth");
 
@@ -373,16 +374,18 @@ const server = http.createServer(async (req, res) => {
         }
       }
       const html = renderHtml(templateJson, evaluation.data, { flowData, dataAlreadyMapped: true });
-      const browser = await launchChromium();
-      const page = await browser.newPage();
-      await page.setContent(html, { waitUntil: "load" });
-      await page.emulateMedia({ media: "print" });
-      const pdf = await page.pdf({ printBackground: true, preferCSSPageSize: true });
-      await browser.close();
-      res.statusCode = 200;
-      res.setHeader("Content-Type", "application/pdf");
-      res.setHeader("X-SmartDocs-Template-Id", payload.templateId);
-      res.end(pdf);
+      const poolPage = await renderPool.acquirePage();
+      try {
+        await poolPage.setContent(html, { waitUntil: "load" });
+        await poolPage.emulateMedia({ media: "print" });
+        const pdf = await poolPage.pdf({ printBackground: true, preferCSSPageSize: true });
+        res.statusCode = 200;
+        res.setHeader("Content-Type", "application/pdf");
+        res.setHeader("X-SmartDocs-Template-Id", payload.templateId);
+        res.end(pdf);
+      } finally {
+        renderPool.releasePage(poolPage);
+      }
     } catch (err) {
       respondJson(res, 500, { error: "Render failed" });
     }
@@ -466,19 +469,20 @@ const server = http.createServer(async (req, res) => {
 
       const html = renderHtml(template, data, { flowData, dataAlreadyMapped: true });
 
-      const browser = await launchChromium();
-      const page = await browser.newPage();
-      await page.setContent(html, { waitUntil: "load" });
-      await page.emulateMedia({ media: "print" });
-      const pdf = await page.pdf({
-        printBackground: true,
-        preferCSSPageSize: true
-      });
-      await browser.close();
-
-      res.statusCode = 200;
-      res.setHeader("Content-Type", "application/pdf");
-      res.end(pdf);
+      const poolPage = await renderPool.acquirePage();
+      try {
+        await poolPage.setContent(html, { waitUntil: "load" });
+        await poolPage.emulateMedia({ media: "print" });
+        const pdf = await poolPage.pdf({
+          printBackground: true,
+          preferCSSPageSize: true
+        });
+        res.statusCode = 200;
+        res.setHeader("Content-Type", "application/pdf");
+        res.end(pdf);
+      } finally {
+        renderPool.releasePage(poolPage);
+      }
     } catch (err) {
       respondJson(res, 500, { error: "PDF render failed" });
     }
@@ -491,7 +495,8 @@ const server = http.createServer(async (req, res) => {
       status: "ok",
       version: require("../package.json").version,
       demoMode,
-      db: templateStoreDb.canUseDb()
+      db: templateStoreDb.canUseDb(),
+      renderPool: renderPool.getPoolStats()
     });
     return;
   }
