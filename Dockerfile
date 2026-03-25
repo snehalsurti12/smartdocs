@@ -25,4 +25,4 @@ ENV DEMO_MODE=false
 
 EXPOSE 5177
 
-CMD ["node", "scripts/serve-editor.js"]
+CMD npx prisma migrate deploy && node scripts/serve-editor.js
