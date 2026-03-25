@@ -25,4 +25,4 @@ ENV DEMO_MODE=false
 
 EXPOSE 5177
 
-CMD npx prisma migrate deploy && node scripts/serve-editor.js
+CMD npx prisma migrate deploy || echo "Migration skipped (no DB)" ; node scripts/serve-editor.js
