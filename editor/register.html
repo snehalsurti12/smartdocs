@@ -1,0 +1,206 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SmartDocs — Try the Editor</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #0f172a;
+      color: #e2e8f0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .container {
+      width: 100%;
+      max-width: 440px;
+      padding: 20px;
+    }
+    .card {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 16px;
+      padding: 40px 36px;
+    }
+    .logo {
+      font-size: 28px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 8px;
+    }
+    .logo span { color: #6366f1; }
+    .subtitle {
+      font-size: 14px;
+      color: #94a3b8;
+      margin-bottom: 32px;
+      line-height: 1.5;
+    }
+    .form-group {
+      margin-bottom: 20px;
+    }
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 500;
+      color: #cbd5e1;
+      margin-bottom: 6px;
+    }
+    input {
+      width: 100%;
+      padding: 12px 14px;
+      font-size: 14px;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      background: #0f172a;
+      color: #e2e8f0;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    input:focus {
+      border-color: #6366f1;
+    }
+    input::placeholder {
+      color: #475569;
+    }
+    .hp-field {
+      position: absolute;
+      left: -9999px;
+      opacity: 0;
+      height: 0;
+      width: 0;
+      pointer-events: none;
+      tab-index: -1;
+    }
+    .submit-btn {
+      width: 100%;
+      padding: 14px;
+      font-size: 15px;
+      font-weight: 600;
+      border: none;
+      border-radius: 8px;
+      background: #6366f1;
+      color: #fff;
+      cursor: pointer;
+      transition: background 0.15s;
+      margin-top: 8px;
+    }
+    .submit-btn:hover {
+      background: #4f46e5;
+    }
+    .submit-btn:disabled {
+      background: #334155;
+      cursor: not-allowed;
+    }
+    .error {
+      background: #7f1d1d;
+      color: #fca5a5;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      margin-bottom: 16px;
+      display: none;
+    }
+    .footer {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 12px;
+      color: #475569;
+    }
+    .footer a {
+      color: #6366f1;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="card">
+      <div class="logo">Smart<span>Docs</span></div>
+      <div class="subtitle">
+        Try our visual document editor — design templates with charts, barcodes, QR codes, and more. Generate print-ready PDFs instantly.
+      </div>
+      <div id="error" class="error"></div>
+      <form id="register-form" autocomplete="off">
+        <div class="form-group">
+          <label for="name">Full Name</label>
+          <input type="text" id="name" name="name" placeholder="Jane Smith" required />
+        </div>
+        <div class="form-group">
+          <label for="email">Work Email</label>
+          <input type="email" id="email" name="email" placeholder="jane@company.com" required />
+        </div>
+        <div class="form-group">
+          <label for="company">Company</label>
+          <input type="text" id="company" name="company" placeholder="Acme Corp" required />
+        </div>
+        <div class="form-group">
+          <label for="title">Title (optional)</label>
+          <input type="text" id="title" name="title" placeholder="VP of Engineering" />
+        </div>
+        <!-- Honeypot field — invisible to humans, bots fill it -->
+        <input type="text" name="website" id="website" class="hp-field" tabindex="-1" autocomplete="off" />
+        <button type="submit" class="submit-btn" id="submit-btn">Start Building Templates</button>
+      </form>
+    </div>
+    <div class="footer">
+      Open source &middot; MIT License &middot; <a href="https://github.com/snehalsurti12/smartdocs" target="_blank">GitHub</a>
+    </div>
+  </div>
+  <script>
+    // Check if already registered
+    if (document.cookie.includes('smartdocs_registered=1')) {
+      window.location.href = '/editor/index.html';
+    }
+
+    document.getElementById('register-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const errorEl = document.getElementById('error');
+      const btn = document.getElementById('submit-btn');
+      errorEl.style.display = 'none';
+
+      const name = document.getElementById('name').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const company = document.getElementById('company').value.trim();
+      const title = document.getElementById('title').value.trim();
+      const honeypot = document.getElementById('website').value;
+
+      if (!name || !email || !company) {
+        errorEl.textContent = 'Please fill in all required fields.';
+        errorEl.style.display = 'block';
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'Registering...';
+
+      try {
+        const res = await fetch('/api/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, email, company, title, website: honeypot })
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          errorEl.textContent = data.error || 'Registration failed.';
+          errorEl.style.display = 'block';
+          btn.disabled = false;
+          btn.textContent = 'Start Building Templates';
+          return;
+        }
+        // Set cookie for 90 days
+        document.cookie = 'smartdocs_registered=1; path=/; max-age=' + (90 * 24 * 60 * 60);
+        window.location.href = '/editor/index.html';
+      } catch (err) {
+        errorEl.textContent = 'Something went wrong. Please try again.';
+        errorEl.style.display = 'block';
+        btn.disabled = false;
+        btn.textContent = 'Start Building Templates';
+      }
+    });
+  </script>
+</body>
+</html>

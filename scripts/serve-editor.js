@@ -55,6 +55,33 @@ function readJsonBody(req, maxBytes) {
   });
 }
 
+// Free/disposable email domain block list
+const BLOCKED_EMAIL_DOMAINS = new Set([
+  "gmail.com","yahoo.com","hotmail.com","outlook.com","aol.com","icloud.com",
+  "mail.com","protonmail.com","zoho.com","yandex.com","gmx.com","live.com",
+  "msn.com","me.com","mac.com","inbox.com","fastmail.com","hushmail.com",
+  "tutanota.com","guerrillamail.com","mailinator.com","tempmail.com",
+  "throwaway.email","sharklasers.com","guerrillamailblock.com","grr.la",
+  "dispostable.com","yopmail.com","trashmail.com","fakeinbox.com",
+  "mailnesia.com","maildrop.cc","discard.email","33mail.com",
+  "temp-mail.org","tempmailaddress.com","emailondeck.com","getnada.com",
+  "mailsac.com","burnermail.io","inboxbear.com","mytemp.email",
+  "10minutemail.com","mohmal.com","guerrillamail.info","spam4.me",
+  "trashmail.me","harakirimail.com","cuvox.de","armyspy.com",
+  "dayrep.com","einrot.com","fleckens.hu","gustr.com","jourrapide.com",
+  "rhyta.com","superrito.com","teleworm.us"
+]);
+
+function isBlockedEmail(email) {
+  if (!email || !email.includes("@")) return true;
+  const domain = email.split("@")[1].toLowerCase();
+  return BLOCKED_EMAIL_DOMAINS.has(domain);
+}
+
+function isValidEmail(email) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email);
+}
+
 function dbUnavailableResponse(res) {
   respondJson(res, 501, {
     error: "Database persistence is not configured.",
@@ -526,6 +553,93 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
+  // Registration endpoint
+  if (req.method === "POST" && urlPath === "/api/register") {
+    if (!rateLimit(req, "register", 3)) {
+      respondJson(res, 429, { error: "Too many registration attempts. Please try again later." });
+      return;
+    }
+    try {
+      const payload = await readJsonBody(req);
+      // Honeypot check
+      if (payload.website) {
+        respondJson(res, 200, { status: "ok" }); // Silently accept but don't store
+        return;
+      }
+      const name = (payload.name || "").trim();
+      const email = (payload.email || "").trim().toLowerCase();
+      const company = (payload.company || "").trim();
+      const title = (payload.title || "").trim();
+
+      if (!name || !email || !company) {
+        respondJson(res, 400, { error: "Name, email, and company are required." });
+        return;
+      }
+      if (!isValidEmail(email)) {
+        respondJson(res, 400, { error: "Please enter a valid email address." });
+        return;
+      }
+      if (isBlockedEmail(email)) {
+        respondJson(res, 400, { error: "Please use your work email address. Free email providers are not accepted." });
+        return;
+      }
+      if (name.length < 2 || name.length > 100) {
+        respondJson(res, 400, { error: "Please enter a valid name." });
+        return;
+      }
+      if (company.length < 2 || company.length > 200) {
+        respondJson(res, 400, { error: "Please enter a valid company name." });
+        return;
+      }
+
+      if (templateStoreDb.canUseDb()) {
+        try {
+          const { PrismaClient } = require("@prisma/client");
+          const prisma = new PrismaClient();
+          await prisma.registration.upsert({
+            where: { email },
+            create: {
+              name, email, company, title: title || null,
+              ip: req.headers["x-forwarded-for"] || req.socket.remoteAddress || null,
+              userAgent: req.headers["user-agent"] || null
+            },
+            update: { name, company, title: title || null }
+          });
+          await prisma.$disconnect();
+        } catch (dbErr) {
+          // DB save failed but still let them through
+          console.error("Registration DB error:", dbErr.message);
+        }
+      }
+      respondJson(res, 201, { status: "registered" });
+    } catch (err) {
+      respondJson(res, 400, { error: "Registration failed. Please try again." });
+    }
+    return;
+  }
+
+  // Admin: list registrations
+  if (urlPath === "/api/registrations" && req.method === "GET") {
+    if (!auth.isAdminRequest(req)) {
+      respondJson(res, 401, { error: "Admin token required" });
+      return;
+    }
+    if (!templateStoreDb.canUseDb()) {
+      respondJson(res, 501, { error: "Database not configured" });
+      return;
+    }
+    try {
+      const db = require("@prisma/client");
+      const prisma = new db.PrismaClient();
+      const registrations = await prisma.registration.findMany({ orderBy: { createdAt: "desc" }, take: 500 });
+      await prisma.$disconnect();
+      respondJson(res, 200, { total: registrations.length, registrations });
+    } catch (err) {
+      respondJson(res, 500, { error: "Failed to fetch registrations" });
+    }
+    return;
+  }
+
   // Track page views
   if (urlPath === "/" || urlPath === "/editor/index.html") {
     trackVisit(req, "pageView");
@@ -533,6 +647,21 @@ const server = http.createServer(async (req, res) => {
   // Track template loads (example JSON fetches)
   if (urlPath.startsWith("/examples/") && urlPath.endsWith("-template.json")) {
     trackVisit(req, "templateLoad");
+  }
+
+  // Gate: redirect root to registration page if demo mode + DB available
+  const gateEnabled = demoMode && templateStoreDb.canUseDb();
+  if (gateEnabled && urlPath === "/") {
+    const cookies = req.headers.cookie || "";
+    if (!cookies.includes("smartdocs_registered=1")) {
+      const regPath = path.join(root, "/editor/register.html");
+      fs.readFile(regPath, (err, data) => {
+        if (err) { res.statusCode = 404; res.end("Not found"); return; }
+        res.setHeader("Content-Type", "text/html");
+        res.end(data);
+      });
+      return;
+    }
   }
 
   const filePath = path.join(root, urlPath === "/" ? "/editor/index.html" : urlPath);

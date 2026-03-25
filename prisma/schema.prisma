@@ -15,6 +15,20 @@ enum TemplateStatus {
   ARCHIVED
 }
 
+model Registration {
+  id          String   @id @default(cuid())
+  name        String
+  email       String   @unique
+  company     String
+  title       String?
+  ip          String?
+  userAgent   String?
+  createdAt   DateTime @default(now())
+
+  @@index([email])
+  @@index([createdAt])
+}
+
 model Tenant {
   id          String    @id @default(cuid())
   name        String
