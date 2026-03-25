@@ -82,6 +82,21 @@ function isValidEmail(email) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email);
 }
 
+const dns = require("dns");
+function verifyEmailDomain(email) {
+  return new Promise((resolve) => {
+    const domain = email.split("@")[1];
+    if (!domain) { resolve(false); return; }
+    dns.resolveMx(domain, (err, addresses) => {
+      if (err || !addresses || addresses.length === 0) {
+        resolve(false);
+      } else {
+        resolve(true);
+      }
+    });
+  });
+}
+
 function dbUnavailableResponse(res) {
   respondJson(res, 501, {
     error: "Database persistence is not configured.",
@@ -581,6 +596,11 @@ const server = http.createServer(async (req, res) => {
       }
       if (isBlockedEmail(email)) {
         respondJson(res, 400, { error: "Please use your work email address. Free email providers are not accepted." });
+        return;
+      }
+      const hasMx = await verifyEmailDomain(email);
+      if (!hasMx) {
+        respondJson(res, 400, { error: "This email domain does not appear to be valid. Please check your email address." });
         return;
       }
       if (name.length < 2 || name.length > 100) {
