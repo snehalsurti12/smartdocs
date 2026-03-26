@@ -1025,7 +1025,8 @@ button.active {
   color: var(--accent);
   border-color: var(--accent);
 }
-.has-demo-banner .user-bar { top: 32px; }
+.has-demo-banner .user-bar { top: 38px; }
+.has-demo-banner .panel-right { padding-top: 88px; }
 
 /* ── Settings Button ── */
 .settings-btn {
