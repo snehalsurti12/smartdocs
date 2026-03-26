@@ -101,6 +101,7 @@ model AuditEvent {
   entityType String   @default("template")
   action     String
   actorId    String   @default("system")
+  reason     String?
   beforeJson Json?
   afterJson  Json?
   metadata   Json?

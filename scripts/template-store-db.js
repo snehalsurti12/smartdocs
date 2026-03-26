@@ -1,3 +1,5 @@
+const workflow = require("./workflow");
+
 let PrismaClientCtor = null;
 try {
   PrismaClientCtor = require("@prisma/client").PrismaClient;
@@ -146,6 +148,12 @@ async function createTemplateVersion(templateId, input) {
       throw new Error("Template not found.");
     }
 
+    if (workflow.isContentLocked(previous.status)) {
+      const err = new Error(`Content is locked (status: ${previous.status}). Transition to Draft to make changes.`);
+      err.statusCode = 409;
+      throw err;
+    }
+
     const latest = await tx.templateVersion.findFirst({
       where: { templateId },
       orderBy: { version: "desc" }
@@ -204,7 +212,10 @@ async function updateTemplateMetadata(templateId, input) {
     patch.description = input.description ? String(input.description) : null;
   }
   if (Object.prototype.hasOwnProperty.call(input || {}, "status")) {
-    patch.status = String(input.status || "").toUpperCase();
+    // Status changes must go through POST /api/templates/:id/transition
+    const err = new Error("Use the transition endpoint to change template status.");
+    err.statusCode = 400;
+    throw err;
   }
   patch.updatedBy = actorId;
 
@@ -243,6 +254,86 @@ async function updateTemplateMetadata(templateId, input) {
   return updated;
 }
 
+async function transitionTemplateStatus(templateId, toStatus, reason, actorId) {
+  const prisma = getPrisma();
+  actorId = actorId || "system";
+  toStatus = String(toStatus || "").toUpperCase();
+
+  return prisma.$transaction(async (tx) => {
+    const template = await tx.template.findUnique({
+      where: { id: templateId },
+      include: { currentVersion: true }
+    });
+
+    if (!template) {
+      const err = new Error("Template not found.");
+      err.statusCode = 404;
+      throw err;
+    }
+
+    const fromStatus = template.status;
+    const validation = workflow.validateTransition(fromStatus, toStatus);
+    if (!validation.valid) {
+      const err = new Error(validation.error);
+      err.statusCode = 409;
+      throw err;
+    }
+
+    if (workflow.requiresReason(fromStatus, toStatus) && !reason) {
+      const err = new Error("A reason is required when rejecting (REVIEW → DRAFT).");
+      err.statusCode = 400;
+      throw err;
+    }
+
+    const updateData = { status: toStatus, updatedBy: actorId };
+
+    // PUBLISHED → DRAFT: auto-create new version copy for editing
+    if (fromStatus === "PUBLISHED" && toStatus === "DRAFT") {
+      if (template.currentVersion) {
+        const latest = await tx.templateVersion.findFirst({
+          where: { templateId },
+          orderBy: { version: "desc" }
+        });
+        const nextVersion = (latest ? latest.version : 0) + 1;
+        const newVersion = await tx.templateVersion.create({
+          data: {
+            templateId,
+            version: nextVersion,
+            contentJson: template.currentVersion.contentJson,
+            createdBy: actorId
+          }
+        });
+        updateData.currentVersionId = newVersion.id;
+      }
+    }
+
+    const updated = await tx.template.update({
+      where: { id: templateId },
+      data: updateData,
+      include: { currentVersion: true }
+    });
+
+    await tx.auditEvent.create({
+      data: {
+        templateId,
+        versionId: updated.currentVersionId || null,
+        action: "template.status.transition",
+        actorId,
+        reason: reason || null,
+        beforeJson: { status: fromStatus },
+        afterJson: { status: toStatus },
+        metadata: {
+          from: fromStatus,
+          to: toStatus,
+          ...(reason ? { reason } : {})
+        }
+      }
+    });
+
+    return updated;
+  });
+}
+
 module.exports = {
   canUseDb,
   listTemplates,
@@ -251,5 +342,6 @@ module.exports = {
   listTemplateAudit,
   createTemplate,
   createTemplateVersion,
-  updateTemplateMetadata
+  updateTemplateMetadata,
+  transitionTemplateStatus
 };

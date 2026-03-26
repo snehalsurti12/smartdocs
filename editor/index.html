@@ -140,14 +140,16 @@
                 <button id="btn-db-rename">Rename</button>
                 <button id="btn-db-archive">Archive</button>
               </div>
-              <select id="db-status-select">
-                <option value="DRAFT">Draft</option>
-                <option value="REVIEW">In Review</option>
-                <option value="APPROVED">Approved</option>
-                <option value="PUBLISHED">Published</option>
-                <option value="ARCHIVED">Archived</option>
-              </select>
             </details>
+            <div id="workflow-panel" class="workflow-panel hidden">
+              <div id="workflow-status-badge" class="wf-badge wf-draft">DRAFT</div>
+              <div id="workflow-actions" class="workflow-actions"></div>
+              <div id="workflow-rejection" class="workflow-rejection hidden">
+                <textarea id="workflow-rejection-reason" placeholder="Reason for rejection..." rows="2"></textarea>
+                <button id="workflow-reject-confirm" class="wf-btn wf-btn-danger">Confirm Reject</button>
+              </div>
+              <div id="workflow-lock-msg" class="workflow-lock-msg hidden">Content is locked. Create a new revision to edit.</div>
+            </div>
           </div>
         </details>
 

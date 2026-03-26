@@ -312,9 +312,46 @@ const server = http.createServer(async (req, res) => {
       respondJson(res, 200, { events });
       return;
     }
+
+    // ── Template status transition ──
+    const transitionMatch = urlPath.match(/^\/api\/templates\/([^/]+)\/transition$/);
+    if (transitionMatch) {
+      if (!templateStoreDb.canUseDb()) { dbUnavailableResponse(res); return; }
+      if (req.method !== "POST") { respondJson(res, 405, { error: "Method not allowed" }); return; }
+      if (isDemoBlocked(req)) { demoBlockedResponse(res); return; }
+      const templateId = transitionMatch[1];
+      const payload = await readJsonBody(req);
+      const toStatus = payload.to || payload.status;
+      const reason = payload.reason || null;
+      const actorId = payload.actorId || "editor";
+      const updated = await templateStoreDb.transitionTemplateStatus(templateId, toStatus, reason, actorId);
+      const workflow = require("./workflow");
+      respondJson(res, 200, {
+        template: updated,
+        transitions: workflow.getAllowedTransitions(updated.status)
+      });
+      return;
+    }
+
+    // ── Template workflow info (allowed transitions) ──
+    const workflowMatch = urlPath.match(/^\/api\/templates\/([^/]+)\/workflow$/);
+    if (workflowMatch) {
+      if (!templateStoreDb.canUseDb()) { dbUnavailableResponse(res); return; }
+      if (req.method !== "GET") { respondJson(res, 405, { error: "Method not allowed" }); return; }
+      const templateId = workflowMatch[1];
+      const template = await templateStoreDb.getTemplate(templateId);
+      if (!template) { respondJson(res, 404, { error: "Template not found" }); return; }
+      const workflow = require("./workflow");
+      respondJson(res, 200, {
+        status: template.status,
+        locked: workflow.isContentLocked(template.status),
+        transitions: workflow.getAllowedTransitions(template.status)
+      });
+      return;
+    }
   } catch (err) {
     const message = err && err.message ? err.message : "Request failed";
-    const status = message.toLowerCase().includes("not found") ? 404 : 400;
+    const status = err.statusCode || (message.toLowerCase().includes("not found") ? 404 : 400);
     respondJson(res, status, { error: message });
     return;
   }

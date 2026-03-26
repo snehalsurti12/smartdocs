@@ -887,3 +887,83 @@ button.active {
   padding: 8px;
   border-radius: 4px;
 }
+
+/* ── Workflow Panel ── */
+.workflow-panel {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--panel-border);
+}
+.workflow-panel.hidden { display: none; }
+.wf-badge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  padding: 3px 10px;
+  border-radius: 4px;
+  margin-bottom: 8px;
+}
+.wf-draft     { background: #e8e5de; color: #5c5647; }
+.wf-review    { background: #dbeafe; color: #1e40af; }
+.wf-approved  { background: #dcfce7; color: #166534; }
+.wf-published { background: #ede9fe; color: #5b21b6; }
+.wf-archived  { background: #fde2e2; color: #991b1b; }
+
+.workflow-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+.wf-btn {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 5px 12px;
+  border: 1px solid var(--panel-border);
+  border-radius: 5px;
+  background: var(--panel);
+  color: var(--ink);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.wf-btn:hover { background: #eee8dc; }
+.wf-btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+.wf-btn-primary:hover { background: #922e22; }
+.wf-btn-danger { background: #dc2626; color: #fff; border-color: #dc2626; }
+.wf-btn-danger:hover { background: #b91c1c; }
+
+.workflow-rejection {
+  margin-top: 6px;
+}
+.workflow-rejection.hidden { display: none; }
+.workflow-rejection textarea {
+  width: 100%;
+  font-size: 12px;
+  padding: 6px 8px;
+  border: 1px solid var(--panel-border);
+  border-radius: 4px;
+  margin-bottom: 6px;
+  resize: vertical;
+  font-family: inherit;
+}
+
+.workflow-lock-msg {
+  font-size: 11px;
+  color: #b33a2b;
+  font-weight: 600;
+  padding: 6px 8px;
+  background: #fff1ee;
+  border-radius: 4px;
+  margin-top: 4px;
+}
+.workflow-lock-msg.hidden { display: none; }
+
+.canvas-lock-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.03);
+  cursor: not-allowed;
+  z-index: 50;
+  pointer-events: all;
+}

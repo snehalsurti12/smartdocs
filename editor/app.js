@@ -30,7 +30,13 @@ const dbSaveBtn = document.getElementById("btn-db-save");
 const dbSaveAsBtn = document.getElementById("btn-db-save-as");
 const dbRenameBtn = document.getElementById("btn-db-rename");
 const dbArchiveBtn = document.getElementById("btn-db-archive");
-const dbStatusSelect = document.getElementById("db-status-select");
+const workflowPanel = document.getElementById("workflow-panel");
+const workflowBadge = document.getElementById("workflow-status-badge");
+const workflowActions = document.getElementById("workflow-actions");
+const workflowRejection = document.getElementById("workflow-rejection");
+const workflowRejectionReason = document.getElementById("workflow-rejection-reason");
+const workflowRejectConfirm = document.getElementById("workflow-reject-confirm");
+const workflowLockMsg = document.getElementById("workflow-lock-msg");
 const templateState = document.getElementById("template-state");
 const dbStatus = document.getElementById("db-status");
 const pagePrevBtn = document.getElementById("btn-page-prev");
@@ -306,12 +312,96 @@ function computeTemplateSnapshot() {
   }
 }
 
+const WF_BADGE_CLASSES = { DRAFT: "wf-draft", REVIEW: "wf-review", APPROVED: "wf-approved", PUBLISHED: "wf-published", ARCHIVED: "wf-archived" };
+const WF_LOCKED_STATUSES = new Set(["APPROVED", "PUBLISHED"]);
+
 function syncDbStatusSelect() {
-  if (!dbStatusSelect) return;
-  const value = (activeDbTemplateStatus || "DRAFT").toUpperCase();
-  const hasOption = Array.from(dbStatusSelect.options).some((opt) => opt.value === value);
-  dbStatusSelect.disabled = !activeDbTemplateId;
-  dbStatusSelect.value = hasOption ? value : "DRAFT";
+  syncWorkflowPanel();
+}
+
+function syncWorkflowPanel() {
+  if (!workflowPanel) return;
+  const status = (activeDbTemplateStatus || "DRAFT").toUpperCase();
+  const hasTemplate = Boolean(activeDbTemplateId);
+
+  // Show/hide panel
+  workflowPanel.classList.toggle("hidden", !hasTemplate);
+  if (!hasTemplate) return;
+
+  // Badge
+  if (workflowBadge) {
+    workflowBadge.textContent = status;
+    workflowBadge.className = "wf-badge " + (WF_BADGE_CLASSES[status] || "wf-draft");
+  }
+
+  // Lock message
+  const locked = WF_LOCKED_STATUSES.has(status);
+  if (workflowLockMsg) workflowLockMsg.classList.toggle("hidden", !locked);
+  if (dbSaveBtn) dbSaveBtn.disabled = locked;
+
+  // Hide rejection panel
+  if (workflowRejection) workflowRejection.classList.add("hidden");
+
+  // Build action buttons
+  if (workflowActions) {
+    workflowActions.innerHTML = "";
+    const transitions = getWorkflowTransitions(status);
+    transitions.forEach((t) => {
+      const btn = document.createElement("button");
+      btn.className = "wf-btn" + (t.to === "ARCHIVED" ? "" : t.to === "DRAFT" && status === "REVIEW" ? " wf-btn-danger" : " wf-btn-primary");
+      btn.textContent = t.label;
+      btn.addEventListener("click", () => handleWorkflowTransition(t));
+      workflowActions.appendChild(btn);
+    });
+  }
+}
+
+function getWorkflowTransitions(status) {
+  const map = {
+    DRAFT:     [{ to: "REVIEW", label: "Submit for Review" }, { to: "ARCHIVED", label: "Archive" }],
+    REVIEW:    [{ to: "APPROVED", label: "Approve" }, { to: "DRAFT", label: "Reject", requiresReason: true }, { to: "ARCHIVED", label: "Archive" }],
+    APPROVED:  [{ to: "PUBLISHED", label: "Publish" }, { to: "ARCHIVED", label: "Archive" }],
+    PUBLISHED: [{ to: "DRAFT", label: "New Revision" }, { to: "ARCHIVED", label: "Archive" }],
+    ARCHIVED:  [{ to: "DRAFT", label: "Reactivate" }],
+  };
+  return map[status] || [];
+}
+
+async function handleWorkflowTransition(transition) {
+  if (!activeDbTemplateId) return;
+
+  // Rejection needs reason
+  if (transition.requiresReason) {
+    if (workflowRejection) {
+      workflowRejection.classList.remove("hidden");
+      if (workflowRejectionReason) workflowRejectionReason.focus();
+    }
+    return;
+  }
+
+  await executeWorkflowTransition(transition.to, null);
+}
+
+async function executeWorkflowTransition(toStatus, reason) {
+  if (!activeDbTemplateId) return;
+  try {
+    const resp = await fetch(`/api/templates/${activeDbTemplateId}/transition`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ to: toStatus, reason: reason || undefined, actorId: "editor" })
+    });
+    const result = await resp.json();
+    if (!resp.ok) {
+      alert(result.error || "Transition failed");
+      return;
+    }
+    activeDbTemplateStatus = result.template.status || toStatus;
+    syncWorkflowPanel();
+    updateTemplateStateLabel();
+    render();
+  } catch (err) {
+    alert("Transition failed: " + err.message);
+  }
 }
 
 function updateTemplateStateLabel() {
@@ -571,6 +661,10 @@ async function patchDbTemplateMetadata(patch, successMessage) {
 
 async function saveTemplateToDb() {
   if (!template) return;
+  if (isTemplateLocked()) {
+    setDbStatus("Template is locked. Create a new revision to edit.", true);
+    return;
+  }
   const actorId = "editor";
   try {
     if (!activeDbTemplateId) {
@@ -1493,7 +1587,12 @@ function createIncludeElement(ref) {
   };
 }
 
+function isTemplateLocked() {
+  return Boolean(activeDbTemplateId && WF_LOCKED_STATUSES.has((activeDbTemplateStatus || "").toUpperCase()));
+}
+
 function setPlacing(type) {
+  if (type && isTemplateLocked()) return;
   placingType = type;
   addButtons.forEach((btn) => {
     const isActive = btn.dataset.add === type;
@@ -2312,7 +2411,7 @@ function renderElement(el, ctx = {}) {
   }
 
   div.addEventListener("pointerdown", (ev) => {
-    if (placingType) {
+    if (placingType || isTemplateLocked()) {
       ev.stopPropagation();
       return;
     }
@@ -2557,6 +2656,13 @@ function renderProps() {
   }
 
   props.innerHTML = "";
+
+  if (isTemplateLocked()) {
+    const lockBanner = document.createElement("div");
+    lockBanner.className = "workflow-lock-msg";
+    lockBanner.textContent = "Template is locked (" + (activeDbTemplateStatus || "").toLowerCase() + "). Create a new revision to edit.";
+    props.appendChild(lockBanner);
+  }
 
   function addRow(label, inputEl) {
     const row = document.createElement("div");
@@ -3739,6 +3845,7 @@ window.addEventListener("pointerup", onPointerUp);
 addButtons.forEach((btn) => {
   btn.draggable = true;
   btn.addEventListener("dragstart", (ev) => {
+    if (isTemplateLocked()) { ev.preventDefault(); return; }
     const type = btn.dataset.add;
     dragPaletteType = type;
     if (ev.dataTransfer) {
@@ -4018,27 +4125,18 @@ if (dbArchiveBtn) {
       return;
     }
     if (!confirm("Archive this DB template?")) return;
-    try {
-      await patchDbTemplateMetadata({ status: "ARCHIVED" }, "Template archived.");
-    } catch (err) {
-      setDbStatus(`Archive failed: ${err.message}`, true);
-    }
+    await executeWorkflowTransition("ARCHIVED", null);
   });
 }
 
-if (dbStatusSelect) {
-  dbStatusSelect.addEventListener("change", async () => {
-    if (!activeDbTemplateId) {
-      dbStatusSelect.value = "DRAFT";
-      return;
-    }
-    const nextStatus = String(dbStatusSelect.value || "DRAFT").toUpperCase();
-    try {
-      await patchDbTemplateMetadata({ status: nextStatus }, `Status updated: ${nextStatus.toLowerCase()}`);
-    } catch (err) {
-      setDbStatus(`Status update failed: ${err.message}`, true);
-      syncDbStatusSelect();
-    }
+// Rejection confirm button
+if (workflowRejectConfirm) {
+  workflowRejectConfirm.addEventListener("click", async () => {
+    const reason = workflowRejectionReason ? workflowRejectionReason.value.trim() : "";
+    if (!reason) { alert("Please provide a reason for rejection."); return; }
+    await executeWorkflowTransition("DRAFT", reason);
+    if (workflowRejection) workflowRejection.classList.add("hidden");
+    if (workflowRejectionReason) workflowRejectionReason.value = "";
   });
 }
 
