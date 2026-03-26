@@ -5,20 +5,26 @@
             <!-- Step 1: Template Selection -->
             <div class="slds-m-bottom_large">
                 <h3 class="slds-text-heading_small slds-m-bottom_small">1. Select Template</h3>
-                <lightning-input
-                    label="SmartDocs Template ID"
-                    value={templateId}
-                    onchange={handleTemplateIdChange}
-                    placeholder="Paste template ID from SmartDocs editor"
-                ></lightning-input>
-                <div class="slds-m-top_small">
+                <template if:false={templatesLoaded}>
                     <lightning-button
-                        label="Fetch Template Fields"
+                        label="Load Templates from SmartDocs"
                         variant="brand"
-                        onclick={handleFetchFields}
-                        disabled={isFetchDisabled}
+                        onclick={handleLoadTemplates}
+                        disabled={isLoading}
                     ></lightning-button>
-                </div>
+                </template>
+                <template if:true={templatesLoaded}>
+                    <lightning-combobox
+                        label="Template"
+                        value={templateId}
+                        options={templateOptions}
+                        onchange={handleTemplateSelect}
+                        placeholder="Select a template..."
+                    ></lightning-combobox>
+                    <template if:true={selectedTemplateDescription}>
+                        <p class="slds-text-body_small slds-text-color_weak slds-m-top_x-small">{selectedTemplateDescription}</p>
+                    </template>
+                </template>
             </div>
 
             <!-- Step 2: Primary Object Selection -->

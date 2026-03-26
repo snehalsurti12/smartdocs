@@ -1,4 +1,5 @@
 import { LightningElement, track } from 'lwc';
+import listTemplates from '@salesforce/apex/SmartDocsMapperController.listTemplates';
 import getTemplateFields from '@salesforce/apex/SmartDocsMapperController.getTemplateFields';
 import getObjectFields from '@salesforce/apex/SmartDocsMapperController.getObjectFields';
 import getChildRelationships from '@salesforce/apex/SmartDocsMapperController.getChildRelationships';
@@ -10,21 +11,32 @@ export default class SmartDocsFieldMapper extends LightningElement {
     primaryObject = '';
     existingMappingId = null;
 
+    @track templates = [];
     @track templateFields = null;
     @track objectFields = null;
     @track childRelationships = null;
     @track singleFields = [];
     @track arrayFields = [];
-    @track fieldMappings = {}; // templateField → sfField
-    @track arrayMappings = {}; // arrayPath → { relationship, childMappings: { childPath → sfField } }
+    @track fieldMappings = {};
+    @track arrayMappings = {};
 
     isLoading = false;
     isSaving = false;
     saveSuccess = false;
+    templatesLoaded = false;
     error = null;
 
-    get isFetchDisabled() {
-        return !this.templateId;
+    get templateOptions() {
+        return this.templates.map(t => ({
+            label: `${t.name}${t.status ? ' (' + t.status + ')' : ''}`,
+            value: t.id,
+            description: t.description || ''
+        }));
+    }
+
+    get selectedTemplateDescription() {
+        const tmpl = this.templates.find(t => t.id === this.templateId);
+        return tmpl ? tmpl.description : '';
     }
 
     get objectFieldOptions() {
@@ -49,9 +61,26 @@ export default class SmartDocsFieldMapper extends LightningElement {
         ];
     }
 
-    handleTemplateIdChange(event) {
-        this.templateId = event.target.value;
+    async handleLoadTemplates() {
+        this.isLoading = true;
         this.error = null;
+        try {
+            this.templates = await listTemplates();
+            this.templatesLoaded = true;
+        } catch (err) {
+            this.error = err.body ? err.body.message : 'Failed to load templates from SmartDocs.';
+        } finally {
+            this.isLoading = false;
+        }
+    }
+
+    async handleTemplateSelect(event) {
+        this.templateId = event.detail.value;
+        this.error = null;
+        const tmpl = this.templates.find(t => t.id === this.templateId);
+        this.templateName = tmpl ? tmpl.name : this.templateId;
+        // Auto-fetch fields on selection
+        await this.handleFetchFields();
     }
 
     handlePrimaryObjectChange(event) {

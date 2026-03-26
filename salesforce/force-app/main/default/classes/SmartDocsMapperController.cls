@@ -5,6 +5,42 @@
 public with sharing class SmartDocsMapperController {
 
     /**
+     * List all templates from SmartDocs API.
+     */
+    @AuraEnabled(cacheable=true)
+    public static List<Map<String, Object>> listTemplates() {
+        SmartDocs_Config__mdt config = SmartDocs_Config__mdt.getInstance('Default');
+        if (config == null) throw new AuraHandledException('SmartDocs not configured.');
+
+        HttpRequest req = new HttpRequest();
+        req.setEndpoint(config.Endpoint_URL__c + '/api/templates');
+        req.setMethod('GET');
+        req.setHeader('Authorization', 'Bearer ' + config.API_Key__c);
+        req.setTimeout(15000);
+
+        HttpResponse res = new Http().send(req);
+        if (res.getStatusCode() != 200) {
+            throw new AuraHandledException('Failed to fetch templates: ' + res.getStatusCode());
+        }
+
+        Map<String, Object> body = (Map<String, Object>) JSON.deserializeUntyped(res.getBody());
+        List<Object> rawTemplates = (List<Object>) body.get('templates');
+        List<Map<String, Object>> result = new List<Map<String, Object>>();
+        if (rawTemplates != null) {
+            for (Object t : rawTemplates) {
+                Map<String, Object> tmpl = (Map<String, Object>) t;
+                Map<String, Object> item = new Map<String, Object>();
+                item.put('id', tmpl.get('id'));
+                item.put('name', tmpl.get('name'));
+                item.put('status', tmpl.get('status'));
+                item.put('description', tmpl.get('description'));
+                result.add(item);
+            }
+        }
+        return result;
+    }
+
+    /**
      * Fetch template fields from SmartDocs API.
      */
     @AuraEnabled(cacheable=true)
