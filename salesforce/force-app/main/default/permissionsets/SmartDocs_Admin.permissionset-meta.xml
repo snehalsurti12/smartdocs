@@ -11,6 +11,10 @@
         <tab>SmartDocs_Template_Mapping__c</tab>
         <visibility>Visible</visibility>
     </tabSettings>
+    <tabSettings>
+        <tab>SmartDocs_Field_Mapper</tab>
+        <visibility>Visible</visibility>
+    </tabSettings>
     <fieldPermissions>
         <editable>true</editable>
         <field>SmartDocs_Template_Mapping__c.Template_Name__c</field>

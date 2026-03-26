@@ -1,0 +1,170 @@
+<template>
+    <lightning-card title="SmartDocs Field Mapper" icon-name="custom:custom63">
+        <div class="slds-p-around_medium">
+
+            <!-- Step 1: Template Selection -->
+            <div class="slds-m-bottom_large">
+                <h3 class="slds-text-heading_small slds-m-bottom_small">1. Select Template</h3>
+                <lightning-input
+                    label="SmartDocs Template ID"
+                    value={templateId}
+                    onchange={handleTemplateIdChange}
+                    placeholder="Paste template ID from SmartDocs editor"
+                ></lightning-input>
+                <div class="slds-m-top_small">
+                    <lightning-button
+                        label="Fetch Template Fields"
+                        variant="brand"
+                        onclick={handleFetchFields}
+                        disabled={isFetchDisabled}
+                    ></lightning-button>
+                </div>
+            </div>
+
+            <!-- Step 2: Primary Object Selection -->
+            <template if:true={templateFields}>
+                <div class="slds-m-bottom_large">
+                    <h3 class="slds-text-heading_small slds-m-bottom_small">2. Primary Salesforce Object</h3>
+                    <p class="slds-text-body_small slds-text-color_weak slds-m-bottom_small">
+                        Which object will you generate documents from? (e.g., Account, Opportunity)
+                    </p>
+                    <lightning-input
+                        label="Object API Name"
+                        value={primaryObject}
+                        onchange={handlePrimaryObjectChange}
+                        placeholder="Account"
+                    ></lightning-input>
+                    <template if:true={primaryObject}>
+                        <lightning-button
+                            label="Load Fields"
+                            onclick={handleLoadObjectFields}
+                            class="slds-m-top_small"
+                        ></lightning-button>
+                    </template>
+                </div>
+            </template>
+
+            <!-- Step 3: Field Mapping -->
+            <template if:true={objectFields}>
+                <div class="slds-m-bottom_large">
+                    <h3 class="slds-text-heading_small slds-m-bottom_small">3. Map Fields</h3>
+
+                    <!-- Single Value Fields -->
+                    <template if:true={singleFields.length}>
+                        <div class="slds-box slds-m-bottom_medium" style="background: #fafafa;">
+                            <h4 class="slds-text-title_caps slds-m-bottom_small">Single Value Fields</h4>
+                            <p class="slds-text-body_small slds-text-color_weak slds-m-bottom_medium">
+                                These fields expect one value from the starting record.
+                            </p>
+                            <template for:each={singleFields} for:item="field">
+                                <div key={field.path} class="slds-grid slds-gutters slds-m-bottom_small slds-align_absolute-center">
+                                    <div class="slds-col slds-size_5-of-12">
+                                        <div class="slds-text-body_regular">
+                                            <strong>{field.path}</strong>
+                                            <template if:true={field.required}>
+                                                <lightning-badge label="Required" class="slds-m-left_xx-small"></lightning-badge>
+                                            </template>
+                                        </div>
+                                        <div class="slds-text-body_small slds-text-color_weak">{field.type}</div>
+                                    </div>
+                                    <div class="slds-col slds-size_1-of-12 slds-text-align_center" style="padding-top: 8px;">
+                                        &rarr;
+                                    </div>
+                                    <div class="slds-col slds-size_6-of-12">
+                                        <lightning-combobox
+                                            label=""
+                                            value={field.sfField}
+                                            options={objectFieldOptions}
+                                            onchange={handleFieldMapChange}
+                                            data-template-field={field.path}
+                                            placeholder="Select Salesforce field..."
+                                        ></lightning-combobox>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </template>
+
+                    <!-- Array Fields (Tables/Charts) -->
+                    <template if:true={arrayFields.length}>
+                        <div class="slds-box slds-m-bottom_medium" style="background: #f0f4ff;">
+                            <h4 class="slds-text-title_caps slds-m-bottom_small">List Fields (Tables & Charts)</h4>
+                            <p class="slds-text-body_small slds-text-color_weak slds-m-bottom_medium">
+                                These fields expect multiple records from a child relationship.
+                            </p>
+                            <template for:each={arrayFields} for:item="arrayField">
+                                <div key={arrayField.path} class="slds-box slds-m-bottom_medium" style="background: white;">
+                                    <div class="slds-grid slds-m-bottom_small">
+                                        <div class="slds-col">
+                                            <strong>{arrayField.path}</strong>
+                                            <lightning-badge label={arrayField.sourceElement} class="slds-m-left_xx-small"></lightning-badge>
+                                        </div>
+                                    </div>
+                                    <lightning-combobox
+                                        label="Child Relationship"
+                                        value={arrayField.selectedRelationship}
+                                        options={childRelationshipOptions}
+                                        onchange={handleArrayRelationshipChange}
+                                        data-array-path={arrayField.path}
+                                        placeholder="Select child relationship..."
+                                        class="slds-m-bottom_small"
+                                    ></lightning-combobox>
+                                    <template if:true={arrayField.children}>
+                                        <div class="slds-m-left_medium">
+                                            <template for:each={arrayField.children} for:item="child">
+                                                <div key={child.path} class="slds-grid slds-gutters slds-m-bottom_x-small slds-align_absolute-center">
+                                                    <div class="slds-col slds-size_4-of-12">
+                                                        <span class="slds-text-body_small">{child.path}</span>
+                                                    </div>
+                                                    <div class="slds-col slds-size_1-of-12 slds-text-align_center">&rarr;</div>
+                                                    <div class="slds-col slds-size_7-of-12">
+                                                        <lightning-combobox
+                                                            label=""
+                                                            value={child.sfField}
+                                                            options={arrayField.childFieldOptions}
+                                                            onchange={handleChildFieldMapChange}
+                                                            data-array-path={arrayField.path}
+                                                            data-child-path={child.path}
+                                                            placeholder="Select field..."
+                                                        ></lightning-combobox>
+                                                    </div>
+                                                </div>
+                                            </template>
+                                        </div>
+                                    </template>
+                                </div>
+                            </template>
+                        </div>
+                    </template>
+                </div>
+
+                <!-- Step 4: Save -->
+                <div class="slds-m-top_large">
+                    <lightning-button
+                        variant="brand"
+                        label="Save Mapping"
+                        onclick={handleSave}
+                        disabled={isSaving}
+                    ></lightning-button>
+                    <template if:true={saveSuccess}>
+                        <span class="slds-m-left_medium slds-text-color_success">Mapping saved successfully!</span>
+                    </template>
+                </div>
+            </template>
+
+            <!-- Loading -->
+            <template if:true={isLoading}>
+                <div class="slds-align_absolute-center slds-p-around_large">
+                    <lightning-spinner alternative-text="Loading..." size="medium"></lightning-spinner>
+                </div>
+            </template>
+
+            <!-- Error -->
+            <template if:true={error}>
+                <div class="slds-theme_error slds-p-around_small slds-m-top_medium" style="border-radius: 4px;">
+                    <p>{error}</p>
+                </div>
+            </template>
+        </div>
+    </lightning-card>
+</template>
