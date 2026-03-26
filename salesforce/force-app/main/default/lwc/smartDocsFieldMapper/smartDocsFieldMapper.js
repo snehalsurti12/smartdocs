@@ -39,6 +39,14 @@ export default class SmartDocsFieldMapper extends LightningElement {
         return tmpl ? tmpl.description : '';
     }
 
+    get showObjectStep() {
+        return this.templateId && this.templatesLoaded;
+    }
+
+    get isPrimaryObjectEmpty() {
+        return !this.primaryObject;
+    }
+
     get objectFieldOptions() {
         if (!this.objectFields) return [];
         return [
@@ -84,7 +92,7 @@ export default class SmartDocsFieldMapper extends LightningElement {
     }
 
     handlePrimaryObjectChange(event) {
-        this.primaryObject = event.target.value;
+        this.primaryObject = event.detail.value || event.target.value || '';
         this.objectFields = null;
         this.childRelationships = null;
         this.error = null;

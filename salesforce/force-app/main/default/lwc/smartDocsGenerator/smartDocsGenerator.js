@@ -1,6 +1,7 @@
-import { LightningElement, api } from 'lwc';
+import { LightningElement, api, wire, track } from 'lwc';
 import { NavigationMixin } from 'lightning/navigation';
 import renderDocumentForLwc from '@salesforce/apex/SmartDocsService.renderDocumentForLwc';
+import getActiveMappings from '@salesforce/apex/SmartDocsMapperController.getActiveMappings';
 
 export default class SmartDocsGenerator extends NavigationMixin(LightningElement) {
     @api recordId;
@@ -11,27 +12,60 @@ export default class SmartDocsGenerator extends NavigationMixin(LightningElement
     isGenerating = false;
     generatedFile = null;
     error = null;
+    @track mappings = [];
+    mappingsLoaded = false;
 
-    // TODO: Wire to fetch active mappings for this object type
-    // For now, hardcoded options — replace with dynamic query
+    @wire(getActiveMappings, { objectApiName: '$objectApiName' })
+    wiredMappings({ error, data }) {
+        if (data) {
+            this.mappings = data;
+            this.mappingsLoaded = true;
+            this.error = null;
+        } else if (error) {
+            this.mappings = [];
+            this.mappingsLoaded = true;
+            this.error = error.body ? error.body.message : 'Failed to load templates.';
+        }
+    }
+
     get mappingOptions() {
-        return [
-            // These would be dynamically loaded from SmartDocs_Template_Mapping__c
-            // where Object_Type__c matches this.objectApiName
-        ];
+        return this.mappings.map(m => ({
+            label: m.Template_Name__c || m.Template_ID__c,
+            value: m.Id
+        }));
+    }
+
+    get hasMappings() {
+        return this.mappings.length > 0;
+    }
+
+    get noMappingsMessage() {
+        if (!this.mappingsLoaded) return '';
+        if (!this.objectApiName) return 'Unable to detect the current object type.';
+        return 'No document templates configured for ' + this.objectApiName + '. Use the Field Mapper tab to set up a mapping.';
     }
 
     get isGenerateDisabled() {
-        return !this.selectedMapping;
+        return !this.selectedMapping || this.isGenerating;
+    }
+
+    get selectedTemplateName() {
+        const m = this.mappings.find(m => m.Id === this.selectedMapping);
+        return m ? m.Template_Name__c : 'Document';
     }
 
     handleMappingChange(event) {
         this.selectedMapping = event.detail.value;
         this.error = null;
+        // Auto-set filename from template name
+        const m = this.mappings.find(m => m.Id === this.selectedMapping);
+        if (m && !this.fileName) {
+            this.fileName = m.Template_Name__c || 'Document';
+        }
     }
 
     handleFileNameChange(event) {
-        this.fileName = event.target.value;
+        this.fileName = event.detail.value || event.target.value || '';
     }
 
     async handleGenerate() {
@@ -43,7 +77,7 @@ export default class SmartDocsGenerator extends NavigationMixin(LightningElement
             const result = await renderDocumentForLwc({
                 mappingId: this.selectedMapping,
                 recordId: this.recordId,
-                fileName: this.fileName || 'Document'
+                fileName: this.fileName || this.selectedTemplateName || 'Document'
             });
 
             if (result && result.success) {

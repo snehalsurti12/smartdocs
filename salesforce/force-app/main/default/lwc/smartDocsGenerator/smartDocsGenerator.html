@@ -3,38 +3,54 @@
         <div class="slds-p-around_medium">
             <template if:false={isGenerating}>
                 <template if:false={generatedFile}>
-                    <lightning-combobox
-                        label="Select Template"
-                        value={selectedMapping}
-                        options={mappingOptions}
-                        onchange={handleMappingChange}
-                        placeholder="Choose a template..."
-                    ></lightning-combobox>
-                    <div class="slds-m-top_medium">
-                        <lightning-input
-                            label="File Name"
-                            value={fileName}
-                            onchange={handleFileNameChange}
-                            placeholder="e.g. Invoice"
-                        ></lightning-input>
-                    </div>
-                    <div class="slds-m-top_medium">
-                        <lightning-button
-                            variant="brand"
-                            label="Generate PDF"
-                            onclick={handleGenerate}
-                            disabled={isGenerateDisabled}
-                        ></lightning-button>
-                    </div>
+                    <template if:true={hasMappings}>
+                        <lightning-combobox
+                            label="Select Template"
+                            value={selectedMapping}
+                            options={mappingOptions}
+                            onchange={handleMappingChange}
+                            placeholder="Choose a template..."
+                        ></lightning-combobox>
+                        <div class="slds-m-top_medium">
+                            <lightning-input
+                                label="File Name"
+                                value={fileName}
+                                onchange={handleFileNameChange}
+                                placeholder="e.g. Invoice"
+                            ></lightning-input>
+                        </div>
+                        <div class="slds-m-top_medium">
+                            <lightning-button
+                                variant="brand"
+                                label="Generate PDF"
+                                onclick={handleGenerate}
+                                disabled={isGenerateDisabled}
+                                icon-name="utility:pdf_ext"
+                            ></lightning-button>
+                        </div>
+                    </template>
+                    <template if:false={hasMappings}>
+                        <template if:true={mappingsLoaded}>
+                            <div class="slds-illustration slds-illustration_small slds-p-around_medium">
+                                <p class="slds-text-body_regular slds-text-color_weak">{noMappingsMessage}</p>
+                            </div>
+                        </template>
+                        <template if:false={mappingsLoaded}>
+                            <div class="slds-align_absolute-center slds-p-around_medium">
+                                <lightning-spinner alternative-text="Loading templates..." size="small"></lightning-spinner>
+                            </div>
+                        </template>
+                    </template>
                 </template>
                 <template if:true={generatedFile}>
-                    <div class="slds-theme_success slds-p-around_small slds-m-bottom_medium" style="border-radius: 4px; background: #2e844a; color: white;">
+                    <div class="slds-p-around_small slds-m-bottom_medium" style="border-radius: 8px; background: #2e844a; color: white;">
                         <lightning-icon icon-name="utility:check" size="x-small" variant="inverse" class="slds-m-right_x-small"></lightning-icon>
                         Document generated successfully!
                     </div>
                     <div class="slds-m-bottom_medium">
                         <lightning-button
                             label="Download PDF"
+                            variant="brand"
                             onclick={handleDownload}
                             icon-name="utility:download"
                         ></lightning-button>
@@ -50,7 +66,7 @@
                 <div class="slds-align_absolute-center slds-p-around_large">
                     <lightning-spinner alternative-text="Generating document..." size="medium"></lightning-spinner>
                 </div>
-                <p class="slds-text-align_center slds-text-color_weak">Generating document...</p>
+                <p class="slds-text-align_center slds-text-color_weak slds-m-top_small">Generating document... this may take a few seconds.</p>
             </template>
             <template if:true={error}>
                 <div class="slds-theme_error slds-p-around_small slds-m-top_medium" style="border-radius: 4px;">

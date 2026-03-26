@@ -44,18 +44,40 @@ global with sharing class SmartDocsBatchRenderer implements Database.Batchable<S
     }
 
     global void execute(Database.BatchableContext bc, List<SObject> scope) {
+        // Phase 1: Render all PDFs (callouts) — no DML yet
+        List<Blob> pdfs = new List<Blob>();
+        List<Id> recordIds = new List<Id>();
+        List<String> fileNames = new List<String>();
+
         for (SObject record : scope) {
             totalProcessed++;
             try {
                 String fName = fileName != null ? fileName + ' - ' + record.Id + '.pdf' : record.Id + '.pdf';
-                SmartDocsService.renderAndAttach(mappingId, record.Id, fName);
+                Blob pdf = SmartDocsService.renderDocument(mappingId, record.Id);
+                pdfs.add(pdf);
+                recordIds.add(record.Id);
+                fileNames.add(fName);
                 totalSucceeded++;
             } catch (Exception e) {
                 totalFailed++;
-                if (errors.size() < 100) { // Cap stored errors
+                if (errors.size() < 100) {
                     errors.add(record.Id + ': ' + e.getMessage());
                 }
             }
+        }
+
+        // Phase 2: Attach all PDFs (DML) — after all callouts complete
+        List<ContentVersion> cvs = new List<ContentVersion>();
+        for (Integer i = 0; i < pdfs.size(); i++) {
+            ContentVersion cv = new ContentVersion();
+            cv.Title = fileNames[i];
+            cv.PathOnClient = fileNames[i];
+            cv.VersionData = pdfs[i];
+            cv.FirstPublishLocationId = recordIds[i];
+            cvs.add(cv);
+        }
+        if (!cvs.isEmpty()) {
+            insert cvs;
         }
     }
 

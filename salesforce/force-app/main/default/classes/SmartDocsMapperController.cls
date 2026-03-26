@@ -79,7 +79,6 @@ public with sharing class SmartDocsMapperController {
             result.add(fieldInfo);
         }
 
-        result.sort();
         return result;
     }
 
@@ -106,6 +105,34 @@ public with sharing class SmartDocsMapperController {
         }
 
         return result;
+    }
+
+    /**
+     * Get active mappings for a specific object type.
+     * Used by the Generator LWC to show available templates.
+     */
+    @AuraEnabled(cacheable=true)
+    public static List<SmartDocs_Template_Mapping__c> getActiveMappings(String objectApiName) {
+        return [
+            SELECT Id, Template_ID__c, Template_Name__c, Object_Type__c
+            FROM SmartDocs_Template_Mapping__c
+            WHERE Active__c = true
+            AND Object_Type__c = :objectApiName
+            ORDER BY Template_Name__c
+        ];
+    }
+
+    /**
+     * Get all active mappings (for any object type).
+     */
+    @AuraEnabled(cacheable=true)
+    public static List<SmartDocs_Template_Mapping__c> getAllActiveMappings() {
+        return [
+            SELECT Id, Template_ID__c, Template_Name__c, Object_Type__c
+            FROM SmartDocs_Template_Mapping__c
+            WHERE Active__c = true
+            ORDER BY Object_Type__c, Template_Name__c
+        ];
     }
 
     /**
