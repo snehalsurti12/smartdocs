@@ -15,10 +15,6 @@
   padding: 8px 16px;
   font-size: 13px;
   font-family: "IBM Plex Sans", Arial, sans-serif;
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
   z-index: 9999;
 }
 
@@ -29,8 +25,7 @@
 }
 
 body.has-demo-banner .app {
-  margin-top: 36px;
-  height: calc(100vh - 36px);
+  height: calc(100vh - var(--banner-h, 0px));
 }
 
 * { box-sizing: border-box; }

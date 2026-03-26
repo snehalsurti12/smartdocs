@@ -4674,6 +4674,10 @@ fetch("/api/health").then(r => r.json()).then(info => {
     banner.innerHTML = '<strong>Demo Mode</strong> — Design and preview templates freely. Database saves are disabled. <a href="https://github.com/snehalsurti12/smartdocs" target="_blank">Run your own instance</a>';
     document.body.prepend(banner);
     document.body.classList.add("has-demo-banner");
+    // Set CSS variable to actual banner height so app layout adjusts dynamically
+    requestAnimationFrame(() => {
+      document.documentElement.style.setProperty("--banner-h", banner.offsetHeight + "px");
+    });
   }
 }).catch(() => {});
 
