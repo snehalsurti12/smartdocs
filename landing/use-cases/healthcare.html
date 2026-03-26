@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>SmartDocs for Healthcare</title>
+    <meta name="description" content="Generate patient summaries, lab reports, discharge instructions, and insurance EOBs with HIPAA-aware PII handling." />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #09090b; --surface: #18181b; --border: #27272a;
+            --text: #fafafa; --text-muted: #a1a1aa;
+            --accent: #f87171; --accent-glow: rgba(248, 113, 113, 0.12);
+            --mono: 'JetBrains Mono', monospace; --sans: 'Inter', sans-serif;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: var(--sans); background: var(--bg); color: var(--text); line-height: 1.6; }
+        a { color: var(--accent); text-decoration: none; } a:hover { text-decoration: underline; }
+        .nav { display: flex; align-items: center; justify-content: space-between; padding: 16px 32px; border-bottom: 1px solid var(--border); }
+        .nav-brand { font-family: var(--mono); font-weight: 600; font-size: 0.95rem; color: var(--text); text-decoration: none; } .nav-brand:hover { text-decoration: none; }
+        .nav-links { display: flex; gap: 24px; align-items: center; }
+        .nav-links a { color: var(--text-muted); font-size: 0.88rem; } .nav-links a:hover { color: var(--text); text-decoration: none; }
+        .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; font-size: 0.88rem; font-weight: 600; border-radius: 8px; border: none; cursor: pointer; transition: all 0.2s; text-decoration: none; }
+        .btn-primary { background: var(--accent); color: #fff; } .btn-primary:hover { filter: brightness(1.1); text-decoration: none; }
+        .btn-ghost { background: transparent; color: var(--text-muted); border: 1px solid var(--border); } .btn-ghost:hover { border-color: #52525b; color: var(--text); text-decoration: none; }
+        .hero { position: relative; padding: 100px 24px 80px; text-align: center; overflow: hidden; }
+        .hero::before { content: ''; position: absolute; top: -200px; left: 50%; transform: translateX(-50%); width: 700px; height: 700px; background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%); pointer-events: none; }
+        .hero > * { position: relative; }
+        .industry-badge { display: inline-flex; align-items: center; gap: 8px; background: rgba(248, 113, 113, 0.1); border: 1px solid rgba(248, 113, 113, 0.2); color: var(--accent); padding: 6px 16px; border-radius: 999px; font-size: 0.82rem; font-weight: 500; font-family: var(--mono); margin-bottom: 24px; }
+        .hero h1 { font-size: clamp(2.2rem, 5vw, 3.5rem); font-weight: 900; letter-spacing: -0.03em; line-height: 1.1; margin-bottom: 16px; }
+        .hero h1 .hl { background: linear-gradient(135deg, var(--accent), #fca5a5); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .hero-sub { font-size: 1.1rem; color: var(--text-muted); max-width: 560px; margin: 0 auto 40px; }
+        .hero-buttons { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+        .section { max-width: 1100px; margin: 0 auto; padding: 80px 24px; }
+        .section-header { text-align: center; margin-bottom: 48px; }
+        .section-header h2 { font-size: clamp(1.6rem, 3.5vw, 2.2rem); font-weight: 800; letter-spacing: -0.02em; margin-bottom: 10px; }
+        .section-header p { color: var(--text-muted); max-width: 560px; margin: 0 auto; font-size: 1rem; }
+        .showcase-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px; }
+        .showcase-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; transition: border-color 0.2s, transform 0.2s; }
+        .showcase-card:hover { border-color: #3f3f46; transform: translateY(-2px); }
+        .showcase-preview { background: #fff; padding: 24px; min-height: 280px; display: flex; align-items: center; justify-content: center; }
+        .showcase-info { padding: 20px 24px; }
+        .showcase-info h3 { font-size: 1rem; font-weight: 700; margin-bottom: 4px; }
+        .showcase-info p { color: var(--text-muted); font-size: 0.85rem; }
+        .showcase-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+        .showcase-tag { font-family: var(--mono); font-size: 0.72rem; padding: 2px 8px; background: rgba(248, 113, 113, 0.08); border: 1px solid rgba(248, 113, 113, 0.15); border-radius: 4px; color: var(--accent); }
+        .doc-mock { width: 200px; background: #fff; border-radius: 4px; box-shadow: 0 2px 16px rgba(0,0,0,0.15); padding: 20px; font-family: var(--sans); color: #111; font-size: 8px; line-height: 1.5; }
+        .doc-mock .doc-header { border-bottom: 2px solid var(--accent); padding-bottom: 8px; margin-bottom: 8px; }
+        .doc-mock .doc-title { font-size: 11px; font-weight: 800; color: #7f1d1d; }
+        .doc-mock .doc-subtitle { font-size: 7px; color: #666; }
+        .doc-mock .doc-row { display: flex; justify-content: space-between; padding: 2px 0; border-bottom: 1px solid #eee; }
+        .doc-mock .doc-section { font-weight: 700; font-size: 8px; margin: 8px 0 4px; color: #7f1d1d; border-bottom: 1px solid #fca5a5; padding-bottom: 2px; }
+        .ind-features { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+        .ind-feat { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 24px; }
+        .ind-feat h4 { font-size: 0.95rem; font-weight: 700; margin-bottom: 6px; }
+        .ind-feat p { color: var(--text-muted); font-size: 0.88rem; }
+        .cta { text-align: center; padding: 80px 24px; position: relative; }
+        .cta::before { content: ''; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 500px; height: 500px; background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%); pointer-events: none; }
+        .cta > * { position: relative; }
+        .cta h2 { font-size: 1.8rem; font-weight: 800; margin-bottom: 10px; }
+        .cta p { color: var(--text-muted); margin-bottom: 28px; }
+        footer { border-top: 1px solid var(--border); padding: 24px; text-align: center; font-size: 0.82rem; color: var(--text-muted); }
+        footer a { color: var(--text-muted); } footer a:hover { color: var(--accent); }
+        @media (max-width: 768px) { .hero { padding: 60px 16px 48px; } .nav { padding: 12px 16px; } }
+    </style>
+</head>
+<body>
+
+    <nav class="nav">
+        <a href="/landing/" class="nav-brand">SmartDocs</a>
+        <div class="nav-links">
+            <a href="/landing/#enterprise">Enterprise</a>
+            <a href="/landing/#use-cases">Use Cases</a>
+            <a href="/landing/#integrations">Integrations</a>
+            <a href="https://github.com/snehalsurti12/smartdocs" class="btn btn-ghost" style="padding: 6px 14px; font-size: 0.82rem;">GitHub</a>
+        </div>
+    </nav>
+
+    <section class="hero">
+        <div class="industry-badge">Healthcare</div>
+        <h1>Patient documents with<br><span class="hl">built-in PII protection</span></h1>
+        <p class="hero-sub">Generate lab reports, discharge summaries, insurance EOBs, and patient letters. PII fields are tagged at the template level — masked in logs, excluded from errors.</p>
+        <div class="hero-buttons">
+            <a href="https://smartdocs-production-b0fa.up.railway.app/" class="btn btn-primary">Try the Editor</a>
+            <a href="/landing/" class="btn btn-ghost">Back to Overview</a>
+        </div>
+    </section>
+
+    <section class="section" style="border-top: 1px solid var(--border);">
+        <div class="section-header">
+            <h2>Template gallery</h2>
+            <p>Healthcare document templates built with data privacy in mind.</p>
+        </div>
+        <div class="showcase-grid">
+            <div class="showcase-card">
+                <div class="showcase-preview">
+                    <div class="doc-mock">
+                        <div class="doc-header">
+                            <div class="doc-title">LAB RESULTS</div>
+                            <div class="doc-subtitle">Patient: J*** D** | DOB: **/**/1985</div>
+                        </div>
+                        <div class="doc-section">Complete Blood Count</div>
+                        <div class="doc-row"><span>WBC</span><span>7.2 K/uL</span></div>
+                        <div class="doc-row"><span>RBC</span><span>4.8 M/uL</span></div>
+                        <div class="doc-row"><span>Hemoglobin</span><span>14.2 g/dL</span></div>
+                        <div class="doc-row"><span>Platelets</span><span>245 K/uL</span></div>
+                        <div class="doc-section">Metabolic Panel</div>
+                        <div class="doc-row"><span>Glucose</span><span style="color:#dc2626;font-weight:700;">126 mg/dL H</span></div>
+                        <div class="doc-row"><span>Creatinine</span><span>0.9 mg/dL</span></div>
+                        <div style="margin-top:8px;font-size:6px;color:#999;">Reviewed by: Dr. Smith | Collected: 03/25/2026</div>
+                    </div>
+                </div>
+                <div class="showcase-info">
+                    <h3>Lab Report</h3>
+                    <p>Structured test results with reference ranges, abnormal value flagging, and provider signature block.</p>
+                    <div class="showcase-tags">
+                        <span class="showcase-tag">table</span>
+                        <span class="showcase-tag">pii:tagged</span>
+                        <span class="showcase-tag">barcode</span>
+                    </div>
+                </div>
+            </div>
+            <div class="showcase-card">
+                <div class="showcase-preview">
+                    <div class="doc-mock">
+                        <div class="doc-header">
+                            <div class="doc-title">DISCHARGE SUMMARY</div>
+                            <div class="doc-subtitle">MRN: ****4821 | Discharge: 03/24/2026</div>
+                        </div>
+                        <div class="doc-section">Diagnosis</div>
+                        <div style="font-size:7px;margin-bottom:6px;">Community-acquired pneumonia, resolved. No complications during stay.</div>
+                        <div class="doc-section">Medications</div>
+                        <div class="doc-row"><span>Amoxicillin 500mg</span><span>3x daily, 7 days</span></div>
+                        <div class="doc-row"><span>Acetaminophen 500mg</span><span>As needed</span></div>
+                        <div class="doc-section">Follow-up</div>
+                        <div style="font-size:7px;">Primary care in 7 days. Return to ER if fever > 101.5F or difficulty breathing.</div>
+                        <div style="width:28px;height:28px;background:#111;border-radius:2px;margin-top:8px;"></div>
+                    </div>
+                </div>
+                <div class="showcase-info">
+                    <h3>Discharge Summary</h3>
+                    <p>Diagnosis, medications, follow-up instructions, and care team. QR code links to patient portal.</p>
+                    <div class="showcase-tags">
+                        <span class="showcase-tag">long_text</span>
+                        <span class="showcase-tag">table</span>
+                        <span class="showcase-tag">qr_code</span>
+                        <span class="showcase-tag">pii:tagged</span>
+                    </div>
+                </div>
+            </div>
+            <div class="showcase-card">
+                <div class="showcase-preview">
+                    <div class="doc-mock">
+                        <div class="doc-header">
+                            <div class="doc-title">EXPLANATION OF BENEFITS</div>
+                            <div class="doc-subtitle">Claim #: CLM-2026-08472</div>
+                        </div>
+                        <div style="font-size:7px;margin-bottom:6px;">
+                            <div>Member: J*** D** | Plan: PPO Gold</div>
+                            <div>Provider: Metro Health Center</div>
+                        </div>
+                        <div class="doc-row" style="font-weight:600;"><span>Service</span><span>You Owe</span></div>
+                        <div class="doc-row"><span>Office Visit (99213)</span><span>$30.00</span></div>
+                        <div class="doc-row"><span>Lab Work</span><span>$0.00</span></div>
+                        <div class="doc-row"><span>X-Ray</span><span>$45.00</span></div>
+                        <div style="border-top:2px solid #7f1d1d;margin-top:6px;padding-top:4px;font-weight:700;">
+                            <div class="doc-row"><span>Total Billed</span><span>$850.00</span></div>
+                            <div class="doc-row"><span>Plan Paid</span><span style="color:#16a34a;">-$775.00</span></div>
+                            <div class="doc-row"><span>Your Responsibility</span><span>$75.00</span></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="showcase-info">
+                    <h3>Insurance EOB</h3>
+                    <p>Claim detail, coverage breakdown, patient responsibility. Batch-generate for all processed claims.</p>
+                    <div class="showcase-tags">
+                        <span class="showcase-tag">table</span>
+                        <span class="showcase-tag">barcode</span>
+                        <span class="showcase-tag">pii:tagged</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="section" style="border-top: 1px solid var(--border);">
+        <div class="section-header">
+            <h2>Why healthcare teams choose SmartDocs</h2>
+        </div>
+        <div class="ind-features">
+            <div class="ind-feat">
+                <h4>PII Field Tagging</h4>
+                <p>Tag fields as name, DOB, SSN, MRN, or medical record. Tagged fields are masked in all logs and excluded from error messages.</p>
+            </div>
+            <div class="ind-feat">
+                <h4>Zero Data Retention</h4>
+                <p>Patient data exists only in memory during render. No disk writes, no cache, no temp files. Destroyed after PDF is returned.</p>
+            </div>
+            <div class="ind-feat">
+                <h4>Render Isolation</h4>
+                <p>Each document renders in its own browser context, destroyed after use. No data leakage between patient documents.</p>
+            </div>
+            <div class="ind-feat">
+                <h4>Bring Your Own Storage</h4>
+                <p>PDFs go to your HIPAA-compliant S3/GCS/Azure bucket. SmartDocs never stores patient documents.</p>
+            </div>
+            <div class="ind-feat">
+                <h4>EHR Integration</h4>
+                <p>API-first design works with Epic, Cerner, Athenahealth — any EHR that can make HTTP calls or trigger webhooks.</p>
+            </div>
+            <div class="ind-feat">
+                <h4>Batch Processing</h4>
+                <p>Generate EOBs or lab reports for thousands of patients. Async jobs with progress tracking and per-record error reporting.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="cta">
+        <h2>Start building healthcare documents</h2>
+        <p>Design HIPAA-aware templates with built-in PII protection.</p>
+        <div class="hero-buttons">
+            <a href="https://smartdocs-production-b0fa.up.railway.app/" class="btn btn-primary">Open the Editor</a>
+            <a href="/landing/" class="btn btn-ghost">Back to Overview</a>
+        </div>
+    </section>
+
+    <footer>
+        <p>SmartDocs &middot; <a href="/landing/">Home</a> &middot; <a href="https://github.com/snehalsurti12/smartdocs">GitHub</a> &middot; MIT License</p>
+    </footer>
+
+</body>
+</html>

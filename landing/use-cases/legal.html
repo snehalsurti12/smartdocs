@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>SmartDocs for Legal & Compliance</title>
+    <meta name="description" content="Generate contracts, NDAs, compliance certifications, and policy documents with version-controlled templates and audit trail." />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg: #09090b; --surface: #18181b; --border: #27272a; --text: #fafafa; --text-muted: #a1a1aa; --accent: #c084fc; --accent-glow: rgba(192, 132, 252, 0.12); --mono: 'JetBrains Mono', monospace; --sans: 'Inter', sans-serif; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: var(--sans); background: var(--bg); color: var(--text); line-height: 1.6; }
+        a { color: var(--accent); text-decoration: none; } a:hover { text-decoration: underline; }
+        .nav { display: flex; align-items: center; justify-content: space-between; padding: 16px 32px; border-bottom: 1px solid var(--border); }
+        .nav-brand { font-family: var(--mono); font-weight: 600; font-size: 0.95rem; color: var(--text); text-decoration: none; } .nav-brand:hover { text-decoration: none; }
+        .nav-links { display: flex; gap: 24px; align-items: center; } .nav-links a { color: var(--text-muted); font-size: 0.88rem; } .nav-links a:hover { color: var(--text); text-decoration: none; }
+        .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; font-size: 0.88rem; font-weight: 600; border-radius: 8px; border: none; cursor: pointer; transition: all 0.2s; text-decoration: none; }
+        .btn-primary { background: var(--accent); color: #fff; } .btn-primary:hover { filter: brightness(1.1); text-decoration: none; }
+        .btn-ghost { background: transparent; color: var(--text-muted); border: 1px solid var(--border); } .btn-ghost:hover { border-color: #52525b; color: var(--text); text-decoration: none; }
+        .hero { position: relative; padding: 100px 24px 80px; text-align: center; overflow: hidden; }
+        .hero::before { content: ''; position: absolute; top: -200px; left: 50%; transform: translateX(-50%); width: 700px; height: 700px; background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%); pointer-events: none; }
+        .hero > * { position: relative; }
+        .industry-badge { display: inline-flex; align-items: center; gap: 8px; background: rgba(192, 132, 252, 0.1); border: 1px solid rgba(192, 132, 252, 0.2); color: var(--accent); padding: 6px 16px; border-radius: 999px; font-size: 0.82rem; font-weight: 500; font-family: var(--mono); margin-bottom: 24px; }
+        .hero h1 { font-size: clamp(2.2rem, 5vw, 3.5rem); font-weight: 900; letter-spacing: -0.03em; line-height: 1.1; margin-bottom: 16px; }
+        .hero h1 .hl { background: linear-gradient(135deg, var(--accent), #d8b4fe); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .hero-sub { font-size: 1.1rem; color: var(--text-muted); max-width: 560px; margin: 0 auto 40px; }
+        .hero-buttons { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+        .section { max-width: 1100px; margin: 0 auto; padding: 80px 24px; }
+        .section-header { text-align: center; margin-bottom: 48px; }
+        .section-header h2 { font-size: clamp(1.6rem, 3.5vw, 2.2rem); font-weight: 800; letter-spacing: -0.02em; margin-bottom: 10px; }
+        .section-header p { color: var(--text-muted); max-width: 560px; margin: 0 auto; font-size: 1rem; }
+        .showcase-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px; }
+        .showcase-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; transition: border-color 0.2s, transform 0.2s; } .showcase-card:hover { border-color: #3f3f46; transform: translateY(-2px); }
+        .showcase-preview { background: #fff; padding: 24px; min-height: 280px; display: flex; align-items: center; justify-content: center; }
+        .showcase-info { padding: 20px 24px; } .showcase-info h3 { font-size: 1rem; font-weight: 700; margin-bottom: 4px; } .showcase-info p { color: var(--text-muted); font-size: 0.85rem; }
+        .showcase-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+        .showcase-tag { font-family: var(--mono); font-size: 0.72rem; padding: 2px 8px; background: rgba(192, 132, 252, 0.08); border: 1px solid rgba(192, 132, 252, 0.15); border-radius: 4px; color: var(--accent); }
+        .doc-mock { width: 200px; background: #fff; border-radius: 4px; box-shadow: 0 2px 16px rgba(0,0,0,0.15); padding: 20px; font-family: var(--sans); color: #111; font-size: 8px; line-height: 1.5; }
+        .doc-mock .doc-header { border-bottom: 2px solid #7c3aed; padding-bottom: 8px; margin-bottom: 8px; }
+        .doc-mock .doc-title { font-size: 11px; font-weight: 800; color: #4c1d95; }
+        .doc-mock .doc-subtitle { font-size: 7px; color: #666; }
+        .ind-features { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+        .ind-feat { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 24px; } .ind-feat h4 { font-size: 0.95rem; font-weight: 700; margin-bottom: 6px; } .ind-feat p { color: var(--text-muted); font-size: 0.88rem; }
+        .cta { text-align: center; padding: 80px 24px; position: relative; }
+        .cta::before { content: ''; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 500px; height: 500px; background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%); pointer-events: none; }
+        .cta > * { position: relative; } .cta h2 { font-size: 1.8rem; font-weight: 800; margin-bottom: 10px; } .cta p { color: var(--text-muted); margin-bottom: 28px; }
+        footer { border-top: 1px solid var(--border); padding: 24px; text-align: center; font-size: 0.82rem; color: var(--text-muted); } footer a { color: var(--text-muted); } footer a:hover { color: var(--accent); }
+        @media (max-width: 768px) { .hero { padding: 60px 16px 48px; } .nav { padding: 12px 16px; } }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <a href="/landing/" class="nav-brand">SmartDocs</a>
+        <div class="nav-links">
+            <a href="/landing/#enterprise">Enterprise</a>
+            <a href="/landing/#use-cases">Use Cases</a>
+            <a href="/landing/#integrations">Integrations</a>
+            <a href="https://github.com/snehalsurti12/smartdocs" class="btn btn-ghost" style="padding: 6px 14px; font-size: 0.82rem;">GitHub</a>
+        </div>
+    </nav>
+
+    <section class="hero">
+        <div class="industry-badge">Legal & Compliance</div>
+        <h1>Contracts and policies with<br><span class="hl">version control built in</span></h1>
+        <p class="hero-sub">Generate contracts, NDAs, terms of service, and compliance certifications. Every template is versioned. Every render is audited.</p>
+        <div class="hero-buttons">
+            <a href="https://smartdocs-production-b0fa.up.railway.app/" class="btn btn-primary">Try the Editor</a>
+            <a href="/landing/" class="btn btn-ghost">Back to Overview</a>
+        </div>
+    </section>
+
+    <section class="section" style="border-top: 1px solid var(--border);">
+        <div class="section-header">
+            <h2>Template gallery</h2>
+            <p>Legal document templates with data binding for client names, dates, terms, and signature blocks.</p>
+        </div>
+        <div class="showcase-grid">
+            <div class="showcase-card">
+                <div class="showcase-preview">
+                    <div class="doc-mock">
+                        <div class="doc-header">
+                            <div class="doc-title">NON-DISCLOSURE AGREEMENT</div>
+                            <div class="doc-subtitle">Effective Date: March 26, 2026</div>
+                        </div>
+                        <div style="font-size:7px;margin-bottom:6px;">This Non-Disclosure Agreement ("Agreement") is entered into by and between <b>Acme Corporation</b> ("Disclosing Party") and <b>{{party.name}}</b> ("Receiving Party").</div>
+                        <div style="font-size:7px;font-weight:700;margin:6px 0 3px;color:#4c1d95;">1. CONFIDENTIAL INFORMATION</div>
+                        <div style="font-size:6.5px;color:#444;">The term "Confidential Information" shall mean any and all non-public information...</div>
+                        <div style="font-size:7px;font-weight:700;margin:6px 0 3px;color:#4c1d95;">2. OBLIGATIONS</div>
+                        <div style="font-size:6.5px;color:#444;">The Receiving Party agrees to hold all Confidential Information in strict confidence...</div>
+                        <div style="font-size:7px;font-weight:700;margin:6px 0 3px;color:#4c1d95;">3. TERM</div>
+                        <div style="font-size:6.5px;color:#444;">This Agreement shall remain in effect for a period of {{term.years}} years...</div>
+                        <div style="margin-top:12px;border-top:1px solid #ccc;padding-top:6px;">
+                            <div style="display:flex;justify-content:space-between;font-size:7px;">
+                                <div>________________<br>Disclosing Party</div>
+                                <div>________________<br>Receiving Party</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="showcase-info">
+                    <h3>Non-Disclosure Agreement</h3>
+                    <p>Party names, effective dates, term length, and signature blocks — all data-bound for bulk generation.</p>
+                    <div class="showcase-tags">
+                        <span class="showcase-tag">long_text</span>
+                        <span class="showcase-tag">data_binding</span>
+                        <span class="showcase-tag">versioned</span>
+                    </div>
+                </div>
+            </div>
+            <div class="showcase-card">
+                <div class="showcase-preview">
+                    <div class="doc-mock">
+                        <div class="doc-header">
+                            <div class="doc-title">TERMS OF SERVICE</div>
+                            <div class="doc-subtitle">Last Updated: March 2026 | v3.2</div>
+                        </div>
+                        <div style="font-size:7px;font-weight:700;margin:4px 0 2px;color:#4c1d95;">1. Acceptance of Terms</div>
+                        <div style="font-size:6.5px;color:#444;">By accessing or using the services provided by {{company.name}}, you agree to be bound by these Terms...</div>
+                        <div style="font-size:7px;font-weight:700;margin:4px 0 2px;color:#4c1d95;">2. Service Description</div>
+                        <div style="font-size:6.5px;color:#444;">The Service provides document generation capabilities including but not limited to...</div>
+                        <div style="font-size:7px;font-weight:700;margin:4px 0 2px;color:#4c1d95;">3. User Obligations</div>
+                        <div style="font-size:6.5px;color:#444;">Users shall not use the Service for any unlawful purpose or in violation of...</div>
+                        <div style="font-size:7px;font-weight:700;margin:4px 0 2px;color:#4c1d95;">4. Limitation of Liability</div>
+                        <div style="font-size:6.5px;color:#444;">In no event shall {{company.name}} be liable for any indirect, incidental...</div>
+                        <div style="margin-top:6px;font-size:6px;color:#999;text-align:center;">Page 1 of 4</div>
+                    </div>
+                </div>
+                <div class="showcase-info">
+                    <h3>Terms of Service</h3>
+                    <p>Multi-page legal documents with auto-pagination, numbered sections, and company branding.</p>
+                    <div class="showcase-tags">
+                        <span class="showcase-tag">long_text</span>
+                        <span class="showcase-tag">auto-paginate</span>
+                        <span class="showcase-tag">multi-page</span>
+                    </div>
+                </div>
+            </div>
+            <div class="showcase-card">
+                <div class="showcase-preview">
+                    <div class="doc-mock">
+                        <div class="doc-header">
+                            <div class="doc-title">COMPLIANCE CERTIFICATE</div>
+                            <div class="doc-subtitle">Certificate No: CERT-2026-04821</div>
+                        </div>
+                        <div style="text-align:center;margin:12px 0;">
+                            <div style="font-size:9px;font-weight:700;color:#4c1d95;">This certifies that</div>
+                            <div style="font-size:12px;font-weight:800;margin:4px 0;">{{organization.name}}</div>
+                            <div style="font-size:8px;color:#444;">has met all requirements for</div>
+                            <div style="font-size:10px;font-weight:700;color:#4c1d95;margin:4px 0;">{{certification.name}}</div>
+                            <div style="font-size:7px;color:#666;">Valid from {{valid.from}} to {{valid.to}}</div>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;margin-top:12px;align-items:flex-end;">
+                            <div style="font-size:7px;">________________<br>Authorized Signatory</div>
+                            <div style="width:28px;height:28px;background:#111;border-radius:2px;"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="showcase-info">
+                    <h3>Compliance Certificate</h3>
+                    <p>Organization name, certification type, validity period, QR verification code, and authorized signature.</p>
+                    <div class="showcase-tags">
+                        <span class="showcase-tag">text</span>
+                        <span class="showcase-tag">qr_code</span>
+                        <span class="showcase-tag">image</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="section" style="border-top: 1px solid var(--border);">
+        <div class="section-header">
+            <h2>Why legal teams choose SmartDocs</h2>
+        </div>
+        <div class="ind-features">
+            <div class="ind-feat">
+                <h4>Template Versioning</h4>
+                <p>Every save creates a version. Roll back to any prior version. Know exactly which template version generated which document.</p>
+            </div>
+            <div class="ind-feat">
+                <h4>Audit Trail</h4>
+                <p>Every render logged with tenant, template version, and timestamp. Full chain of custody for compliance reporting.</p>
+            </div>
+            <div class="ind-feat">
+                <h4>Long-Form Documents</h4>
+                <p>Flow Text component handles multi-page legal prose. Auto-paginates across pages while preserving formatting.</p>
+            </div>
+            <div class="ind-feat">
+                <h4>Batch Generation</h4>
+                <p>Generate NDAs for 500 employees or certificates for 1,000 vendors. One template, one API call, all documents.</p>
+            </div>
+            <div class="ind-feat">
+                <h4>Data Binding</h4>
+                <p>Party names, dates, terms, amounts — all bound to data fields. No manual find-and-replace. No copy-paste errors.</p>
+            </div>
+            <div class="ind-feat">
+                <h4>QR Verification</h4>
+                <p>Add verification QR codes to certificates and contracts. Link to validation URL for document authenticity.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="cta">
+        <h2>Start building legal documents</h2>
+        <p>Version-controlled templates with full audit trail.</p>
+        <div class="hero-buttons">
+            <a href="https://smartdocs-production-b0fa.up.railway.app/" class="btn btn-primary">Open the Editor</a>
+            <a href="/landing/" class="btn btn-ghost">Back to Overview</a>
+        </div>
+    </section>
+
+    <footer>
+        <p>SmartDocs &middot; <a href="/landing/">Home</a> &middot; <a href="https://github.com/snehalsurti12/smartdocs">GitHub</a> &middot; MIT License</p>
+    </footer>
+</body>
+</html>

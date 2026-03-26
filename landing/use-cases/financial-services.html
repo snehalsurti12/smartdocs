@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>SmartDocs for Financial Services</title>
+    <meta name="description" content="Generate bank statements, invoices, trade confirmations, and compliance documents. Multi-page tables, charts, barcodes — all data-bound." />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #09090b; --surface: #18181b; --border: #27272a;
+            --text: #fafafa; --text-muted: #a1a1aa;
+            --accent: #60a5fa; --accent-glow: rgba(96, 165, 250, 0.12);
+            --mono: 'JetBrains Mono', monospace; --sans: 'Inter', sans-serif;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: var(--sans); background: var(--bg); color: var(--text); line-height: 1.6; }
+        a { color: var(--accent); text-decoration: none; }
+        a:hover { text-decoration: underline; }
+
+        /* Nav */
+        .nav { display: flex; align-items: center; justify-content: space-between; padding: 16px 32px; border-bottom: 1px solid var(--border); }
+        .nav-brand { font-family: var(--mono); font-weight: 600; font-size: 0.95rem; color: var(--text); text-decoration: none; }
+        .nav-brand:hover { text-decoration: none; }
+        .nav-links { display: flex; gap: 24px; align-items: center; }
+        .nav-links a { color: var(--text-muted); font-size: 0.88rem; }
+        .nav-links a:hover { color: var(--text); text-decoration: none; }
+        .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; font-size: 0.88rem; font-weight: 600; border-radius: 8px; border: none; cursor: pointer; transition: all 0.2s; text-decoration: none; }
+        .btn-primary { background: var(--accent); color: #fff; }
+        .btn-primary:hover { filter: brightness(1.1); text-decoration: none; }
+        .btn-ghost { background: transparent; color: var(--text-muted); border: 1px solid var(--border); }
+        .btn-ghost:hover { border-color: #52525b; color: var(--text); text-decoration: none; }
+
+        /* Hero */
+        .hero { position: relative; padding: 100px 24px 80px; text-align: center; overflow: hidden; }
+        .hero::before { content: ''; position: absolute; top: -200px; left: 50%; transform: translateX(-50%); width: 700px; height: 700px; background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%); pointer-events: none; }
+        .hero > * { position: relative; }
+        .industry-badge { display: inline-flex; align-items: center; gap: 8px; background: rgba(96, 165, 250, 0.1); border: 1px solid rgba(96, 165, 250, 0.2); color: var(--accent); padding: 6px 16px; border-radius: 999px; font-size: 0.82rem; font-weight: 500; font-family: var(--mono); margin-bottom: 24px; }
+        .hero h1 { font-size: clamp(2.2rem, 5vw, 3.5rem); font-weight: 900; letter-spacing: -0.03em; line-height: 1.1; margin-bottom: 16px; }
+        .hero h1 .hl { background: linear-gradient(135deg, var(--accent), #93c5fd); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .hero-sub { font-size: 1.1rem; color: var(--text-muted); max-width: 560px; margin: 0 auto 40px; }
+        .hero-buttons { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+
+        /* Section */
+        .section { max-width: 1100px; margin: 0 auto; padding: 80px 24px; }
+        .section-header { text-align: center; margin-bottom: 48px; }
+        .section-header h2 { font-size: clamp(1.6rem, 3.5vw, 2.2rem); font-weight: 800; letter-spacing: -0.02em; margin-bottom: 10px; }
+        .section-header p { color: var(--text-muted); max-width: 560px; margin: 0 auto; font-size: 1rem; }
+
+        /* Template Showcase */
+        .showcase-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px; }
+        .showcase-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; transition: border-color 0.2s, transform 0.2s; }
+        .showcase-card:hover { border-color: #3f3f46; transform: translateY(-2px); }
+        .showcase-preview { background: #fff; padding: 24px; min-height: 280px; display: flex; align-items: center; justify-content: center; position: relative; }
+        .showcase-preview img { max-width: 100%; height: auto; border-radius: 4px; box-shadow: 0 2px 12px rgba(0,0,0,0.1); }
+        .showcase-info { padding: 20px 24px; }
+        .showcase-info h3 { font-size: 1rem; font-weight: 700; margin-bottom: 4px; }
+        .showcase-info p { color: var(--text-muted); font-size: 0.85rem; }
+        .showcase-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+        .showcase-tag { font-family: var(--mono); font-size: 0.72rem; padding: 2px 8px; background: rgba(96, 165, 250, 0.08); border: 1px solid rgba(96, 165, 250, 0.15); border-radius: 4px; color: var(--accent); }
+
+        /* Document mockup */
+        .doc-mock { width: 200px; background: #fff; border-radius: 4px; box-shadow: 0 2px 16px rgba(0,0,0,0.15); padding: 20px; font-family: var(--sans); color: #111; font-size: 8px; line-height: 1.5; }
+        .doc-mock .doc-header { border-bottom: 2px solid #60a5fa; padding-bottom: 8px; margin-bottom: 8px; }
+        .doc-mock .doc-title { font-size: 11px; font-weight: 800; color: #1e3a5f; }
+        .doc-mock .doc-subtitle { font-size: 7px; color: #666; }
+        .doc-mock .doc-row { display: flex; justify-content: space-between; padding: 2px 0; border-bottom: 1px solid #eee; }
+        .doc-mock .doc-row:last-child { border-bottom: none; }
+        .doc-mock .doc-total { font-weight: 700; border-top: 2px solid #1e3a5f; margin-top: 6px; padding-top: 4px; }
+        .doc-mock .doc-bar { height: 4px; border-radius: 2px; margin: 2px 0; }
+        .doc-mock .doc-qr { width: 28px; height: 28px; background: #111; border-radius: 2px; margin-top: 8px; }
+
+        /* Features for this industry */
+        .ind-features { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+        .ind-feat { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 24px; }
+        .ind-feat h4 { font-size: 0.95rem; font-weight: 700; margin-bottom: 6px; }
+        .ind-feat p { color: var(--text-muted); font-size: 0.88rem; }
+
+        /* CTA */
+        .cta { text-align: center; padding: 80px 24px; position: relative; }
+        .cta::before { content: ''; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 500px; height: 500px; background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%); pointer-events: none; }
+        .cta > * { position: relative; }
+        .cta h2 { font-size: 1.8rem; font-weight: 800; margin-bottom: 10px; }
+        .cta p { color: var(--text-muted); margin-bottom: 28px; }
+
+        footer { border-top: 1px solid var(--border); padding: 24px; text-align: center; font-size: 0.82rem; color: var(--text-muted); }
+        footer a { color: var(--text-muted); } footer a:hover { color: var(--accent); }
+
+        @media (max-width: 768px) { .hero { padding: 60px 16px 48px; } .nav { padding: 12px 16px; } .nav-links { gap: 12px; } }
+    </style>
+</head>
+<body>
+
+    <nav class="nav">
+        <a href="/landing/" class="nav-brand">SmartDocs</a>
+        <div class="nav-links">
+            <a href="/landing/#enterprise">Enterprise</a>
+            <a href="/landing/#use-cases">Use Cases</a>
+            <a href="/landing/#integrations">Integrations</a>
+            <a href="https://github.com/snehalsurti12/smartdocs" class="btn btn-ghost" style="padding: 6px 14px; font-size: 0.82rem;">GitHub</a>
+        </div>
+    </nav>
+
+    <section class="hero">
+        <div class="industry-badge">Financial Services</div>
+        <h1>Statements, invoices, and<br><span class="hl">compliance at scale</span></h1>
+        <p class="hero-sub">Generate bank statements, trade confirmations, portfolio reports, and regulatory disclosures. Multi-page tables auto-paginate. Charts visualize portfolio performance.</p>
+        <div class="hero-buttons">
+            <a href="https://smartdocs-production-b0fa.up.railway.app/" class="btn btn-primary">Try the Editor</a>
+            <a href="/landing/" class="btn btn-ghost">Back to Overview</a>
+        </div>
+    </section>
+
+    <section class="section" style="border-top: 1px solid var(--border);">
+        <div class="section-header">
+            <h2>Template gallery</h2>
+            <p>Real document templates you can build with SmartDocs. Each is fully data-bound — plug in your data and generate.</p>
+        </div>
+        <div class="showcase-grid">
+            <div class="showcase-card">
+                <div class="showcase-preview">
+                    <div class="doc-mock">
+                        <div class="doc-header">
+                            <div class="doc-title">BANK STATEMENT</div>
+                            <div class="doc-subtitle">Account: ****4829 | Mar 2026</div>
+                        </div>
+                        <div class="doc-row"><span>Opening Balance</span><span>$12,450.00</span></div>
+                        <div class="doc-row"><span>Direct Deposit</span><span style="color:#16a34a">+$5,200.00</span></div>
+                        <div class="doc-row"><span>Rent Payment</span><span style="color:#dc2626">-$1,800.00</span></div>
+                        <div class="doc-row"><span>Utilities</span><span style="color:#dc2626">-$245.50</span></div>
+                        <div class="doc-row"><span>Transfer In</span><span style="color:#16a34a">+$500.00</span></div>
+                        <div class="doc-row"><span>Groceries</span><span style="color:#dc2626">-$312.75</span></div>
+                        <div class="doc-total"><div class="doc-row"><span>Closing Balance</span><span>$15,791.75</span></div></div>
+                        <div class="doc-qr"></div>
+                    </div>
+                </div>
+                <div class="showcase-info">
+                    <h3>Bank Statement</h3>
+                    <p>Multi-page transaction tables with running balances, account summary, and verification QR code.</p>
+                    <div class="showcase-tags">
+                        <span class="showcase-tag">table</span>
+                        <span class="showcase-tag">auto-paginate</span>
+                        <span class="showcase-tag">qr_code</span>
+                        <span class="showcase-tag">chart</span>
+                    </div>
+                </div>
+            </div>
+            <div class="showcase-card">
+                <div class="showcase-preview">
+                    <div class="doc-mock">
+                        <div class="doc-header">
+                            <div class="doc-title">CREDIT CARD STATEMENT</div>
+                            <div class="doc-subtitle">Card: ****7712 | Period: Feb 2026</div>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;margin:6px 0;font-size:7px;">
+                            <div><div style="font-weight:700;font-size:10px;color:#1e3a5f;">$3,247.50</div>Total Due</div>
+                            <div><div style="font-weight:700;font-size:10px;color:#dc2626;">$125.00</div>Min Payment</div>
+                        </div>
+                        <div class="doc-row"><span>Amazon.com</span><span>-$89.99</span></div>
+                        <div class="doc-row"><span>Whole Foods</span><span>-$67.30</span></div>
+                        <div class="doc-row"><span>Uber</span><span>-$24.50</span></div>
+                        <div class="doc-row"><span>Netflix</span><span>-$15.99</span></div>
+                        <div class="doc-row"><span>Payment Thank You</span><span style="color:#16a34a">+$2,000.00</span></div>
+                        <div style="display:flex;gap:3px;margin-top:8px;">
+                            <div class="doc-bar" style="flex:3;background:#60a5fa;"></div>
+                            <div class="doc-bar" style="flex:2;background:#f97316;"></div>
+                            <div class="doc-bar" style="flex:1;background:#22c55e;"></div>
+                        </div>
+                        <div style="font-size:6px;color:#999;margin-top:2px;">Spending by category</div>
+                    </div>
+                </div>
+                <div class="showcase-info">
+                    <h3>Credit Card Statement</h3>
+                    <p>Transaction detail, spending breakdown charts, payment summary, and auto-calculated totals.</p>
+                    <div class="showcase-tags">
+                        <span class="showcase-tag">table</span>
+                        <span class="showcase-tag">chart</span>
+                        <span class="showcase-tag">barcode</span>
+                    </div>
+                </div>
+            </div>
+            <div class="showcase-card">
+                <div class="showcase-preview">
+                    <div class="doc-mock">
+                        <div class="doc-header">
+                            <div class="doc-title">INVOICE</div>
+                            <div class="doc-subtitle">INV-2026-0847 | Due: Apr 15, 2026</div>
+                        </div>
+                        <div style="font-size:7px;margin-bottom:6px;">
+                            <div style="font-weight:600;">Bill To: Acme Corporation</div>
+                            <div style="color:#666;">123 Business Ave, Suite 400</div>
+                        </div>
+                        <div class="doc-row" style="font-weight:600;border-bottom:2px solid #1e3a5f;"><span>Item</span><span>Amount</span></div>
+                        <div class="doc-row"><span>Consulting Services (40h)</span><span>$6,000.00</span></div>
+                        <div class="doc-row"><span>Software License</span><span>$1,200.00</span></div>
+                        <div class="doc-row"><span>Data Migration</span><span>$2,500.00</span></div>
+                        <div class="doc-total">
+                            <div class="doc-row"><span>Subtotal</span><span>$9,700.00</span></div>
+                            <div class="doc-row"><span>Tax (8.5%)</span><span>$824.50</span></div>
+                            <div class="doc-row" style="font-size:9px;"><span>Total</span><span>$10,524.50</span></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="showcase-info">
+                    <h3>Invoice</h3>
+                    <p>Line items, tax calculations, payment terms, company branding. Batch-generate for all clients.</p>
+                    <div class="showcase-tags">
+                        <span class="showcase-tag">table</span>
+                        <span class="showcase-tag">image</span>
+                        <span class="showcase-tag">barcode</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="section" style="border-top: 1px solid var(--border);">
+        <div class="section-header">
+            <h2>Why financial teams choose SmartDocs</h2>
+        </div>
+        <div class="ind-features">
+            <div class="ind-feat">
+                <h4>Auto-Paginating Tables</h4>
+                <p>Hundreds of transactions flow across pages automatically. Running totals, page numbers, and headers carry through.</p>
+            </div>
+            <div class="ind-feat">
+                <h4>Charts & Visualizations</h4>
+                <p>Bar, line, pie, doughnut charts — all SVG-based, all data-bound. Spending breakdowns, portfolio allocation, trend analysis.</p>
+            </div>
+            <div class="ind-feat">
+                <h4>Batch Generation</h4>
+                <p>Generate statements for 10,000 accounts in a single job. Async processing with status polling. No timeout limits.</p>
+            </div>
+            <div class="ind-feat">
+                <h4>PII Protection</h4>
+                <p>Account numbers, SSNs, and balances tagged as PII. Masked in logs, excluded from error messages, never cached.</p>
+            </div>
+            <div class="ind-feat">
+                <h4>Compliance-Ready Audit Trail</h4>
+                <p>Every render logged with template version, timestamp, and tenant. Meet SOX, PCI-DSS, and regulatory requirements.</p>
+            </div>
+            <div class="ind-feat">
+                <h4>Verification Codes</h4>
+                <p>QR codes and barcodes for document verification. Real Code 128 encoding. Scannable from any device.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="cta">
+        <h2>Start building financial documents</h2>
+        <p>Load a bank statement template and generate your first PDF in 30 seconds.</p>
+        <div class="hero-buttons">
+            <a href="https://smartdocs-production-b0fa.up.railway.app/" class="btn btn-primary">Open the Editor</a>
+            <a href="/landing/" class="btn btn-ghost">Back to Overview</a>
+        </div>
+    </section>
+
+    <footer>
+        <p>SmartDocs &middot; <a href="/landing/">Home</a> &middot; <a href="https://github.com/snehalsurti12/smartdocs">GitHub</a> &middot; MIT License</p>
+    </footer>
+
+</body>
+</html>

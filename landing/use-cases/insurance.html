@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>SmartDocs for Insurance</title>
+    <meta name="description" content="Generate policy documents, claims summaries, renewal notices, and quote letters. Batch-generate for thousands of policyholders." />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg: #09090b; --surface: #18181b; --border: #27272a; --text: #fafafa; --text-muted: #a1a1aa; --accent: #4ade80; --accent-glow: rgba(74, 222, 128, 0.12); --mono: 'JetBrains Mono', monospace; --sans: 'Inter', sans-serif; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: var(--sans); background: var(--bg); color: var(--text); line-height: 1.6; }
+        a { color: var(--accent); text-decoration: none; } a:hover { text-decoration: underline; }
+        .nav { display: flex; align-items: center; justify-content: space-between; padding: 16px 32px; border-bottom: 1px solid var(--border); }
+        .nav-brand { font-family: var(--mono); font-weight: 600; font-size: 0.95rem; color: var(--text); text-decoration: none; } .nav-brand:hover { text-decoration: none; }
+        .nav-links { display: flex; gap: 24px; align-items: center; } .nav-links a { color: var(--text-muted); font-size: 0.88rem; } .nav-links a:hover { color: var(--text); text-decoration: none; }
+        .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; font-size: 0.88rem; font-weight: 600; border-radius: 8px; border: none; cursor: pointer; transition: all 0.2s; text-decoration: none; }
+        .btn-primary { background: var(--accent); color: #111; } .btn-primary:hover { filter: brightness(1.1); text-decoration: none; }
+        .btn-ghost { background: transparent; color: var(--text-muted); border: 1px solid var(--border); } .btn-ghost:hover { border-color: #52525b; color: var(--text); text-decoration: none; }
+        .hero { position: relative; padding: 100px 24px 80px; text-align: center; overflow: hidden; }
+        .hero::before { content: ''; position: absolute; top: -200px; left: 50%; transform: translateX(-50%); width: 700px; height: 700px; background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%); pointer-events: none; }
+        .hero > * { position: relative; }
+        .industry-badge { display: inline-flex; align-items: center; gap: 8px; background: rgba(74, 222, 128, 0.1); border: 1px solid rgba(74, 222, 128, 0.2); color: var(--accent); padding: 6px 16px; border-radius: 999px; font-size: 0.82rem; font-weight: 500; font-family: var(--mono); margin-bottom: 24px; }
+        .hero h1 { font-size: clamp(2.2rem, 5vw, 3.5rem); font-weight: 900; letter-spacing: -0.03em; line-height: 1.1; margin-bottom: 16px; }
+        .hero h1 .hl { background: linear-gradient(135deg, var(--accent), #86efac); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .hero-sub { font-size: 1.1rem; color: var(--text-muted); max-width: 560px; margin: 0 auto 40px; }
+        .hero-buttons { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+        .section { max-width: 1100px; margin: 0 auto; padding: 80px 24px; }
+        .section-header { text-align: center; margin-bottom: 48px; }
+        .section-header h2 { font-size: clamp(1.6rem, 3.5vw, 2.2rem); font-weight: 800; letter-spacing: -0.02em; margin-bottom: 10px; }
+        .section-header p { color: var(--text-muted); max-width: 560px; margin: 0 auto; font-size: 1rem; }
+        .showcase-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px; }
+        .showcase-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; transition: border-color 0.2s, transform 0.2s; } .showcase-card:hover { border-color: #3f3f46; transform: translateY(-2px); }
+        .showcase-preview { background: #fff; padding: 24px; min-height: 280px; display: flex; align-items: center; justify-content: center; }
+        .showcase-info { padding: 20px 24px; } .showcase-info h3 { font-size: 1rem; font-weight: 700; margin-bottom: 4px; } .showcase-info p { color: var(--text-muted); font-size: 0.85rem; }
+        .showcase-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+        .showcase-tag { font-family: var(--mono); font-size: 0.72rem; padding: 2px 8px; background: rgba(74, 222, 128, 0.08); border: 1px solid rgba(74, 222, 128, 0.15); border-radius: 4px; color: var(--accent); }
+        .doc-mock { width: 200px; background: #fff; border-radius: 4px; box-shadow: 0 2px 16px rgba(0,0,0,0.15); padding: 20px; font-family: var(--sans); color: #111; font-size: 8px; line-height: 1.5; }
+        .doc-mock .doc-header { border-bottom: 2px solid #16a34a; padding-bottom: 8px; margin-bottom: 8px; }
+        .doc-mock .doc-title { font-size: 11px; font-weight: 800; color: #14532d; }
+        .doc-mock .doc-subtitle { font-size: 7px; color: #666; }
+        .doc-mock .doc-row { display: flex; justify-content: space-between; padding: 2px 0; border-bottom: 1px solid #eee; }
+        .doc-mock .doc-section { font-weight: 700; font-size: 8px; margin: 8px 0 4px; color: #14532d; border-bottom: 1px solid #86efac; padding-bottom: 2px; }
+        .ind-features { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+        .ind-feat { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 24px; } .ind-feat h4 { font-size: 0.95rem; font-weight: 700; margin-bottom: 6px; } .ind-feat p { color: var(--text-muted); font-size: 0.88rem; }
+        .cta { text-align: center; padding: 80px 24px; position: relative; }
+        .cta::before { content: ''; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 500px; height: 500px; background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%); pointer-events: none; }
+        .cta > * { position: relative; } .cta h2 { font-size: 1.8rem; font-weight: 800; margin-bottom: 10px; } .cta p { color: var(--text-muted); margin-bottom: 28px; }
+        footer { border-top: 1px solid var(--border); padding: 24px; text-align: center; font-size: 0.82rem; color: var(--text-muted); } footer a { color: var(--text-muted); } footer a:hover { color: var(--accent); }
+        @media (max-width: 768px) { .hero { padding: 60px 16px 48px; } .nav { padding: 12px 16px; } }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <a href="/landing/" class="nav-brand">SmartDocs</a>
+        <div class="nav-links">
+            <a href="/landing/#enterprise">Enterprise</a>
+            <a href="/landing/#use-cases">Use Cases</a>
+            <a href="/landing/#integrations">Integrations</a>
+            <a href="https://github.com/snehalsurti12/smartdocs" class="btn btn-ghost" style="padding: 6px 14px; font-size: 0.82rem;">GitHub</a>
+        </div>
+    </nav>
+
+    <section class="hero">
+        <div class="industry-badge">Insurance</div>
+        <h1>Policy documents at<br><span class="hl">policyholder scale</span></h1>
+        <p class="hero-sub">Generate policy declarations, claims summaries, renewal notices, and quote letters. Batch-process thousands of policyholders in a single job.</p>
+        <div class="hero-buttons">
+            <a href="https://smartdocs-production-b0fa.up.railway.app/" class="btn btn-primary">Try the Editor</a>
+            <a href="/landing/" class="btn btn-ghost">Back to Overview</a>
+        </div>
+    </section>
+
+    <section class="section" style="border-top: 1px solid var(--border);">
+        <div class="section-header">
+            <h2>Template gallery</h2>
+            <p>Insurance document templates designed for mass generation with data binding.</p>
+        </div>
+        <div class="showcase-grid">
+            <div class="showcase-card">
+                <div class="showcase-preview">
+                    <div class="doc-mock">
+                        <div class="doc-header">
+                            <div class="doc-title">POLICY DECLARATION</div>
+                            <div class="doc-subtitle">Policy #: HO-2026-084721</div>
+                        </div>
+                        <div class="doc-section">Named Insured</div>
+                        <div style="font-size:7px;">{{insured.name}}<br>{{insured.address}}</div>
+                        <div class="doc-section">Coverage Summary</div>
+                        <div class="doc-row"><span>Dwelling (Coverage A)</span><span>$450,000</span></div>
+                        <div class="doc-row"><span>Personal Property (C)</span><span>$225,000</span></div>
+                        <div class="doc-row"><span>Liability (E)</span><span>$300,000</span></div>
+                        <div class="doc-row"><span>Deductible</span><span>$2,500</span></div>
+                        <div style="border-top:2px solid #14532d;margin-top:6px;padding-top:4px;font-weight:700;">
+                            <div class="doc-row"><span>Annual Premium</span><span>$1,847.00</span></div>
+                        </div>
+                        <div style="font-size:6px;color:#999;margin-top:6px;">Effective: 04/01/2026 - 04/01/2027</div>
+                    </div>
+                </div>
+                <div class="showcase-info">
+                    <h3>Policy Declaration</h3>
+                    <p>Coverage details, premium breakdown, named insured, effective dates. Generate for entire book of business.</p>
+                    <div class="showcase-tags">
+                        <span class="showcase-tag">table</span>
+                        <span class="showcase-tag">data_binding</span>
+                        <span class="showcase-tag">batch</span>
+                    </div>
+                </div>
+            </div>
+            <div class="showcase-card">
+                <div class="showcase-preview">
+                    <div class="doc-mock">
+                        <div class="doc-header">
+                            <div class="doc-title">CLAIM SUMMARY</div>
+                            <div class="doc-subtitle">Claim #: CLM-2026-15847</div>
+                        </div>
+                        <div style="font-size:7px;margin-bottom:4px;">
+                            <div><b>Claimant:</b> {{claimant.name}}</div>
+                            <div><b>Date of Loss:</b> 02/15/2026</div>
+                            <div><b>Type:</b> Water Damage</div>
+                        </div>
+                        <div class="doc-section">Assessment</div>
+                        <div class="doc-row"><span>Structure Repair</span><span>$12,500.00</span></div>
+                        <div class="doc-row"><span>Contents</span><span>$3,200.00</span></div>
+                        <div class="doc-row"><span>Remediation</span><span>$4,800.00</span></div>
+                        <div class="doc-row"><span>Less Deductible</span><span style="color:#dc2626;">-$2,500.00</span></div>
+                        <div style="border-top:2px solid #14532d;margin-top:4px;padding-top:4px;font-weight:700;">
+                            <div class="doc-row"><span>Net Payment</span><span>$18,000.00</span></div>
+                        </div>
+                        <div style="font-size:6px;color:#999;margin-top:6px;">Adjuster: M. Johnson | Status: Approved</div>
+                    </div>
+                </div>
+                <div class="showcase-info">
+                    <h3>Claim Summary</h3>
+                    <p>Loss details, assessment breakdown, deductible calculation, adjuster notes, and payment summary.</p>
+                    <div class="showcase-tags">
+                        <span class="showcase-tag">table</span>
+                        <span class="showcase-tag">long_text</span>
+                        <span class="showcase-tag">barcode</span>
+                    </div>
+                </div>
+            </div>
+            <div class="showcase-card">
+                <div class="showcase-preview">
+                    <div class="doc-mock">
+                        <div class="doc-header">
+                            <div class="doc-title">RENEWAL NOTICE</div>
+                            <div class="doc-subtitle">Policy: AUTO-2026-33219</div>
+                        </div>
+                        <div style="font-size:7px;margin-bottom:6px;">
+                            Dear {{insured.name}},<br><br>
+                            Your auto insurance policy is due for renewal on <b>{{renewal.date}}</b>.
+                        </div>
+                        <div class="doc-section">Premium Comparison</div>
+                        <div class="doc-row"><span>Current Premium</span><span>$1,200/yr</span></div>
+                        <div class="doc-row"><span>Renewal Premium</span><span>$1,140/yr</span></div>
+                        <div class="doc-row" style="color:#16a34a;font-weight:600;"><span>Savings</span><span>-$60.00 (5%)</span></div>
+                        <div style="font-size:7px;margin-top:8px;">No action needed — your policy renews automatically. To make changes, contact us or scan below.</div>
+                        <div style="width:28px;height:28px;background:#111;border-radius:2px;margin-top:6px;"></div>
+                    </div>
+                </div>
+                <div class="showcase-info">
+                    <h3>Renewal Notice</h3>
+                    <p>Personalized renewal letters with premium comparison, savings highlight, and QR code for self-service.</p>
+                    <div class="showcase-tags">
+                        <span class="showcase-tag">long_text</span>
+                        <span class="showcase-tag">table</span>
+                        <span class="showcase-tag">qr_code</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="section" style="border-top: 1px solid var(--border);">
+        <div class="section-header">
+            <h2>Why insurance carriers choose SmartDocs</h2>
+        </div>
+        <div class="ind-features">
+            <div class="ind-feat">
+                <h4>Mass Generation</h4>
+                <p>Renewal season? Generate notices for 50,000 policyholders. Async batch jobs with progress tracking and per-record error handling.</p>
+            </div>
+            <div class="ind-feat">
+                <h4>Multi-Line Support</h4>
+                <p>One template per document type, works across auto, home, life, and commercial lines. Data binding handles the differences.</p>
+            </div>
+            <div class="ind-feat">
+                <h4>PII-Safe Processing</h4>
+                <p>SSNs, policy numbers, and claims data tagged as PII. Never logged, never cached, never retained after render.</p>
+            </div>
+            <div class="ind-feat">
+                <h4>Agent Portal Integration</h4>
+                <p>API-first design integrates with Applied Epic, Vertafore, Duck Creek, or custom agent portals.</p>
+            </div>
+            <div class="ind-feat">
+                <h4>Regulatory Compliance</h4>
+                <p>Version-controlled templates ensure every policyholder gets the approved language. Audit trail for DOI examinations.</p>
+            </div>
+            <div class="ind-feat">
+                <h4>Bring Your Own Storage</h4>
+                <p>Generated documents go directly to your S3 or Azure bucket. SmartDocs never stores policyholder documents.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="cta">
+        <h2>Start building insurance documents</h2>
+        <p>Generate policy declarations, claims summaries, and renewal notices at scale.</p>
+        <div class="hero-buttons">
+            <a href="https://smartdocs-production-b0fa.up.railway.app/" class="btn btn-primary">Open the Editor</a>
+            <a href="/landing/" class="btn btn-ghost">Back to Overview</a>
+        </div>
+    </section>
+
+    <footer>
+        <p>SmartDocs &middot; <a href="/landing/">Home</a> &middot; <a href="https://github.com/snehalsurti12/smartdocs">GitHub</a> &middot; MIT License</p>
+    </footer>
+</body>
+</html>

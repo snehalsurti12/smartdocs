@@ -184,25 +184,6 @@
         .feature-card h3 svg { flex-shrink: 0; }
         .feature-card p { color: var(--text-muted); font-size: 0.92rem; line-height: 1.6; }
 
-        /* ── Components Chips ── */
-        .chips {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            justify-content: center;
-        }
-        .chip {
-            font-family: var(--mono);
-            font-size: 0.82rem;
-            padding: 8px 16px;
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            color: var(--text-muted);
-            transition: all 0.15s;
-        }
-        .chip:hover { border-color: var(--accent); color: var(--accent); }
-
         /* ── Code Block ── */
         .code-section {
             display: grid;
@@ -361,7 +342,9 @@
             padding: 32px;
             transition: border-color 0.2s;
         }
-        .usecase-card:hover { border-color: #3f3f46; }
+        .usecase-card:hover { border-color: #3f3f46; cursor: pointer; }
+        a.usecase-link { text-decoration: none; color: inherit; }
+        a.usecase-link:hover { text-decoration: none; }
         .usecase-icon {
             width: 44px;
             height: 44px;
@@ -439,13 +422,13 @@
     <section class="hero">
         <div class="pill">open source &middot; MIT license</div>
         <h1>Design once.<br><span class="highlight">Generate forever.</span></h1>
-        <p class="hero-sub">Enterprise document engine with visual editor and REST API. Integrates with Salesforce, HubSpot, ServiceNow — any platform that speaks HTTP.</p>
+        <p class="hero-sub">Enterprise document engine with visual editor and API. Integrates with Salesforce, HubSpot, ServiceNow, and any platform you use.</p>
         <div class="hero-buttons">
             <a href="https://smartdocs-production-b0fa.up.railway.app/" class="btn btn-primary">Open the Editor</a>
             <a href="https://github.com/snehalsurti12/smartdocs" class="btn btn-ghost">View Source</a>
         </div>
         <div class="hero-screenshot">
-            <img src="https://smartdocs-production-b0fa.up.railway.app/docs/screenshots/editor-workflow.jpg" alt="SmartDocs Editor" loading="lazy" onerror="this.parentElement.style.display='none'" />
+            <img src="/docs/screenshots/editor-with-template.jpg" alt="SmartDocs Editor — Bank Statement Template" loading="lazy" onerror="this.parentElement.style.display='none'" />
         </div>
     </section>
 
@@ -502,30 +485,10 @@
     </section>
 
     <section class="section" style="border-top: 1px solid var(--border);">
-        <div class="section-header">
-            <h2>11 building blocks</h2>
-            <p>Everything you need to build any document layout.</p>
-        </div>
-        <div class="chips">
-            <span class="chip">text</span>
-            <span class="chip">long_text</span>
-            <span class="chip">image</span>
-            <span class="chip">table</span>
-            <span class="chip">qr_code</span>
-            <span class="chip">barcode</span>
-            <span class="chip">chart</span>
-            <span class="chip">hyperlink</span>
-            <span class="chip">line</span>
-            <span class="chip">box</span>
-            <span class="chip">page_break</span>
-        </div>
-    </section>
-
-    <section class="section" style="border-top: 1px solid var(--border);">
         <div class="code-section">
             <div class="code-text">
                 <h2>One API call.<br>One PDF back.</h2>
-                <p>POST your template ID and data. Get a print-ready PDF in ~2 seconds. Works from Salesforce, Node.js, Python, curl — anything that speaks HTTP.</p>
+                <p>POST your template ID and data. Get a print-ready PDF in ~2 seconds. Works from Salesforce, Node.js, Python, curl — any platform.</p>
                 <a href="https://github.com/snehalsurti12/smartdocs#cli" class="btn btn-ghost" style="display: inline-flex;">Read the Docs</a>
             </div>
             <div class="code-block">
@@ -554,7 +517,7 @@ curl <span class="str">-X POST</span> /api/render \
     </section>
 
     <!-- ── Enterprise Ready ── -->
-    <section class="section" style="border-top: 1px solid var(--border);">
+    <section id="enterprise" class="section" style="border-top: 1px solid var(--border);">
         <div class="section-header">
             <span class="ent-badge">ENTERPRISE READY</span>
             <h2>Built for regulated industries</h2>
@@ -589,12 +552,13 @@ curl <span class="str">-X POST</span> /api/render \
     </section>
 
     <!-- ── Industry Use Cases ── -->
-    <section class="section" style="border-top: 1px solid var(--border);">
+    <section id="use-cases" class="section" style="border-top: 1px solid var(--border);">
         <div class="section-header">
             <h2>Every industry. Every document.</h2>
             <p>From bank statements to patient summaries — SmartDocs handles the documents your business runs on.</p>
         </div>
         <div class="usecase-grid">
+            <a href="/landing/use-cases/financial-services.html" class="usecase-link">
             <div class="usecase-card">
                 <div class="usecase-icon" style="background: rgba(96, 165, 250, 0.1);">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2" stroke-linecap="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
@@ -608,6 +572,8 @@ curl <span class="str">-X POST</span> /api/render \
                     <span class="usecase-doc">Disclosures</span>
                 </div>
             </div>
+            </a>
+            <a href="/landing/use-cases/healthcare.html" class="usecase-link">
             <div class="usecase-card">
                 <div class="usecase-icon" style="background: rgba(248, 113, 113, 0.1);">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#f87171" stroke-width="2" stroke-linecap="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
@@ -621,6 +587,8 @@ curl <span class="str">-X POST</span> /api/render \
                     <span class="usecase-doc">Rx Labels</span>
                 </div>
             </div>
+            </a>
+            <a href="/landing/use-cases/legal.html" class="usecase-link">
             <div class="usecase-card">
                 <div class="usecase-icon" style="background: rgba(192, 132, 252, 0.1);">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#c084fc" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
@@ -634,6 +602,8 @@ curl <span class="str">-X POST</span> /api/render \
                     <span class="usecase-doc">Policies</span>
                 </div>
             </div>
+            </a>
+            <a href="/landing/use-cases/insurance.html" class="usecase-link">
             <div class="usecase-card">
                 <div class="usecase-icon" style="background: rgba(74, 222, 128, 0.1);">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2" stroke-linecap="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
@@ -647,6 +617,8 @@ curl <span class="str">-X POST</span> /api/render \
                     <span class="usecase-doc">Quotes</span>
                 </div>
             </div>
+            </a>
+            <a href="/landing/use-cases/real-estate.html" class="usecase-link">
             <div class="usecase-card">
                 <div class="usecase-icon" style="background: rgba(251, 146, 60, 0.1);">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fb923c" stroke-width="2" stroke-linecap="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
@@ -660,6 +632,8 @@ curl <span class="str">-X POST</span> /api/render \
                     <span class="usecase-doc">Inspections</span>
                 </div>
             </div>
+            </a>
+            <a href="/landing/use-cases/education.html" class="usecase-link">
             <div class="usecase-card">
                 <div class="usecase-icon" style="background: rgba(56, 189, 248, 0.1);">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" stroke-linecap="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
@@ -673,11 +647,12 @@ curl <span class="str">-X POST</span> /api/render \
                     <span class="usecase-doc">Letters</span>
                 </div>
             </div>
+            </a>
         </div>
     </section>
 
     <!-- ── Integrations ── -->
-    <section class="section" style="border-top: 1px solid var(--border);">
+    <section id="integrations" class="section" style="border-top: 1px solid var(--border);">
         <div class="section-header">
             <h2>One API. Every platform.</h2>
             <p>SmartDocs is API-first. Any system that can make an HTTP call can generate documents. Native packages accelerate adoption.</p>
@@ -741,8 +716,8 @@ curl <span class="str">-X POST</span> /api/render \
                 <div class="int-icon">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2" stroke-linecap="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
                 </div>
-                <div class="int-name">REST API</div>
-                <p style="color: var(--text-muted); font-size: 0.82rem;">Node, Python, Java, Go — anything</p>
+                <div class="int-name">API Ready</div>
+                <p style="color: var(--text-muted); font-size: 0.82rem;">Node, Python, Java, Go — any stack</p>
                 <span class="int-status int-live">Available Now</span>
             </div>
         </div>

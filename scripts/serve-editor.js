@@ -652,12 +652,24 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
-  // Landing page
-  if (urlPath === "/landing" || urlPath === "/landing/") {
-    const landingPath = path.join(root, "landing", "index.html");
-    fs.readFile(landingPath, (err, data) => {
+  // Landing page and subpages
+  if (urlPath === "/landing" || urlPath.startsWith("/landing/")) {
+    let filePath;
+    if (urlPath === "/landing" || urlPath === "/landing/") {
+      filePath = path.join(root, "landing", "index.html");
+    } else {
+      const relative = urlPath.replace(/^\/landing\//, "");
+      filePath = path.join(root, "landing", relative);
+    }
+    // Prevent directory traversal
+    if (!filePath.startsWith(path.join(root, "landing"))) {
+      res.statusCode = 403; res.end("Forbidden"); return;
+    }
+    const ext = path.extname(filePath).toLowerCase();
+    const mimeTypes = { ".html": "text/html", ".css": "text/css", ".js": "application/javascript", ".json": "application/json", ".png": "image/png", ".jpg": "image/jpeg", ".svg": "image/svg+xml", ".ico": "image/x-icon" };
+    fs.readFile(filePath, (err, data) => {
       if (err) { res.statusCode = 404; res.end("Not found"); return; }
-      res.setHeader("Content-Type", "text/html");
+      res.setHeader("Content-Type", mimeTypes[ext] || "text/html");
       res.end(data);
     });
     return;
