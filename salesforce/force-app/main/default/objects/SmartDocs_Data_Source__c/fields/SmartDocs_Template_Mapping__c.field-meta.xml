@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>SmartDocs_Template_Mapping__c</fullName>
+    <label>Template Mapping</label>
+    <type>MasterDetail</type>
+    <referenceTo>SmartDocs_Template_Mapping__c</referenceTo>
+    <relationshipName>SmartDocs_Data_Sources</relationshipName>
+    <relationshipLabel>Data Sources</relationshipLabel>
+    <relationshipOrder>0</relationshipOrder>
+    <reparentableMasterDetail>false</reparentableMasterDetail>
+</CustomField>

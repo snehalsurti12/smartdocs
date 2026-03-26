@@ -468,20 +468,104 @@ const server = http.createServer(async (req, res) => {
       }
       const content = tmpl.currentVersion.contentJson;
       const contract = content.dataContract || {};
-      const fields = (contract.fields || []).map((f) => ({
-        path: f.path,
-        required: Boolean(f.required),
-        type: f.type || "string",
-        transform: f.transform || "none",
-        pii: Boolean(f.pii),
-        piiCategory: f.piiCategory || null,
-        defaultValue: f.defaultValue
-      }));
+      const elements = content.elements || [];
+
+      // Detect array bindings from table rows and chart dataSources
+      const arrayBindings = new Map(); // path → { sourceElement, childFields }
+      for (const el of elements) {
+        if (el.type === "table" && el.rows) {
+          const rowsPath = (el.rows || "").replace(/\{\{|\}\}/g, "").trim();
+          if (rowsPath) {
+            const childFields = (el.columns || []).map((col) => ({
+              path: col.field,
+              header: col.header || col.field,
+              type: col.format === "currency" || col.format === "number" ? "number" : "string",
+              format: col.format || null
+            }));
+            arrayBindings.set(rowsPath, { sourceElement: "table", elementId: el.id, childFields });
+          }
+        }
+        if (el.type === "chart" && el.dataSource) {
+          const dsPath = (el.dataSource || "").replace(/\{\{|\}\}/g, "").trim();
+          if (dsPath) {
+            const childFields = [];
+            if (el.labelField) childFields.push({ path: el.labelField, header: "Label", type: "string", format: null });
+            if (el.valueField) childFields.push({ path: el.valueField, header: "Value", type: "number", format: null });
+            arrayBindings.set(dsPath, { sourceElement: "chart", elementId: el.id, childFields });
+          }
+        }
+      }
+
+      // Build field list from data contract
+      const contractFields = (contract.fields || []).map((f) => {
+        const isArray = f.type === "array" || arrayBindings.has(f.path);
+        const arrayInfo = arrayBindings.get(f.path);
+        return {
+          path: f.path,
+          required: Boolean(f.required),
+          type: isArray ? "array" : (f.type || "string"),
+          cardinality: isArray ? "many" : "one",
+          transform: f.transform || "none",
+          pii: Boolean(f.pii),
+          piiCategory: f.piiCategory || null,
+          defaultValue: f.defaultValue,
+          children: arrayInfo ? arrayInfo.childFields : undefined,
+          sourceElement: arrayInfo ? arrayInfo.sourceElement : undefined
+        };
+      });
+
+      // Also add array bindings not in the data contract
+      for (const [path, info] of arrayBindings) {
+        if (!contractFields.find((f) => f.path === path)) {
+          contractFields.push({
+            path,
+            required: false,
+            type: "array",
+            cardinality: "many",
+            transform: "none",
+            pii: false,
+            piiCategory: null,
+            defaultValue: undefined,
+            children: info.childFields,
+            sourceElement: info.sourceElement
+          });
+        }
+      }
+
+      // Scan all text elements for single-value bindings not in contract
+      const bindingRegex = /\{\{\s*([^}]+?)\s*\}\}/g;
+      const knownPaths = new Set(contractFields.map((f) => f.path));
+      for (const el of elements) {
+        const textSources = [el.text, el.value, el.src, el.url, el.title].filter(Boolean);
+        for (const src of textSources) {
+          let match;
+          while ((match = bindingRegex.exec(src)) !== null) {
+            const p = match[1].trim();
+            if (p === "page.number" || p === "page.count") continue;
+            // Skip child paths of known arrays (e.g. "items.name" when "items" is array)
+            const isChildOfArray = [...arrayBindings.keys()].some((arrPath) => p.startsWith(arrPath + ".") || p.startsWith(arrPath + "["));
+            if (!knownPaths.has(p) && !isChildOfArray) {
+              contractFields.push({
+                path: p,
+                required: false,
+                type: "string",
+                cardinality: "one",
+                transform: "none",
+                pii: false,
+                piiCategory: null,
+                defaultValue: undefined
+              });
+              knownPaths.add(p);
+            }
+          }
+        }
+      }
+
       respondJson(res, 200, {
         templateId: tmpl.id,
         templateName: tmpl.name,
         version: tmpl.currentVersion.version,
-        fields
+        fields: contractFields
       });
     } catch (err) {
       respondJson(res, 400, { error: err && err.message ? err.message : "Request failed" });
