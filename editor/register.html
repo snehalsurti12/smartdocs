@@ -141,20 +141,23 @@
           <label for="title">Title (optional)</label>
           <input type="text" id="title" name="title" placeholder="VP of Engineering" />
         </div>
+        <div class="form-group">
+          <label for="password">Set Password</label>
+          <input type="password" id="password" name="password" placeholder="At least 8 characters" required minlength="8" autocomplete="new-password" />
+        </div>
         <!-- Honeypot field — invisible to humans, bots fill it -->
         <input type="text" name="website" id="website" class="hp-field" tabindex="-1" autocomplete="off" />
-        <button type="submit" class="submit-btn" id="submit-btn">Start Building Templates</button>
+        <button type="submit" class="submit-btn" id="submit-btn">Create Account & Start Building</button>
       </form>
     </div>
     <div class="footer">
+      Already have an account? <a href="/editor/login.html">Sign in</a><br>
       Open source &middot; MIT License &middot; <a href="https://github.com/snehalsurti12/smartdocs" target="_blank">GitHub</a>
     </div>
   </div>
   <script>
-    // Check if already registered
-    if (document.cookie.includes('smartdocs_registered=1')) {
-      window.location.href = '/editor/index.html';
-    }
+    // Check if already authenticated
+    fetch('/api/auth/me').then(r => { if (r.ok) window.location.href = '/editor/index.html'; }).catch(() => {});
 
     document.getElementById('register-form').addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -166,39 +169,44 @@
       const email = document.getElementById('email').value.trim();
       const company = document.getElementById('company').value.trim();
       const title = document.getElementById('title').value.trim();
+      const password = document.getElementById('password').value;
       const honeypot = document.getElementById('website').value;
 
-      if (!name || !email || !company) {
+      if (!name || !email || !company || !password) {
         errorEl.textContent = 'Please fill in all required fields.';
+        errorEl.style.display = 'block';
+        return;
+      }
+      if (password.length < 8) {
+        errorEl.textContent = 'Password must be at least 8 characters.';
         errorEl.style.display = 'block';
         return;
       }
 
       btn.disabled = true;
-      btn.textContent = 'Registering...';
+      btn.textContent = 'Creating account...';
 
       try {
         const res = await fetch('/api/register', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name, email, company, title, website: honeypot })
+          body: JSON.stringify({ name, email, company, title, password, website: honeypot })
         });
         const data = await res.json();
         if (!res.ok) {
           errorEl.textContent = data.error || 'Registration failed.';
           errorEl.style.display = 'block';
           btn.disabled = false;
-          btn.textContent = 'Start Building Templates';
+          btn.textContent = 'Create Account & Start Building';
           return;
         }
-        // Set cookie for 90 days
-        document.cookie = 'smartdocs_registered=1; path=/; max-age=' + (90 * 24 * 60 * 60);
+        // Session cookie set by server, redirect to editor
         window.location.href = '/editor/index.html';
       } catch (err) {
         errorEl.textContent = 'Something went wrong. Please try again.';
         errorEl.style.display = 'block';
         btn.disabled = false;
-        btn.textContent = 'Start Building Templates';
+        btn.textContent = 'Create Account & Start Building';
       }
     });
   </script>

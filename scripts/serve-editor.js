@@ -1003,10 +1003,18 @@ const server = http.createServer(async (req, res) => {
         return;
       }
 
-      if (templateStoreDb.canUseDb()) {
+      const password = (payload.password || "").trim();
+      if (!password || password.length < 8) {
+        respondJson(res, 400, { error: "Password must be at least 8 characters." });
+        return;
+      }
+
+      if (templateStoreDb.canUseDb() && authUsers.canUseDb()) {
         try {
           const { PrismaClient } = require("@prisma/client");
           const prisma = new PrismaClient();
+
+          // Save to Registration table (for tracking)
           await prisma.registration.upsert({
             where: { email },
             create: {
@@ -1016,13 +1024,49 @@ const server = http.createServer(async (req, res) => {
             },
             update: { name, company, title: title || null }
           });
+
+          // Find or create a default "Demo" tenant
+          let tenant = await prisma.tenant.findFirst({ where: { slug: "demo" } });
+          if (!tenant) {
+            tenant = await prisma.tenant.create({ data: { name: "Demo", slug: "demo" } });
+          }
+
+          // Check if user already exists
+          const existingUser = await prisma.user.findUnique({ where: { tenantId_email: { tenantId: tenant.id, email } } });
+          if (existingUser) {
+            await prisma.$disconnect();
+            // User exists — try login
+            try {
+              const loginResult = await authUsers.login(email, password);
+              const secure = process.env.NODE_ENV === "production" ? "; Secure" : "";
+              res.setHeader("Set-Cookie", `smartdocs_session=${loginResult.token}; HttpOnly; SameSite=Lax; Path=/${secure}; Max-Age=${7 * 24 * 3600}`);
+              respondJson(res, 200, { status: "existing", user: loginResult.user });
+            } catch (_) {
+              respondJson(res, 409, { error: "An account with this email already exists. Please use the login page." });
+            }
+            return;
+          }
+
+          // Create User with AUTHOR role
+          const bcrypt = require("bcryptjs");
+          const passwordHash = await bcrypt.hash(password, 12);
+          await prisma.user.create({
+            data: { tenantId: tenant.id, email, passwordHash, name, role: "AUTHOR" }
+          });
           await prisma.$disconnect();
+
+          // Auto-login
+          const loginResult = await authUsers.login(email, password);
+          const secure = process.env.NODE_ENV === "production" ? "; Secure" : "";
+          res.setHeader("Set-Cookie", `smartdocs_session=${loginResult.token}; HttpOnly; SameSite=Lax; Path=/${secure}; Max-Age=${7 * 24 * 3600}`);
+          respondJson(res, 201, { status: "registered", user: loginResult.user });
         } catch (dbErr) {
-          // DB save failed but still let them through
           console.error("Registration DB error:", dbErr.message);
+          respondJson(res, 500, { error: "Registration failed. Please try again." });
         }
+      } else {
+        respondJson(res, 501, { error: "Database not available." });
       }
-      respondJson(res, 201, { status: "registered" });
     } catch (err) {
       respondJson(res, 400, { error: "Registration failed. Please try again." });
     }
