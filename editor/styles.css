@@ -29,7 +29,8 @@
 }
 
 body.has-demo-banner .app {
-  padding-top: 36px;
+  margin-top: 36px;
+  height: calc(100vh - 36px);
 }
 
 * { box-sizing: border-box; }
