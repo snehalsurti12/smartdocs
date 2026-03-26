@@ -1060,13 +1060,18 @@ const server = http.createServer(async (req, res) => {
     trackVisit(req, "templateLoad");
   }
 
-  // Gate: redirect root to registration page if demo mode + DB available
-  const gateEnabled = demoMode && templateStoreDb.canUseDb();
-  if (gateEnabled && urlPath === "/") {
-    const cookies = req.headers.cookie || "";
-    if (!cookies.includes("smartdocs_registered=1")) {
-      const regPath = path.join(root, "/editor/register.html");
-      fs.readFile(regPath, (err, data) => {
+  // Gate: require login for editor pages when DB is available
+  const dbAvailable = templateStoreDb.canUseDb() && authUsers.canUseDb();
+  const isEditorPage = urlPath === "/" || urlPath === "/editor/index.html";
+  const isPublicPage = urlPath.includes("login") || urlPath.includes("invite") || urlPath.includes("register") || urlPath.startsWith("/landing") || urlPath.startsWith("/api/") || urlPath.startsWith("/examples/") || urlPath.startsWith("/docs/");
+
+  if (dbAvailable && isEditorPage && !isPublicPage) {
+    // Check for valid session cookie
+    const sessionUser = await authUsers.authenticateSession(req);
+    if (!sessionUser) {
+      // No session — serve login page
+      const loginPath = path.join(root, "/editor/login.html");
+      fs.readFile(loginPath, (err, data) => {
         if (err) { res.statusCode = 404; res.end("Not found"); return; }
         res.setHeader("Content-Type", "text/html");
         res.end(data);
