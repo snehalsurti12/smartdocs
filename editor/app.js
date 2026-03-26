@@ -1,3 +1,60 @@
+// ── Session bootstrap: redirect to login if not authenticated ──
+window.__user = null;
+(async function checkSession() {
+  try {
+    const resp = await fetch("/api/auth/me");
+    if (resp.ok) {
+      const data = await resp.json();
+      window.__user = data.user;
+      // Populate user bar
+      const userBar = document.getElementById("user-bar");
+      const nameDisplay = document.getElementById("user-name-display");
+      const roleBadge = document.getElementById("user-role-badge");
+      const avatarEl = document.getElementById("user-avatar-initials");
+      const logoutBtn = document.getElementById("btn-logout");
+      if (userBar && window.__user) {
+        nameDisplay.textContent = window.__user.name;
+        roleBadge.textContent = window.__user.role;
+        roleBadge.className = "user-role-badge role-" + (window.__user.role || "author").toLowerCase();
+        // Generate initials
+        if (avatarEl) {
+          const parts = (window.__user.name || "U").split(" ");
+          const initials = parts.length >= 2 ? (parts[0][0] + parts[parts.length - 1][0]).toUpperCase() : parts[0].slice(0, 2).toUpperCase();
+          avatarEl.textContent = initials;
+        }
+        userBar.style.display = "flex";
+        if (logoutBtn) {
+          logoutBtn.addEventListener("click", async () => {
+            await fetch("/api/auth/logout", { method: "POST" });
+            window.location.href = "/editor/login.html";
+          });
+        }
+        // Show settings gear for ADMIN users
+        if (window.__user.role === "ADMIN") {
+          const settingsBtn = document.getElementById("btn-settings");
+          const settingsOverlay = document.getElementById("settings-overlay");
+          if (settingsBtn && settingsOverlay) {
+            settingsBtn.style.display = "";
+            settingsBtn.addEventListener("click", () => {
+              settingsOverlay.classList.remove("hidden");
+              loadAdminUsers();
+            });
+            setupAdminInvite();
+          }
+        }
+      }
+    } else {
+      // Not authenticated — redirect to login (unless on login/invite/register page)
+      if (!window.location.pathname.includes("login") && !window.location.pathname.includes("invite") && !window.location.pathname.includes("register")) {
+        window.location.href = "/editor/login.html";
+        return;
+      }
+    }
+  } catch (_) {
+    // DB not available or server error — allow access (local dev without DB)
+  }
+})();
+
 const canvas = document.getElementById("canvas");
 const props = document.getElementById("props");
 const addButtons = document.querySelectorAll("[data-add]");
@@ -319,12 +376,13 @@ function syncDbStatusSelect() {
   syncWorkflowPanel();
 }
 
-function syncWorkflowPanel() {
+let currentApprovalData = null;
+
+async function syncWorkflowPanel() {
   if (!workflowPanel) return;
   const status = (activeDbTemplateStatus || "DRAFT").toUpperCase();
   const hasTemplate = Boolean(activeDbTemplateId);
 
-  // Show/hide panel
   workflowPanel.classList.toggle("hidden", !hasTemplate);
   if (!hasTemplate) return;
 
@@ -334,52 +392,156 @@ function syncWorkflowPanel() {
     workflowBadge.className = "wf-badge " + (WF_BADGE_CLASSES[status] || "wf-draft");
   }
 
-  // Lock message
+  // Lock
   const locked = WF_LOCKED_STATUSES.has(status);
   if (workflowLockMsg) workflowLockMsg.classList.toggle("hidden", !locked);
   if (dbSaveBtn) dbSaveBtn.disabled = locked;
 
-  // Hide rejection panel
+  // Hide all sub-forms
+  const submitForm = document.getElementById("workflow-submit-form");
+  const approveForm = document.getElementById("workflow-approve-form");
+  if (submitForm) submitForm.classList.add("hidden");
+  if (approveForm) approveForm.classList.add("hidden");
   if (workflowRejection) workflowRejection.classList.add("hidden");
+  if (workflowActions) workflowActions.innerHTML = "";
 
-  // Build action buttons
-  if (workflowActions) {
-    workflowActions.innerHTML = "";
-    const transitions = getWorkflowTransitions(status);
-    transitions.forEach((t) => {
-      const btn = document.createElement("button");
-      btn.className = "wf-btn" + (t.to === "ARCHIVED" ? "" : t.to === "DRAFT" && status === "REVIEW" ? " wf-btn-danger" : " wf-btn-primary");
-      btn.textContent = t.label;
-      btn.addEventListener("click", () => handleWorkflowTransition(t));
-      workflowActions.appendChild(btn);
-    });
-  }
-}
+  // Fetch approval status
+  currentApprovalData = null;
+  try {
+    const resp = await fetch(`/api/templates/${activeDbTemplateId}/approval`);
+    if (resp.ok) currentApprovalData = await resp.json();
+  } catch (_) {}
 
-function getWorkflowTransitions(status) {
-  const map = {
-    DRAFT:     [{ to: "REVIEW", label: "Submit for Review" }, { to: "ARCHIVED", label: "Archive" }],
-    REVIEW:    [{ to: "APPROVED", label: "Approve" }, { to: "DRAFT", label: "Reject", requiresReason: true }, { to: "ARCHIVED", label: "Archive" }],
-    APPROVED:  [{ to: "PUBLISHED", label: "Publish" }, { to: "ARCHIVED", label: "Archive" }],
-    PUBLISHED: [{ to: "DRAFT", label: "New Revision" }, { to: "ARCHIVED", label: "Archive" }],
-    ARCHIVED:  [{ to: "DRAFT", label: "Reactivate" }],
-  };
-  return map[status] || [];
-}
+  // Render approval stepper
+  renderApprovalStepper();
 
-async function handleWorkflowTransition(transition) {
-  if (!activeDbTemplateId) return;
+  // Render actions based on status
+  const userId = window.__user ? window.__user.id : null;
 
-  // Rejection needs reason
-  if (transition.requiresReason) {
-    if (workflowRejection) {
-      workflowRejection.classList.remove("hidden");
-      if (workflowRejectionReason) workflowRejectionReason.focus();
+  if (status === "DRAFT") {
+    // Show "Submit for Review" button → opens chain picker
+    const btn = document.createElement("button");
+    btn.className = "wf-btn wf-btn-primary";
+    btn.textContent = "Submit for Review";
+    btn.addEventListener("click", () => showSubmitForm());
+    workflowActions.appendChild(btn);
+  } else if (status === "REVIEW" && currentApprovalData && currentApprovalData.request) {
+    // Check if current user is the assigned approver
+    const pendingStep = (currentApprovalData.steps || []).find((s) => s.status === "PENDING");
+    if (pendingStep && pendingStep.assignee && pendingStep.assignee.id === userId) {
+      if (approveForm) approveForm.classList.remove("hidden");
+    } else if (pendingStep) {
+      const waitMsg = document.createElement("div");
+      waitMsg.style.cssText = "font-size:11px;color:#7a6f5f;padding:4px 0;";
+      waitMsg.textContent = `Waiting for ${pendingStep.assignee ? pendingStep.assignee.name : "approver"} to review (Step ${pendingStep.levelOrder})`;
+      workflowActions.appendChild(waitMsg);
     }
-    return;
+  } else if (status === "PUBLISHED") {
+    const btn = document.createElement("button");
+    btn.className = "wf-btn";
+    btn.textContent = "New Revision";
+    btn.addEventListener("click", () => executeWorkflowTransition("DRAFT", null));
+    workflowActions.appendChild(btn);
+  } else if (status === "ARCHIVED") {
+    const btn = document.createElement("button");
+    btn.className = "wf-btn";
+    btn.textContent = "Reactivate";
+    btn.addEventListener("click", () => executeWorkflowTransition("DRAFT", null));
+    workflowActions.appendChild(btn);
   }
+}
 
-  await executeWorkflowTransition(transition.to, null);
+function renderApprovalStepper() {
+  const stepper = document.getElementById("approval-stepper");
+  if (!stepper) return;
+  stepper.innerHTML = "";
+
+  if (!currentApprovalData || !currentApprovalData.request) return;
+
+  const { chainLevels, steps, status } = currentApprovalData;
+
+  chainLevels.forEach((level, idx) => {
+    if (idx > 0) {
+      const connector = document.createElement("div");
+      connector.className = "approval-step-connector";
+      stepper.appendChild(connector);
+    }
+
+    const step = steps.find((s) => s.levelOrder === level.levelOrder);
+    let stepClass = "step-pending";
+    let iconText = level.levelOrder;
+    if (step) {
+      if (step.status === "APPROVED") { stepClass = "step-approved"; iconText = "✓"; }
+      else if (step.status === "REJECTED") { stepClass = "step-rejected"; iconText = "✗"; }
+      else if (step.status === "PENDING") { stepClass = "step-current"; }
+    }
+
+    const el = document.createElement("div");
+    el.className = `approval-step ${stepClass}`;
+
+    const icon = document.createElement("div");
+    icon.className = "approval-step-icon";
+    icon.textContent = iconText;
+
+    const labelDiv = document.createElement("div");
+    labelDiv.className = "approval-step-label";
+    labelDiv.innerHTML = `<b>${level.label}</b>`;
+
+    const assignee = document.createElement("div");
+    assignee.className = "approval-step-assignee";
+    if (step && step.assignee) {
+      if (step.status === "APPROVED") assignee.textContent = `${step.assignee.name} approved`;
+      else if (step.status === "REJECTED") assignee.textContent = `${step.assignee.name} rejected${step.comment ? ": " + step.comment : ""}`;
+      else assignee.textContent = `Assigned: ${step.assignee.name}`;
+    } else {
+      assignee.textContent = level.requiredRole;
+    }
+
+    el.appendChild(icon);
+    const textWrap = document.createElement("div");
+    textWrap.style.flex = "1";
+    textWrap.appendChild(labelDiv);
+    textWrap.appendChild(assignee);
+    el.appendChild(textWrap);
+    stepper.appendChild(el);
+  });
+}
+
+async function showSubmitForm() {
+  const submitForm = document.getElementById("workflow-submit-form");
+  const chainSelect = document.getElementById("workflow-chain-select");
+  if (!submitForm || !chainSelect) return;
+
+  // Load chains for the template's project
+  chainSelect.innerHTML = '<option value="">Loading chains...</option>';
+  submitForm.classList.remove("hidden");
+
+  try {
+    // Get template to find projectId
+    const tplResp = await fetch(`/api/templates/${activeDbTemplateId}`);
+    if (!tplResp.ok) return;
+    const { template: tpl } = await tplResp.json();
+    if (!tpl.projectId) {
+      chainSelect.innerHTML = '<option value="">Assign template to a project first</option>';
+      return;
+    }
+    const chainsResp = await fetch(`/api/projects/${tpl.projectId}/approval-chains`);
+    if (!chainsResp.ok) return;
+    const { chains } = await chainsResp.json();
+    chainSelect.innerHTML = "";
+    if (chains.length === 0) {
+      chainSelect.innerHTML = '<option value="">No approval chains configured</option>';
+      return;
+    }
+    chains.filter((c) => c.active).forEach((c) => {
+      const opt = document.createElement("option");
+      opt.value = c.id;
+      opt.textContent = `${c.name} (${c.levels.length} steps)`;
+      chainSelect.appendChild(opt);
+    });
+  } catch (_) {
+    chainSelect.innerHTML = '<option value="">Error loading chains</option>';
+  }
 }
 
 async function executeWorkflowTransition(toStatus, reason) {
@@ -388,7 +550,7 @@ async function executeWorkflowTransition(toStatus, reason) {
     const resp = await fetch(`/api/templates/${activeDbTemplateId}/transition`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ to: toStatus, reason: reason || undefined, actorId: "editor" })
+      body: JSON.stringify({ to: toStatus, reason: reason || undefined, actorId: window.__user ? window.__user.id : "editor" })
     });
     const result = await resp.json();
     if (!resp.ok) {
@@ -4129,16 +4291,128 @@ if (dbArchiveBtn) {
   });
 }
 
-// Rejection confirm button
+// Submit for review confirm
+const workflowSubmitConfirm = document.getElementById("workflow-submit-confirm");
+if (workflowSubmitConfirm) {
+  workflowSubmitConfirm.addEventListener("click", async () => {
+    const chainSelect = document.getElementById("workflow-chain-select");
+    const chainId = chainSelect ? chainSelect.value : "";
+    if (!chainId) { alert("Select an approval chain."); return; }
+    workflowSubmitConfirm.disabled = true;
+    workflowSubmitConfirm.textContent = "Submitting...";
+    try {
+      const resp = await fetch(`/api/templates/${activeDbTemplateId}/submit`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ chainId })
+      });
+      const data = await resp.json();
+      if (!resp.ok) throw new Error(data.error || "Submit failed.");
+      activeDbTemplateStatus = "REVIEW";
+      syncWorkflowPanel();
+      updateTemplateStateLabel();
+      render();
+    } catch (err) {
+      alert(err.message);
+    }
+    workflowSubmitConfirm.disabled = false;
+    workflowSubmitConfirm.textContent = "Submit for Review";
+  });
+}
+
+// Approve confirm
+const workflowApproveConfirm = document.getElementById("workflow-approve-confirm");
+if (workflowApproveConfirm) {
+  workflowApproveConfirm.addEventListener("click", async () => {
+    const comment = document.getElementById("workflow-approve-comment").value.trim();
+    workflowApproveConfirm.disabled = true;
+    try {
+      const resp = await fetch(`/api/templates/${activeDbTemplateId}/approve`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ comment: comment || undefined })
+      });
+      const data = await resp.json();
+      if (!resp.ok) throw new Error(data.error || "Approve failed.");
+      activeDbTemplateStatus = data.template ? data.template.status : activeDbTemplateStatus;
+      document.getElementById("workflow-approve-comment").value = "";
+      syncWorkflowPanel();
+      updateTemplateStateLabel();
+      render();
+      loadPendingReviews();
+    } catch (err) {
+      alert(err.message);
+    }
+    workflowApproveConfirm.disabled = false;
+  });
+}
+
+// Show rejection form
+const workflowRejectShow = document.getElementById("workflow-reject-show");
+if (workflowRejectShow) {
+  workflowRejectShow.addEventListener("click", () => {
+    if (workflowRejection) workflowRejection.classList.remove("hidden");
+    if (workflowRejectionReason) workflowRejectionReason.focus();
+  });
+}
+
+// Rejection confirm
 if (workflowRejectConfirm) {
   workflowRejectConfirm.addEventListener("click", async () => {
     const reason = workflowRejectionReason ? workflowRejectionReason.value.trim() : "";
     if (!reason) { alert("Please provide a reason for rejection."); return; }
-    await executeWorkflowTransition("DRAFT", reason);
-    if (workflowRejection) workflowRejection.classList.add("hidden");
-    if (workflowRejectionReason) workflowRejectionReason.value = "";
+    workflowRejectConfirm.disabled = true;
+    try {
+      const resp = await fetch(`/api/templates/${activeDbTemplateId}/reject`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reason })
+      });
+      const data = await resp.json();
+      if (!resp.ok) throw new Error(data.error || "Reject failed.");
+      activeDbTemplateStatus = "DRAFT";
+      if (workflowRejection) workflowRejection.classList.add("hidden");
+      if (workflowRejectionReason) workflowRejectionReason.value = "";
+      syncWorkflowPanel();
+      updateTemplateStateLabel();
+      render();
+      loadPendingReviews();
+    } catch (err) {
+      alert(err.message);
+    }
+    workflowRejectConfirm.disabled = false;
   });
 }
+
+// Pending reviews
+async function loadPendingReviews() {
+  const btn = document.getElementById("btn-pending-reviews");
+  const badge = document.getElementById("pending-reviews-count");
+  if (!btn) return;
+  try {
+    const resp = await fetch("/api/approvals/pending");
+    if (!resp.ok) return;
+    const { pending } = await resp.json();
+    if (pending.length > 0) {
+      btn.style.display = "";
+      if (badge) {
+        badge.textContent = pending.length;
+        badge.style.display = "";
+      }
+    } else {
+      btn.style.display = "none";
+    }
+
+    btn.onclick = () => {
+      if (pending.length === 0) { alert("No pending reviews."); return; }
+      const list = pending.map((p) => `• ${p.templateName} (${p.chainName}, Step ${p.levelOrder})`).join("\n");
+      alert("Pending Reviews:\n\n" + list);
+    };
+  } catch (_) {}
+}
+
+// Load pending on startup
+setTimeout(loadPendingReviews, 2000);
 
 if (pagePrevBtn) {
   pagePrevBtn.addEventListener("click", () => setPreviewPage(previewPageIndex - 1));
@@ -4402,3 +4676,495 @@ fetch("/api/health").then(r => r.json()).then(info => {
     document.body.classList.add("has-demo-banner");
   }
 }).catch(() => {});
+
+// ── Admin Panel Functions ──
+
+const ROLE_COLORS = {
+  ADMIN: { bg: "#ede9fe", color: "#5b21b6" },
+  PUBLISHER: { bg: "#dcfce7", color: "#166534" },
+  REVIEWER: { bg: "#dbeafe", color: "#1e40af" },
+  AUTHOR: { bg: "#e8e5de", color: "#5c5647" },
+};
+
+async function loadAdminUsers() {
+  const list = document.getElementById("admin-users-list");
+  if (!list) return;
+  try {
+    const resp = await fetch("/api/users");
+    if (!resp.ok) return;
+    const data = await resp.json();
+    list.innerHTML = "";
+    (data.users || []).forEach((u) => {
+      const parts = (u.name || "U").split(" ");
+      const initials = parts.length >= 2 ? (parts[0][0] + parts[parts.length - 1][0]).toUpperCase() : parts[0].slice(0, 2).toUpperCase();
+      const rc = ROLE_COLORS[u.role] || ROLE_COLORS.AUTHOR;
+      const row = document.createElement("div");
+      row.className = "admin-user-row";
+      if (!u.active) row.style.opacity = "0.5";
+      row.innerHTML = `
+        <div class="admin-user-avatar" style="background:${rc.color}">${initials}</div>
+        <div class="admin-user-info">
+          <span class="admin-user-name">${u.name}${!u.active ? " (inactive)" : ""}</span>
+          <span class="admin-user-email">${u.email}</span>
+        </div>
+        <span class="admin-user-role" style="background:${rc.bg};color:${rc.color}">${u.role}</span>
+      `;
+      list.appendChild(row);
+    });
+  } catch (_) {}
+}
+
+function setupAdminInvite() {
+  const btn = document.getElementById("btn-admin-invite");
+  const emailInput = document.getElementById("admin-invite-email");
+  const roleSelect = document.getElementById("admin-invite-role");
+  const resultDiv = document.getElementById("admin-invite-result");
+  if (!btn) return;
+
+  btn.addEventListener("click", async () => {
+    const email = (emailInput.value || "").trim();
+    const role = roleSelect.value;
+    if (!email) { showAdminResult(resultDiv, "Email is required.", false); return; }
+
+    btn.disabled = true;
+    btn.textContent = "Sending...";
+    try {
+      const resp = await fetch("/api/users/invite", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, role })
+      });
+      const data = await resp.json();
+      if (!resp.ok) throw new Error(data.error || "Invite failed.");
+      emailInput.value = "";
+      showAdminResult(resultDiv, `Invite sent! Link: ${data.inviteUrl}`, true);
+      loadAdminUsers();
+    } catch (err) {
+      showAdminResult(resultDiv, err.message, false);
+    }
+    btn.disabled = false;
+    btn.textContent = "Send Invite";
+  });
+}
+
+function showAdminResult(el, msg, success) {
+  if (!el) return;
+  el.textContent = msg;
+  el.className = "admin-result " + (success ? "success" : "error");
+  setTimeout(() => { el.className = "admin-result"; el.textContent = ""; }, 8000);
+}
+
+// ── Settings Tab Switching ──
+document.querySelectorAll(".settings-tab").forEach((tab) => {
+  tab.addEventListener("click", () => {
+    document.querySelectorAll(".settings-tab").forEach((t) => t.classList.remove("active"));
+    document.querySelectorAll(".settings-tab-content").forEach((p) => p.classList.remove("active"));
+    tab.classList.add("active");
+    const panel = document.querySelector(`[data-settings-panel="${tab.dataset.settingsTab}"]`);
+    if (panel) panel.classList.add("active");
+    // Load data for the tab
+    if (tab.dataset.settingsTab === "projects") loadAdminProjects();
+    if (tab.dataset.settingsTab === "approval") loadApprovalTab();
+  });
+});
+
+// ── Projects Tab ──
+let adminProjectsCache = [];
+let selectedProjectId = null;
+
+async function loadAdminProjects() {
+  const list = document.getElementById("admin-projects-list");
+  if (!list) return;
+  try {
+    const resp = await fetch("/api/projects");
+    if (!resp.ok) return;
+    const data = await resp.json();
+    adminProjectsCache = data.projects || [];
+    list.innerHTML = "";
+    adminProjectsCache.forEach((p) => {
+      const row = document.createElement("div");
+      row.className = "admin-user-row";
+      row.style.cursor = "pointer";
+      row.innerHTML = `
+        <div class="admin-user-info">
+          <span class="admin-user-name">${p.name}</span>
+          <span class="admin-user-email">${p.members ? p.members.length : 0} members · ${p._count ? p._count.templates : 0} templates</span>
+        </div>
+      `;
+      row.addEventListener("click", () => showProjectDetail(p.id));
+      list.appendChild(row);
+    });
+  } catch (_) {}
+}
+
+async function showProjectDetail(projectId) {
+  selectedProjectId = projectId;
+  const detailPanel = document.getElementById("project-detail-panel");
+  if (!detailPanel) return;
+  try {
+    const resp = await fetch(`/api/projects/${projectId}`);
+    if (!resp.ok) return;
+    const { project } = await resp.json();
+    document.getElementById("project-detail-title").textContent = project.name;
+    detailPanel.style.display = "";
+
+    // Show members with role change and remove
+    const membersList = document.getElementById("project-members-list");
+    membersList.innerHTML = "";
+    (project.members || []).forEach((m) => {
+      const u = m.user;
+      const row = document.createElement("div");
+      row.className = "admin-user-row";
+
+      const infoDiv = document.createElement("div");
+      infoDiv.className = "admin-user-info";
+      infoDiv.innerHTML = `<span class="admin-user-name">${u.name}</span><span class="admin-user-email">${u.email}</span>`;
+
+      const roleSelect = document.createElement("select");
+      roleSelect.className = "admin-member-role-select";
+      ["AUTHOR", "REVIEWER", "PUBLISHER", "ADMIN"].forEach((r) => {
+        const opt = document.createElement("option");
+        opt.value = r;
+        opt.textContent = r;
+        if (r === u.role) opt.selected = true;
+        roleSelect.appendChild(opt);
+      });
+      roleSelect.addEventListener("change", async () => {
+        try {
+          const resp = await fetch(`/api/users/${u.id}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ role: roleSelect.value })
+          });
+          if (!resp.ok) { const d = await resp.json(); throw new Error(d.error); }
+          showProjectDetail(projectId);
+          loadAdminUsers();
+        } catch (err) { alert("Role update failed: " + err.message); roleSelect.value = u.role; }
+      });
+
+      const removeBtn = document.createElement("button");
+      removeBtn.className = "chain-step-remove";
+      removeBtn.title = "Remove from project";
+      removeBtn.textContent = "×";
+      removeBtn.addEventListener("click", async () => {
+        if (!confirm(`Remove ${u.name} from this project?`)) return;
+        try {
+          const resp = await fetch(`/api/projects/${projectId}/members/${u.id}`, { method: "DELETE" });
+          if (!resp.ok) { const d = await resp.json(); throw new Error(d.error); }
+          showProjectDetail(projectId);
+        } catch (err) { alert("Remove failed: " + err.message); }
+      });
+
+      row.appendChild(infoDiv);
+      row.appendChild(roleSelect);
+      row.appendChild(removeBtn);
+      membersList.appendChild(row);
+    });
+
+    // Populate add-member dropdown with users not already in project
+    const memberIds = new Set((project.members || []).map((m) => m.user.id));
+    const addSelect = document.getElementById("project-add-member-select");
+    if (addSelect) {
+      addSelect.innerHTML = '<option value="">Select user...</option>';
+      try {
+        const usersResp = await fetch("/api/users");
+        if (usersResp.ok) {
+          const { users } = await usersResp.json();
+          users.filter((u) => !memberIds.has(u.id) && u.active).forEach((u) => {
+            const opt = document.createElement("option");
+            opt.value = u.id;
+            opt.textContent = `${u.name} (${u.role})`;
+            addSelect.appendChild(opt);
+          });
+        }
+      } catch (_) {}
+    }
+  } catch (_) {}
+}
+
+// Create project
+const createProjectBtn = document.getElementById("btn-admin-create-project");
+if (createProjectBtn) {
+  createProjectBtn.addEventListener("click", async () => {
+    const name = document.getElementById("admin-project-name").value.trim();
+    if (!name) { showAdminResult(document.getElementById("admin-project-result"), "Name is required.", false); return; }
+    createProjectBtn.disabled = true;
+    try {
+      const resp = await fetch("/api/projects", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, description: document.getElementById("admin-project-desc").value.trim() })
+      });
+      const data = await resp.json();
+      if (!resp.ok) throw new Error(data.error);
+      document.getElementById("admin-project-name").value = "";
+      document.getElementById("admin-project-desc").value = "";
+      showAdminResult(document.getElementById("admin-project-result"), "Project created!", true);
+      loadAdminProjects();
+    } catch (err) {
+      showAdminResult(document.getElementById("admin-project-result"), err.message, false);
+    }
+    createProjectBtn.disabled = false;
+  });
+}
+
+// Add member to project
+const addMemberBtn = document.getElementById("btn-project-add-member");
+if (addMemberBtn) {
+  addMemberBtn.addEventListener("click", async () => {
+    const userId = document.getElementById("project-add-member-select").value;
+    if (!userId || !selectedProjectId) return;
+    try {
+      const resp = await fetch(`/api/projects/${selectedProjectId}/members`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId })
+      });
+      if (!resp.ok) { const d = await resp.json(); throw new Error(d.error); }
+      showProjectDetail(selectedProjectId);
+    } catch (err) { alert(err.message); }
+  });
+}
+
+// ── Approval Tab ──
+let chainSteps = [];
+
+async function loadApprovalTab() {
+  // Populate project dropdown
+  const select = document.getElementById("approval-project-select");
+  if (!select) return;
+  try {
+    const resp = await fetch("/api/projects");
+    if (!resp.ok) return;
+    const { projects } = await resp.json();
+    select.innerHTML = '<option value="">Select a project...</option>';
+    projects.forEach((p) => {
+      const opt = document.createElement("option");
+      opt.value = p.id;
+      opt.textContent = p.name;
+      select.appendChild(opt);
+    });
+  } catch (_) {}
+  // Reset chain builder
+  chainSteps = [];
+  renderChainStepsBuilder();
+}
+
+const approvalProjectSelect = document.getElementById("approval-project-select");
+if (approvalProjectSelect) {
+  approvalProjectSelect.addEventListener("change", async () => {
+    const projectId = approvalProjectSelect.value;
+    if (!projectId) return;
+    await loadChainProjectMembers(projectId);
+    loadApprovalChains(projectId);
+    renderChainStepsBuilder();
+  });
+}
+
+async function loadApprovalChains(projectId) {
+  const container = document.getElementById("approval-chains-list");
+  if (!container) return;
+  try {
+    const resp = await fetch(`/api/projects/${projectId}/approval-chains`);
+    if (!resp.ok) return;
+    const { chains } = await resp.json();
+    container.innerHTML = "";
+    if (chains.length === 0) {
+      container.innerHTML = '<p style="font-size:12px;color:#999;">No approval chains configured yet.</p>';
+      return;
+    }
+    chains.filter((c) => c.active).forEach((chain) => {
+      const card = document.createElement("div");
+      card.className = "chain-card";
+
+      // Title row with edit button
+      const titleRow = document.createElement("div");
+      titleRow.style.cssText = "display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;";
+      const title = document.createElement("div");
+      title.className = "chain-card-title";
+      title.style.marginBottom = "0";
+      title.textContent = chain.name;
+      const editBtn = document.createElement("button");
+      editBtn.textContent = "Edit";
+      editBtn.style.cssText = "font-size:11px;font-weight:600;padding:3px 10px;border:1px solid #e6dfd2;border-radius:4px;background:#fff;color:#b33a2b;cursor:pointer;";
+      editBtn.addEventListener("click", () => editApprovalChain(chain));
+      titleRow.appendChild(title);
+      titleRow.appendChild(editBtn);
+      card.appendChild(titleRow);
+
+      // Steps display with approver names
+      const stepsDiv = document.createElement("div");
+      stepsDiv.className = "chain-card-steps";
+      chain.levels.forEach((lvl, idx) => {
+        if (idx > 0) {
+          const arrow = document.createElement("div");
+          arrow.className = "chain-step-arrow";
+          arrow.textContent = "↓";
+          stepsDiv.appendChild(arrow);
+        }
+        const step = document.createElement("div");
+        step.className = "chain-card-step";
+        const approverName = lvl.defaultUserId ? (chainProjectMembers.find((u) => u.id === lvl.defaultUserId) || {}).name || "Assigned" : "Assigned at submit";
+        step.innerHTML = `
+          <span class="chain-card-step-num">${lvl.levelOrder}</span>
+          <span><b>${lvl.label}</b> — ${lvl.requiredRole} — <em>${approverName}</em></span>
+        `;
+        stepsDiv.appendChild(step);
+      });
+      card.appendChild(stepsDiv);
+      container.appendChild(card);
+    });
+  } catch (_) {}
+}
+
+function editApprovalChain(chain) {
+  // Load steps into the builder
+  const nameInput = document.getElementById("admin-chain-name");
+  if (nameInput) nameInput.value = chain.name;
+
+  chainSteps = (chain.levels || []).map((lvl) => ({
+    label: lvl.label,
+    requiredRole: lvl.requiredRole,
+    defaultUserId: lvl.defaultUserId || null,
+  }));
+
+  renderChainStepsBuilder();
+
+  // Open the new chain form
+  const form = document.getElementById("new-chain-form");
+  if (form) form.open = true;
+
+  // Scroll to the form
+  form.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+// Chain step builder
+let chainProjectMembers = []; // cached members for the selected project
+
+async function loadChainProjectMembers(projectId) {
+  chainProjectMembers = [];
+  if (!projectId) return;
+  try {
+    const resp = await fetch(`/api/projects/${projectId}`);
+    if (resp.ok) {
+      const { project } = await resp.json();
+      chainProjectMembers = (project.members || []).map((m) => m.user);
+    }
+  } catch (_) {}
+}
+
+function renderChainStepsBuilder() {
+  const container = document.getElementById("chain-steps-builder");
+  if (!container) return;
+  container.innerHTML = "";
+  chainSteps.forEach((step, i) => {
+    if (i > 0) {
+      const arrow = document.createElement("div");
+      arrow.className = "chain-step-arrow";
+      arrow.textContent = "↓";
+      container.appendChild(arrow);
+    }
+    const row = document.createElement("div");
+    row.className = "chain-step-row";
+    row.style.gridTemplateColumns = "1fr";
+    row.innerHTML = `<span class="chain-step-num">Step ${i + 1}</span>`;
+
+    // Label input
+    const labelInput = document.createElement("input");
+    labelInput.type = "text";
+    labelInput.placeholder = "Label (e.g. Legal Review)";
+    labelInput.value = step.label || "";
+    labelInput.addEventListener("input", () => { chainSteps[i].label = labelInput.value; });
+
+    // Role select
+    const roleRow = document.createElement("div");
+    roleRow.style.cssText = "display:flex;gap:6px;margin-top:4px;";
+    const roleLabel = document.createElement("span");
+    roleLabel.style.cssText = "font-size:10px;color:#7a6f5f;align-self:center;min-width:60px;";
+    roleLabel.textContent = "Min. Role:";
+    const roleSelect = document.createElement("select");
+    roleSelect.style.cssText = "flex:1;font-size:11px;padding:4px 6px;border:1px solid #e6dfd2;border-radius:4px;";
+    ["REVIEWER", "PUBLISHER", "ADMIN"].forEach((r) => {
+      const opt = document.createElement("option");
+      opt.value = r; opt.textContent = r;
+      if (r === (step.requiredRole || "REVIEWER")) opt.selected = true;
+      roleSelect.appendChild(opt);
+    });
+    roleSelect.addEventListener("change", () => { chainSteps[i].requiredRole = roleSelect.value; });
+    roleRow.appendChild(roleLabel);
+    roleRow.appendChild(roleSelect);
+
+    // Default approver select
+    const approverRow = document.createElement("div");
+    approverRow.style.cssText = "display:flex;gap:6px;margin-top:4px;";
+    const approverLabel = document.createElement("span");
+    approverLabel.style.cssText = "font-size:10px;color:#7a6f5f;align-self:center;min-width:60px;";
+    approverLabel.textContent = "Approver:";
+    const approverSelect = document.createElement("select");
+    approverSelect.style.cssText = "flex:1;font-size:11px;padding:4px 6px;border:1px solid #e6dfd2;border-radius:4px;";
+    const noneOpt = document.createElement("option");
+    noneOpt.value = ""; noneOpt.textContent = "— Assigned at submit time —";
+    approverSelect.appendChild(noneOpt);
+    chainProjectMembers.forEach((u) => {
+      const opt = document.createElement("option");
+      opt.value = u.id;
+      opt.textContent = `${u.name} (${u.role})`;
+      if (u.id === step.defaultUserId) opt.selected = true;
+      approverSelect.appendChild(opt);
+    });
+    approverSelect.addEventListener("change", () => { chainSteps[i].defaultUserId = approverSelect.value || null; });
+    approverRow.appendChild(approverLabel);
+    approverRow.appendChild(approverSelect);
+
+    // Remove button
+    const removeBtn = document.createElement("button");
+    removeBtn.type = "button";
+    removeBtn.className = "chain-step-remove";
+    removeBtn.style.cssText = "position:absolute;top:4px;right:4px;";
+    removeBtn.textContent = "×";
+    removeBtn.addEventListener("click", () => { chainSteps.splice(i, 1); renderChainStepsBuilder(); });
+
+    row.appendChild(labelInput);
+    row.appendChild(roleRow);
+    row.appendChild(approverRow);
+    row.appendChild(removeBtn);
+    container.appendChild(row);
+  });
+}
+
+const addStepBtn = document.getElementById("btn-add-chain-step");
+if (addStepBtn) {
+  addStepBtn.addEventListener("click", () => {
+    chainSteps.push({ label: "", requiredRole: "REVIEWER" });
+    renderChainStepsBuilder();
+  });
+}
+
+const saveChainBtn = document.getElementById("btn-save-chain");
+if (saveChainBtn) {
+  saveChainBtn.addEventListener("click", async () => {
+    const projectId = document.getElementById("approval-project-select").value;
+    const name = document.getElementById("admin-chain-name").value.trim();
+    if (!projectId) { showAdminResult(document.getElementById("admin-chain-result"), "Select a project first.", false); return; }
+    if (!name) { showAdminResult(document.getElementById("admin-chain-result"), "Chain name is required.", false); return; }
+    if (chainSteps.length === 0) { showAdminResult(document.getElementById("admin-chain-result"), "Add at least one step.", false); return; }
+    saveChainBtn.disabled = true;
+    try {
+      const resp = await fetch(`/api/projects/${projectId}/approval-chains`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, levels: chainSteps })
+      });
+      const data = await resp.json();
+      if (!resp.ok) throw new Error(data.error);
+      document.getElementById("admin-chain-name").value = "";
+      chainSteps = [];
+      renderChainStepsBuilder();
+      showAdminResult(document.getElementById("admin-chain-result"), "Approval chain saved!", true);
+      loadApprovalChains(projectId);
+    } catch (err) {
+      showAdminResult(document.getElementById("admin-chain-result"), err.message, false);
+    }
+    saveChainBtn.disabled = false;
+  });
+}

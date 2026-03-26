@@ -8,6 +8,10 @@ const { launchChromium } = require("./playwright-launch");
 const renderPool = require("./render-pool");
 const templateStoreDb = require("./template-store-db");
 const auth = require("./auth");
+const authUsers = require("./auth-users");
+const permissions = require("./permissions");
+const projectsModule = require("./projects");
+const approvalModule = require("./approval");
 
 const root = path.join(__dirname, "..");
 const port = process.env.PORT || 5177;
@@ -214,6 +218,247 @@ const server = http.createServer(async (req, res) => {
     }
   }
 
+  // ── Auth endpoints ──
+  try {
+    if (urlPath === "/api/auth/login" && req.method === "POST") {
+      if (!authUsers.canUseDb()) { dbUnavailableResponse(res); return; }
+      const payload = await readJsonBody(req);
+      const result = await authUsers.login(payload.email, payload.password);
+      // Set httpOnly session cookie
+      const secure = process.env.NODE_ENV === "production" ? "; Secure" : "";
+      res.setHeader("Set-Cookie", `smartdocs_session=${result.token}; HttpOnly; SameSite=Lax; Path=/${secure}; Max-Age=${7 * 24 * 3600}`);
+      respondJson(res, 200, { user: result.user });
+      return;
+    }
+
+    if (urlPath === "/api/auth/logout" && req.method === "POST") {
+      const cookies = authUsers.parseCookies(req);
+      if (cookies.smartdocs_session) {
+        try {
+          const jwt = require("jsonwebtoken");
+          const decoded = jwt.decode(cookies.smartdocs_session);
+          if (decoded && decoded.sessionToken) await authUsers.logout(decoded.sessionToken);
+        } catch (_) {}
+      }
+      const secure = process.env.NODE_ENV === "production" ? "; Secure" : "";
+      res.setHeader("Set-Cookie", `smartdocs_session=; HttpOnly; SameSite=Lax; Path=/${secure}; Max-Age=0`);
+      respondJson(res, 200, { ok: true });
+      return;
+    }
+
+    if (urlPath === "/api/auth/me" && req.method === "GET") {
+      if (!authUsers.canUseDb()) { dbUnavailableResponse(res); return; }
+      const user = await authUsers.authenticateSession(req);
+      if (!user) { respondJson(res, 401, { error: "Not authenticated." }); return; }
+      respondJson(res, 200, { user });
+      return;
+    }
+
+    if (urlPath === "/api/auth/accept-invite" && req.method === "POST") {
+      if (!authUsers.canUseDb()) { dbUnavailableResponse(res); return; }
+      const payload = await readJsonBody(req);
+      const result = await authUsers.acceptInvite(payload.token, payload.name, payload.password);
+      const secure = process.env.NODE_ENV === "production" ? "; Secure" : "";
+      res.setHeader("Set-Cookie", `smartdocs_session=${result.token}; HttpOnly; SameSite=Lax; Path=/${secure}; Max-Age=${7 * 24 * 3600}`);
+      respondJson(res, 201, { user: result.user });
+      return;
+    }
+
+    // ── User management (ADMIN only via session) ──
+    if (urlPath === "/api/users" && req.method === "GET") {
+      if (!authUsers.canUseDb()) { dbUnavailableResponse(res); return; }
+      const user = await authUsers.authenticateSession(req);
+      const perm = permissions.requirePermission(user, "user:manage");
+      if (perm.denied) { respondJson(res, perm.status, { error: perm.error }); return; }
+      const users = await authUsers.listUsers(user.tenantId);
+      respondJson(res, 200, { users });
+      return;
+    }
+
+    if (urlPath === "/api/users/invite" && req.method === "POST") {
+      if (!authUsers.canUseDb()) { dbUnavailableResponse(res); return; }
+      const user = await authUsers.authenticateSession(req);
+      const perm = permissions.requirePermission(user, "user:manage");
+      if (perm.denied) { respondJson(res, perm.status, { error: perm.error }); return; }
+      const payload = await readJsonBody(req);
+      const result = await authUsers.createInvite(user.tenantId, payload.email, payload.role, user.id, payload.projectIds);
+      respondJson(res, 201, { invite: result.invite, inviteUrl: result.inviteUrl });
+      return;
+    }
+
+    if (urlPath === "/api/users/invites" && req.method === "GET") {
+      if (!authUsers.canUseDb()) { dbUnavailableResponse(res); return; }
+      const user = await authUsers.authenticateSession(req);
+      const perm = permissions.requirePermission(user, "user:manage");
+      if (perm.denied) { respondJson(res, perm.status, { error: perm.error }); return; }
+      const invites = await authUsers.listInvites(user.tenantId);
+      respondJson(res, 200, { invites });
+      return;
+    }
+
+    const userIdMatch = urlPath.match(/^\/api\/users\/([^/]+)$/);
+    if (userIdMatch && (req.method === "PATCH" || req.method === "DELETE")) {
+      if (!authUsers.canUseDb()) { dbUnavailableResponse(res); return; }
+      const sessionUser = await authUsers.authenticateSession(req);
+      const perm = permissions.requirePermission(sessionUser, "user:manage");
+      if (perm.denied) { respondJson(res, perm.status, { error: perm.error }); return; }
+      const targetUserId = userIdMatch[1];
+      if (req.method === "DELETE") {
+        const updated = await authUsers.deactivateUser(targetUserId);
+        respondJson(res, 200, { user: updated });
+      } else {
+        const payload = await readJsonBody(req);
+        const updated = await authUsers.updateUser(targetUserId, payload);
+        respondJson(res, 200, { user: updated });
+      }
+      return;
+    }
+
+    // ── Project endpoints ──
+    if (urlPath === "/api/projects" && req.method === "GET") {
+      const user = await authUsers.authenticateSession(req);
+      if (!user) { respondJson(res, 401, { error: "Authentication required." }); return; }
+      const projects = await projectsModule.listProjects(user.tenantId, user.id, user.role);
+      respondJson(res, 200, { projects });
+      return;
+    }
+    if (urlPath === "/api/projects" && req.method === "POST") {
+      const user = await authUsers.authenticateSession(req);
+      const perm = permissions.requirePermission(user, "project:manage");
+      if (perm.denied) { respondJson(res, perm.status, { error: perm.error }); return; }
+      const payload = await readJsonBody(req);
+      const project = await projectsModule.createProject(user.tenantId, payload.name, payload.description, user.id);
+      respondJson(res, 201, { project });
+      return;
+    }
+
+    const projectIdMatch = urlPath.match(/^\/api\/projects\/([^/]+)$/);
+    if (projectIdMatch) {
+      const projectId = projectIdMatch[1];
+      if (req.method === "GET") {
+        const user = await authUsers.authenticateSession(req);
+        if (!user) { respondJson(res, 401, { error: "Authentication required." }); return; }
+        const project = await projectsModule.getProject(projectId);
+        if (!project || project.tenantId !== user.tenantId) { respondJson(res, 404, { error: "Project not found." }); return; }
+        respondJson(res, 200, { project });
+        return;
+      }
+      if (req.method === "PATCH") {
+        const user = await authUsers.authenticateSession(req);
+        const perm = permissions.requirePermission(user, "project:manage");
+        if (perm.denied) { respondJson(res, perm.status, { error: perm.error }); return; }
+        const payload = await readJsonBody(req);
+        const updated = await projectsModule.updateProject(projectId, payload);
+        respondJson(res, 200, { project: updated });
+        return;
+      }
+    }
+
+    const projectMembersMatch = urlPath.match(/^\/api\/projects\/([^/]+)\/members$/);
+    if (projectMembersMatch) {
+      const projectId = projectMembersMatch[1];
+      if (req.method === "POST") {
+        const user = await authUsers.authenticateSession(req);
+        const perm = permissions.requirePermission(user, "project:manage");
+        if (perm.denied) { respondJson(res, perm.status, { error: perm.error }); return; }
+        const payload = await readJsonBody(req);
+        const member = await projectsModule.addMember(projectId, payload.userId);
+        respondJson(res, 201, { member });
+        return;
+      }
+    }
+
+    const projectMemberRemoveMatch = urlPath.match(/^\/api\/projects\/([^/]+)\/members\/([^/]+)$/);
+    if (projectMemberRemoveMatch && req.method === "DELETE") {
+      const user = await authUsers.authenticateSession(req);
+      const perm = permissions.requirePermission(user, "project:manage");
+      if (perm.denied) { respondJson(res, perm.status, { error: perm.error }); return; }
+      await projectsModule.removeMember(projectMemberRemoveMatch[1], projectMemberRemoveMatch[2]);
+      respondJson(res, 200, { ok: true });
+      return;
+    }
+
+    // ── Approval Chain endpoints ──
+    const chainListMatch = urlPath.match(/^\/api\/projects\/([^/]+)\/approval-chains$/);
+    if (chainListMatch) {
+      const projectId = chainListMatch[1];
+      if (req.method === "GET") {
+        const user = await authUsers.authenticateSession(req);
+        if (!user) { respondJson(res, 401, { error: "Authentication required." }); return; }
+        const chains = await projectsModule.listApprovalChains(projectId);
+        respondJson(res, 200, { chains });
+        return;
+      }
+      if (req.method === "POST") {
+        const user = await authUsers.authenticateSession(req);
+        const perm = permissions.requirePermission(user, "chain:manage");
+        if (perm.denied) { respondJson(res, perm.status, { error: perm.error }); return; }
+        const payload = await readJsonBody(req);
+        const chain = await projectsModule.saveApprovalChain(projectId, payload.name, payload.levels);
+        respondJson(res, 201, { chain });
+        return;
+      }
+    }
+
+    // ── Approval Flow endpoints ──
+    const submitMatch = urlPath.match(/^\/api\/templates\/([^/]+)\/submit$/);
+    if (submitMatch && req.method === "POST") {
+      const user = await authUsers.authenticateSession(req);
+      if (!user) { respondJson(res, 401, { error: "Authentication required." }); return; }
+      const templateId = submitMatch[1];
+      const payload = await readJsonBody(req);
+      const result = await approvalModule.submitForApproval(templateId, payload.chainId, user.id, payload.reviewerOverrides);
+      respondJson(res, 200, { request: result });
+      return;
+    }
+
+    const approveMatch = urlPath.match(/^\/api\/templates\/([^/]+)\/approve$/);
+    if (approveMatch && req.method === "POST") {
+      const user = await authUsers.authenticateSession(req);
+      if (!user) { respondJson(res, 401, { error: "Authentication required." }); return; }
+      const templateId = approveMatch[1];
+      const payload = await readJsonBody(req);
+      const result = await approvalModule.approveStep(templateId, user.id, payload.comment);
+      respondJson(res, 200, result);
+      return;
+    }
+
+    const rejectMatch = urlPath.match(/^\/api\/templates\/([^/]+)\/reject$/);
+    if (rejectMatch && req.method === "POST") {
+      const user = await authUsers.authenticateSession(req);
+      if (!user) { respondJson(res, 401, { error: "Authentication required." }); return; }
+      const templateId = rejectMatch[1];
+      const payload = await readJsonBody(req);
+      const result = await approvalModule.rejectStep(templateId, user.id, payload.reason);
+      respondJson(res, 200, result);
+      return;
+    }
+
+    const approvalStatusMatch = urlPath.match(/^\/api\/templates\/([^/]+)\/approval$/);
+    if (approvalStatusMatch && req.method === "GET") {
+      const user = await authUsers.authenticateSession(req);
+      if (!user) { respondJson(res, 401, { error: "Authentication required." }); return; }
+      const result = await approvalModule.getApprovalStatus(approvalStatusMatch[1]);
+      if (!result) { respondJson(res, 404, { error: "Template not found." }); return; }
+      respondJson(res, 200, result);
+      return;
+    }
+
+    if (urlPath === "/api/approvals/pending" && req.method === "GET") {
+      const user = await authUsers.authenticateSession(req);
+      if (!user) { respondJson(res, 401, { error: "Authentication required." }); return; }
+      const pending = await approvalModule.listPendingReviews(user.id);
+      respondJson(res, 200, { pending });
+      return;
+    }
+
+  } catch (err) {
+    const message = err && err.message ? err.message : "Auth request failed";
+    const status = err.statusCode || 400;
+    respondJson(res, status, { error: message });
+    return;
+  }
+
   try {
     if (urlPath === "/api/templates") {
       if (!templateStoreDb.canUseDb()) {
@@ -232,7 +477,9 @@ const server = http.createServer(async (req, res) => {
           name: payload.name,
           description: payload.description,
           contentJson: payload.contentJson || payload.template || {},
-          actorId: payload.actorId || "editor"
+          actorId: payload.actorId || "editor",
+          projectId: payload.projectId || null,
+          tenantId: payload.tenantId || null
         });
         respondJson(res, 201, { template: created });
         return;

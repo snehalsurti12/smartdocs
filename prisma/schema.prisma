@@ -7,6 +7,19 @@ generator client {
   provider = "prisma-client-js"
 }
 
+enum UserRole {
+  AUTHOR
+  REVIEWER
+  PUBLISHER
+  ADMIN
+}
+
+enum InviteStatus {
+  PENDING
+  ACCEPTED
+  EXPIRED
+}
+
 enum TemplateStatus {
   DRAFT
   REVIEW
@@ -40,6 +53,9 @@ model Tenant {
 
   apiKeys     ApiKey[]
   templates   Template[]
+  users       User[]
+  invites     Invite[]
+  projects    Project[]
 }
 
 model ApiKey {
@@ -58,6 +74,159 @@ model ApiKey {
   @@index([tenantId])
 }
 
+model User {
+  id            String    @id @default(cuid())
+  tenantId      String
+  email         String
+  passwordHash  String
+  name          String
+  role          UserRole  @default(AUTHOR)
+  active        Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  tenant              Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  sessions            Session[]
+  projectMemberships  ProjectMember[]
+  approvalSteps       ApprovalStep[]  @relation("StepAssignee")
+
+  @@unique([tenantId, email])
+  @@index([tenantId])
+  @@index([email])
+}
+
+model Session {
+  id          String    @id @default(cuid())
+  userId      String
+  tokenHash   String    @unique
+  expiresAt   DateTime
+  createdAt   DateTime  @default(now())
+
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model Invite {
+  id          String       @id @default(cuid())
+  tenantId    String
+  email       String
+  role        UserRole     @default(AUTHOR)
+  tokenHash   String       @unique
+  status      InviteStatus @default(PENDING)
+  invitedBy   String
+  expiresAt   DateTime
+  createdAt   DateTime     @default(now())
+
+  tenant      Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([email])
+}
+
+model Project {
+  id                String    @id @default(cuid())
+  tenantId          String
+  name              String
+  description       String?
+  active            Boolean   @default(true)
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  tenant            Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  members           ProjectMember[]
+  templates         Template[]
+  approvalChains    ApprovalChain[]
+
+  @@unique([tenantId, name])
+  @@index([tenantId])
+}
+
+model ProjectMember {
+  id         String   @id @default(cuid())
+  projectId  String
+  userId     String
+  createdAt  DateTime @default(now())
+
+  project    Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, userId])
+  @@index([userId])
+}
+
+model ApprovalChain {
+  id         String              @id @default(cuid())
+  projectId  String
+  name       String
+  active     Boolean             @default(true)
+  createdAt  DateTime            @default(now())
+
+  project    Project             @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  levels     ApprovalChainLevel[]
+  requests   ApprovalRequest[]
+
+  @@unique([projectId, name])
+  @@index([projectId])
+}
+
+model ApprovalChainLevel {
+  id              String         @id @default(cuid())
+  chainId         String
+  levelOrder      Int
+  label           String
+  requiredRole    UserRole
+  defaultUserId   String?
+  createdAt       DateTime       @default(now())
+
+  chain           ApprovalChain  @relation(fields: [chainId], references: [id], onDelete: Cascade)
+
+  @@unique([chainId, levelOrder])
+  @@index([chainId])
+}
+
+enum ApprovalStepStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model ApprovalRequest {
+  id              String              @id @default(cuid())
+  templateId      String
+  chainId         String
+  currentLevel    Int                 @default(1)
+  status          String              @default("IN_PROGRESS")
+  submittedBy     String
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+
+  template        Template            @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  chain           ApprovalChain       @relation(fields: [chainId], references: [id])
+  steps           ApprovalStep[]
+
+  @@index([templateId])
+  @@index([status])
+}
+
+model ApprovalStep {
+  id              String             @id @default(cuid())
+  requestId       String
+  levelOrder      Int
+  assigneeId      String
+  status          ApprovalStepStatus @default(PENDING)
+  comment         String?
+  decidedAt       DateTime?
+  createdAt       DateTime           @default(now())
+
+  request         ApprovalRequest    @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  assignee        User               @relation("StepAssignee", fields: [assigneeId], references: [id])
+
+  @@unique([requestId, levelOrder])
+  @@index([assigneeId, status])
+}
+
 model Template {
   id               String         @id @default(cuid())
   name             String
@@ -65,17 +234,21 @@ model Template {
   status           TemplateStatus @default(DRAFT)
   currentVersionId String?
   tenantId         String?
+  projectId        String?
   createdBy        String         @default("system")
   updatedBy        String         @default("system")
   createdAt        DateTime       @default(now())
   updatedAt        DateTime       @updatedAt
 
-  tenant         Tenant?          @relation(fields: [tenantId], references: [id], onDelete: SetNull)
-  currentVersion TemplateVersion? @relation("CurrentTemplateVersion", fields: [currentVersionId], references: [id], onDelete: SetNull)
-  versions       TemplateVersion[] @relation("TemplateVersions")
-  audits         AuditEvent[]
+  tenant           Tenant?          @relation(fields: [tenantId], references: [id], onDelete: SetNull)
+  project          Project?         @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  currentVersion   TemplateVersion? @relation("CurrentTemplateVersion", fields: [currentVersionId], references: [id], onDelete: SetNull)
+  versions         TemplateVersion[] @relation("TemplateVersions")
+  audits           AuditEvent[]
+  approvalRequests ApprovalRequest[]
 
   @@index([tenantId])
+  @@index([projectId])
 }
 
 model TemplateVersion {

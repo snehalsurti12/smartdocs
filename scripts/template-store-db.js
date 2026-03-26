@@ -84,6 +84,8 @@ async function createTemplate(input) {
   const contentJson = input && input.contentJson ? input.contentJson : {};
   const description = input && input.description ? String(input.description) : null;
   const actorId = input && input.actorId ? String(input.actorId) : "system";
+  const projectId = input && input.projectId ? String(input.projectId) : null;
+  const tenantId = input && input.tenantId ? String(input.tenantId) : null;
 
   if (!name) {
     throw new Error("Template name is required.");
@@ -94,6 +96,8 @@ async function createTemplate(input) {
       data: {
         name,
         description,
+        projectId,
+        tenantId,
         createdBy: actorId,
         updatedBy: actorId
       }
@@ -210,6 +214,9 @@ async function updateTemplateMetadata(templateId, input) {
   }
   if (Object.prototype.hasOwnProperty.call(input || {}, "description")) {
     patch.description = input.description ? String(input.description) : null;
+  }
+  if (Object.prototype.hasOwnProperty.call(input || {}, "projectId")) {
+    patch.projectId = input.projectId || null;
   }
   if (Object.prototype.hasOwnProperty.call(input || {}, "status")) {
     // Status changes must go through POST /api/templates/:id/transition

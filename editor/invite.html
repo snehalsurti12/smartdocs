@@ -1,0 +1,150 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SmartDocs — Accept Invite</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #0f172a;
+      color: #e2e8f0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .container { width: 100%; max-width: 420px; padding: 20px; }
+    .card {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 16px;
+      padding: 40px 36px;
+    }
+    .logo { font-size: 28px; font-weight: 700; color: #fff; margin-bottom: 8px; }
+    .logo span { color: #6366f1; }
+    .subtitle { font-size: 14px; color: #94a3b8; margin-bottom: 32px; line-height: 1.5; }
+    .form-group { margin-bottom: 20px; }
+    label { display: block; font-size: 13px; font-weight: 500; color: #cbd5e1; margin-bottom: 6px; }
+    input {
+      width: 100%;
+      padding: 12px 14px;
+      font-size: 14px;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      background: #0f172a;
+      color: #e2e8f0;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    input:focus { border-color: #6366f1; }
+    .btn {
+      width: 100%;
+      padding: 13px;
+      font-size: 15px;
+      font-weight: 600;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.2s;
+      background: #6366f1;
+      color: #fff;
+      margin-top: 8px;
+    }
+    .btn:hover { background: #4f46e5; }
+    .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+    .error { color: #f87171; font-size: 13px; margin-top: 12px; display: none; }
+    .success { color: #4ade80; font-size: 13px; margin-top: 12px; display: none; }
+    .hint { font-size: 12px; color: #64748b; margin-top: 4px; }
+    .invalid-token { text-align: center; padding: 40px 0; }
+    .invalid-token h2 { font-size: 20px; margin-bottom: 8px; }
+    .invalid-token p { color: #94a3b8; font-size: 14px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="card">
+      <div class="logo">Smart<span>Docs</span></div>
+      <div class="subtitle">You've been invited to join SmartDocs. Set up your account below.</div>
+
+      <div id="invalid-token" class="invalid-token" style="display:none;">
+        <h2>Invalid Invite</h2>
+        <p>This invite link is invalid or has expired. Please contact your admin for a new invite.</p>
+      </div>
+
+      <form id="invite-form">
+        <div class="form-group">
+          <label for="name">Your Name</label>
+          <input type="text" id="name" name="name" required placeholder="Jane Smith" />
+        </div>
+        <div class="form-group">
+          <label for="password">Set Password</label>
+          <input type="password" id="password" name="password" required autocomplete="new-password" placeholder="At least 8 characters" minlength="8" />
+          <div class="hint">Minimum 8 characters.</div>
+        </div>
+        <div class="form-group">
+          <label for="confirm-password">Confirm Password</label>
+          <input type="password" id="confirm-password" name="confirm-password" required autocomplete="new-password" placeholder="Re-enter password" />
+        </div>
+        <button type="submit" class="btn" id="submit-btn">Create Account</button>
+        <div class="error" id="error-msg"></div>
+        <div class="success" id="success-msg"></div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get("token");
+    const form = document.getElementById("invite-form");
+    const errorMsg = document.getElementById("error-msg");
+    const successMsg = document.getElementById("success-msg");
+    const submitBtn = document.getElementById("submit-btn");
+
+    if (!token) {
+      document.getElementById("invalid-token").style.display = "block";
+      form.style.display = "none";
+    }
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      errorMsg.style.display = "none";
+      successMsg.style.display = "none";
+
+      const name = document.getElementById("name").value.trim();
+      const password = document.getElementById("password").value;
+      const confirmPassword = document.getElementById("confirm-password").value;
+
+      if (password !== confirmPassword) {
+        errorMsg.textContent = "Passwords do not match.";
+        errorMsg.style.display = "block";
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = "Creating account...";
+
+      try {
+        const resp = await fetch("/api/auth/accept-invite", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ token, name, password })
+        });
+        const data = await resp.json();
+        if (!resp.ok) {
+          throw new Error(data.error || "Failed to accept invite.");
+        }
+        successMsg.textContent = "Account created! Redirecting...";
+        successMsg.style.display = "block";
+        setTimeout(() => { window.location.href = "/editor/index.html"; }, 1000);
+      } catch (err) {
+        errorMsg.textContent = err.message;
+        errorMsg.style.display = "block";
+        submitBtn.disabled = false;
+        submitBtn.textContent = "Create Account";
+      }
+    });
+  </script>
+</body>
+</html>
