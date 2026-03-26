@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>SmartDocs — Document Generation for Salesforce</title>
+    <meta name="description" content="Visual template editor with Salesforce integration. Design templates, generate PDFs with charts, barcodes, QR codes. Zero-code field mapping." />
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, sans-serif; color: #1e293b; line-height: 1.6; }
+
+        /* Hero */
+        .hero { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: #fff; padding: 80px 24px 100px; text-align: center; }
+        .hero h1 { font-size: clamp(2rem, 5vw, 3.5rem); font-weight: 800; margin-bottom: 16px; }
+        .hero h1 span { color: #818cf8; }
+        .hero p { font-size: 1.15rem; color: #94a3b8; max-width: 640px; margin: 0 auto 32px; }
+        .hero-buttons { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+        .btn { display: inline-flex; align-items: center; padding: 14px 28px; font-size: 1rem; font-weight: 600; border-radius: 8px; text-decoration: none; transition: all 0.15s; }
+        .btn-primary { background: #6366f1; color: #fff; }
+        .btn-primary:hover { background: #4f46e5; }
+        .btn-secondary { background: transparent; color: #e2e8f0; border: 1px solid #475569; }
+        .btn-secondary:hover { border-color: #818cf8; color: #818cf8; }
+        .badge { display: inline-block; background: rgba(99, 102, 241, 0.15); color: #818cf8; padding: 4px 12px; border-radius: 999px; font-size: 0.85rem; font-weight: 600; margin-bottom: 16px; }
+
+        /* Sections */
+        .section { padding: 80px 24px; max-width: 1100px; margin: 0 auto; }
+        .section-alt { background: #f8fafc; }
+        .section h2 { font-size: 2rem; font-weight: 700; margin-bottom: 12px; text-align: center; }
+        .section .subtitle { text-align: center; color: #64748b; max-width: 600px; margin: 0 auto 48px; font-size: 1.05rem; }
+
+        /* Features Grid */
+        .features { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 32px; }
+        .feature { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 28px; }
+        .section-alt .feature { background: #fff; }
+        .feature-icon { font-size: 2rem; margin-bottom: 12px; }
+        .feature h3 { font-size: 1.15rem; font-weight: 700; margin-bottom: 8px; }
+        .feature p { color: #64748b; font-size: 0.95rem; }
+
+        /* Components */
+        .components { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin-top: 32px; }
+        .chip { background: #f1f5f9; border: 1px solid #e2e8f0; padding: 8px 16px; border-radius: 8px; font-size: 0.9rem; font-weight: 500; }
+
+        /* Integration */
+        .integration-flow { display: flex; align-items: center; justify-content: center; gap: 24px; flex-wrap: wrap; margin: 40px 0; }
+        .flow-step { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 24px; text-align: center; min-width: 200px; }
+        .flow-step .step-num { background: #6366f1; color: #fff; width: 32px; height: 32px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem; margin-bottom: 8px; }
+        .flow-step h4 { font-size: 1rem; margin-bottom: 4px; }
+        .flow-step p { color: #64748b; font-size: 0.85rem; }
+        .flow-arrow { color: #cbd5e1; font-size: 1.5rem; }
+
+        /* CTA */
+        .cta { background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); color: #fff; padding: 80px 24px; text-align: center; border-radius: 0; }
+        .cta h2 { font-size: 2rem; margin-bottom: 16px; }
+        .cta p { color: #c7d2fe; margin-bottom: 32px; max-width: 500px; margin-left: auto; margin-right: auto; }
+        .btn-white { background: #fff; color: #4f46e5; }
+        .btn-white:hover { background: #f8fafc; }
+
+        /* Footer */
+        footer { background: #0f172a; color: #94a3b8; padding: 40px 24px; text-align: center; font-size: 0.9rem; }
+        footer a { color: #818cf8; text-decoration: none; }
+        footer a:hover { text-decoration: underline; }
+
+        /* Responsive */
+        @media (max-width: 640px) {
+            .hero { padding: 48px 16px 64px; }
+            .section { padding: 48px 16px; }
+            .flow-arrow { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <section class="hero">
+        <div class="badge">Open Source &middot; MIT License</div>
+        <h1>Smart<span>Docs</span></h1>
+        <p>Design document templates visually. Generate print-ready PDFs with charts, barcodes, and QR codes. Integrate with Salesforce in minutes — zero code required.</p>
+        <div class="hero-buttons">
+            <a href="https://smartdocs-production-b0fa.up.railway.app/" class="btn btn-primary">Try the Live Demo</a>
+            <a href="https://github.com/snehalsurti12/smartdocs" class="btn btn-secondary">View on GitHub</a>
+        </div>
+    </section>
+
+    <section class="section">
+        <h2>Everything You Need for Document Generation</h2>
+        <p class="subtitle">From template design to PDF delivery — all in one platform.</p>
+        <div class="features">
+            <div class="feature">
+                <div class="feature-icon">🎨</div>
+                <h3>Visual Template Editor</h3>
+                <p>Drag-and-drop components onto a canvas. WYSIWYG editing with live data preview. No coding required.</p>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">📊</div>
+                <h3>Charts & Data Visualization</h3>
+                <p>Bar, line, pie, and doughnut charts rendered as crisp SVGs. Bind to any data source.</p>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">📱</div>
+                <h3>QR Codes & Barcodes</h3>
+                <p>Real Code 128 barcodes and multi-version QR codes. Scannable output, no external libraries.</p>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">☁️</div>
+                <h3>Salesforce Integration</h3>
+                <p>Point-and-click field mapping. Generate documents from Flows, Agentforce, or record buttons. Zero Apex coding.</p>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">🔒</div>
+                <h3>Enterprise Security</h3>
+                <p>Multi-tenant isolation, API key auth, zero data retention, PII field tagging. Your data never stored.</p>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">⚡</div>
+                <h3>Fast PDF Rendering</h3>
+                <p>Chromium-based rendering with browser pooling. 2-3 seconds per document. Batch generation supported.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="section section-alt">
+        <h2>11 Component Types</h2>
+        <p class="subtitle">Build any document layout with these building blocks.</p>
+        <div class="components">
+            <span class="chip">Text</span>
+            <span class="chip">Long Text</span>
+            <span class="chip">Image</span>
+            <span class="chip">Table</span>
+            <span class="chip">QR Code</span>
+            <span class="chip">Barcode</span>
+            <span class="chip">Chart</span>
+            <span class="chip">Hyperlink</span>
+            <span class="chip">Line</span>
+            <span class="chip">Box</span>
+            <span class="chip">Page Break</span>
+        </div>
+    </section>
+
+    <section class="section">
+        <h2>Salesforce Integration in 4 Steps</h2>
+        <p class="subtitle">No Connected App. No OAuth. No Apex coding. Just point and click.</p>
+        <div class="integration-flow">
+            <div class="flow-step">
+                <div class="step-num">1</div>
+                <h4>Design Template</h4>
+                <p>Use the visual editor to create your document layout</p>
+            </div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-step">
+                <div class="step-num">2</div>
+                <h4>Map Fields</h4>
+                <p>Point-and-click field mapper connects SF objects to template</p>
+            </div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-step">
+                <div class="step-num">3</div>
+                <h4>Add to Page</h4>
+                <p>Drop the Generate button onto any record page</p>
+            </div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-step">
+                <div class="step-num">4</div>
+                <h4>Generate PDFs</h4>
+                <p>One click, Flow, Agentforce, or batch — your choice</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="section section-alt">
+        <h2>Works With Your Workflow</h2>
+        <p class="subtitle">Generate documents however you need them.</p>
+        <div class="features">
+            <div class="feature">
+                <h3>Record Page Button</h3>
+                <p>Add the SmartDocs component to any record page. Users click, get a PDF attached to the record.</p>
+            </div>
+            <div class="feature">
+                <h3>Salesforce Flows</h3>
+                <p>Use the "Generate SmartDocs Document" action in any Flow — screen flows, record-triggered, scheduled.</p>
+            </div>
+            <div class="feature">
+                <h3>Agentforce Actions</h3>
+                <p>AI agents generate documents autonomously. "Send me my invoice" → PDF created and delivered.</p>
+            </div>
+            <div class="feature">
+                <h3>Batch Processing</h3>
+                <p>Generate hundreds of documents in batch jobs. Monthly statements, renewal letters, mass mailings.</p>
+            </div>
+            <div class="feature">
+                <h3>REST API</h3>
+                <p>POST template ID + data, get PDF back. Integrate from any system — not just Salesforce.</p>
+            </div>
+            <div class="feature">
+                <h3>Self-Hosted</h3>
+                <p>Deploy on your own infrastructure. Docker support included. Your data, your servers, your control.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="cta">
+        <h2>Ready to Try It?</h2>
+        <p>Open the editor, pick a sample template, and generate your first PDF in 30 seconds.</p>
+        <div class="hero-buttons">
+            <a href="https://smartdocs-production-b0fa.up.railway.app/" class="btn btn-white">Try the Live Demo</a>
+            <a href="https://github.com/snehalsurti12/smartdocs" class="btn btn-secondary" style="border-color: rgba(255,255,255,0.3); color: #fff;">Star on GitHub</a>
+        </div>
+    </section>
+
+    <footer>
+        <p>SmartDocs &middot; Open Source &middot; <a href="https://github.com/snehalsurti12/smartdocs">GitHub</a> &middot; MIT License</p>
+    </footer>
+
+</body>
+</html>

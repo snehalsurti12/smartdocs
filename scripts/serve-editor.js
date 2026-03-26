@@ -652,6 +652,17 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
+  // Landing page
+  if (urlPath === "/landing" || urlPath === "/landing/") {
+    const landingPath = path.join(root, "landing", "index.html");
+    fs.readFile(landingPath, (err, data) => {
+      if (err) { res.statusCode = 404; res.end("Not found"); return; }
+      res.setHeader("Content-Type", "text/html");
+      res.end(data);
+    });
+    return;
+  }
+
   // Registration endpoint
   if (req.method === "POST" && urlPath === "/api/register") {
     if (!rateLimit(req, "register", 3)) {
