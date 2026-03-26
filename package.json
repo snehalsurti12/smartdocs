@@ -1,6 +1,6 @@
 {
   "name": "smartdocs",
-  "version": "1.0.0-beta",
+  "version": "1.1.0",
   "description": "Template-driven, enterprise-style document designer and HTML/PDF renderer.",
   "license": "MIT",
   "type": "commonjs",
