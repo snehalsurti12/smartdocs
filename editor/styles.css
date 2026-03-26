@@ -963,10 +963,6 @@ button.active {
 
 /* ── User Bar ── */
 .user-bar {
-  position: fixed;
-  top: 0;
-  right: 0;
-  z-index: 200;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -1029,6 +1025,7 @@ button.active {
   color: var(--accent);
   border-color: var(--accent);
 }
+.has-demo-banner .user-bar { top: 32px; }
 
 /* ── Settings Button ── */
 .settings-btn {
