@@ -65,7 +65,88 @@ async function listTemplateVersions(templateId) {
   const prisma = getPrisma();
   return prisma.templateVersion.findMany({
     where: { templateId },
-    orderBy: { version: "desc" }
+    orderBy: { version: "desc" },
+    select: { id: true, templateId: true, version: true, createdBy: true, createdAt: true }
+  });
+}
+
+async function getTemplateVersion(templateId, versionId) {
+  const prisma = getPrisma();
+  const version = await prisma.templateVersion.findFirst({
+    where: { id: versionId, templateId }
+  });
+  if (!version) {
+    const err = new Error("Version not found.");
+    err.statusCode = 404;
+    throw err;
+  }
+  return version;
+}
+
+async function restoreTemplateVersion(templateId, versionId, actorId) {
+  const prisma = getPrisma();
+  actorId = actorId || "system";
+
+  return prisma.$transaction(async (tx) => {
+    const template = await tx.template.findUnique({
+      where: { id: templateId },
+      include: { currentVersion: true }
+    });
+    if (!template) {
+      const err = new Error("Template not found.");
+      err.statusCode = 404;
+      throw err;
+    }
+
+    if (workflow.isContentLocked(template.status)) {
+      const err = new Error(`Content is locked (status: ${template.status}). Transition to Draft to make changes.`);
+      err.statusCode = 409;
+      throw err;
+    }
+
+    const sourceVersion = await tx.templateVersion.findFirst({
+      where: { id: versionId, templateId }
+    });
+    if (!sourceVersion) {
+      const err = new Error("Version not found.");
+      err.statusCode = 404;
+      throw err;
+    }
+
+    const latest = await tx.templateVersion.findFirst({
+      where: { templateId },
+      orderBy: { version: "desc" }
+    });
+    const nextVersion = (latest ? latest.version : 0) + 1;
+
+    const newVersion = await tx.templateVersion.create({
+      data: {
+        templateId,
+        version: nextVersion,
+        contentJson: sourceVersion.contentJson,
+        createdBy: actorId
+      }
+    });
+
+    const updated = await tx.template.update({
+      where: { id: templateId },
+      data: { currentVersionId: newVersion.id, updatedBy: actorId },
+      include: { currentVersion: true }
+    });
+
+    await tx.auditEvent.create({
+      data: {
+        templateId,
+        versionId: newVersion.id,
+        action: "template.version.restored",
+        actorId,
+        beforeJson: template.currentVersion ? template.currentVersion.contentJson : null,
+        afterJson: sourceVersion.contentJson,
+        metadata: { restoredFromVersionId: versionId, restoredFromVersion: sourceVersion.version }
+      }
+    });
+
+    return updated;
   });
 }
 
@@ -346,9 +427,11 @@ module.exports = {
   listTemplates,
   getTemplate,
   listTemplateVersions,
+  getTemplateVersion,
   listTemplateAudit,
   createTemplate,
   createTemplateVersion,
+  restoreTemplateVersion,
   updateTemplateMetadata,
   transitionTemplateStatus
 };

@@ -142,10 +142,11 @@
             </div>
             <details class="advanced-panel">
               <summary>More Actions</summary>
-              <div class="button-row button-row-3">
+              <div class="button-row button-row-4">
                 <button id="btn-db-save-as">Save As New</button>
                 <button id="btn-db-rename">Rename</button>
                 <button id="btn-db-archive">Archive</button>
+                <button id="btn-db-history">History</button>
               </div>
             </details>
             <div id="workflow-panel" class="workflow-panel hidden">
@@ -208,6 +209,10 @@
           <button id="btn-page-next" type="button" class="icon-btn" title="Next Page"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></button>
         </div>
         <!-- user bar moved to right panel -->
+        <div id="version-preview-banner" class="version-preview-banner hidden">
+          <span id="version-preview-label">Previewing version</span>
+          <button id="version-preview-back" class="wf-btn wf-btn-primary">Back to Current</button>
+        </div>
         <div id="canvas"></div>
       </main>
 
@@ -232,6 +237,19 @@
         </div>
         <div id="props">Select an element.</div>
       </aside>
+    </div>
+
+    <!-- Version History slide-out panel -->
+    <div id="version-history-overlay" class="settings-overlay hidden" onclick="if(event.target===this)this.classList.add('hidden')">
+      <div class="settings-drawer">
+        <div class="settings-header">
+          <div class="settings-title">Version History</div>
+          <button type="button" class="settings-close" onclick="document.getElementById('version-history-overlay').classList.add('hidden')">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+        <div id="version-history-list" style="flex:1;overflow-y:auto;padding:16px 20px;"></div>
+      </div>
     </div>
 
     <!-- Settings slide-out panel -->

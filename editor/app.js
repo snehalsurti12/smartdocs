@@ -87,6 +87,14 @@ const dbSaveBtn = document.getElementById("btn-db-save");
 const dbSaveAsBtn = document.getElementById("btn-db-save-as");
 const dbRenameBtn = document.getElementById("btn-db-rename");
 const dbArchiveBtn = document.getElementById("btn-db-archive");
+const dbHistoryBtn = document.getElementById("btn-db-history");
+const versionHistoryOverlay = document.getElementById("version-history-overlay");
+const versionHistoryList = document.getElementById("version-history-list");
+const versionPreviewBanner = document.getElementById("version-preview-banner");
+const versionPreviewLabel = document.getElementById("version-preview-label");
+const versionPreviewBack = document.getElementById("version-preview-back");
+let versionPreviewActive = false;
+let savedTemplateBeforePreview = null;
 const workflowPanel = document.getElementById("workflow-panel");
 const workflowBadge = document.getElementById("workflow-status-badge");
 const workflowActions = document.getElementById("workflow-actions");
@@ -736,6 +744,11 @@ async function refreshDbTemplates(options = {}) {
 }
 
 async function loadDbTemplateById(templateId) {
+  if (versionPreviewActive) {
+    versionPreviewActive = false;
+    savedTemplateBeforePreview = null;
+    if (versionPreviewBanner) versionPreviewBanner.classList.add("hidden");
+  }
   if (!templateId) {
     setDbStatus("Select a DB template first.", true);
     return;
@@ -823,6 +836,10 @@ async function patchDbTemplateMetadata(patch, successMessage) {
 
 async function saveTemplateToDb() {
   if (!template) return;
+  if (versionPreviewActive) {
+    setDbStatus("Exit version preview before saving.", true);
+    return;
+  }
   if (isTemplateLocked()) {
     setDbStatus("Template is locked. Create a new revision to edit.", true);
     return;
@@ -882,6 +899,130 @@ async function saveTemplateToDb() {
     setDbStatus(`Saved DB version: ${updated.name} (v${version})`);
   } catch (err) {
     setDbStatus(`Save failed: ${err.message}`, true);
+  }
+}
+
+// ── Version History ──
+
+async function loadVersionHistory() {
+  if (!activeDbTemplateId) {
+    setDbStatus("Load a DB template first.", true);
+    return;
+  }
+  if (!versionHistoryList) return;
+  versionHistoryOverlay.classList.remove("hidden");
+  versionHistoryList.innerHTML = '<div style="font-size:12px;color:#7a6f5f;">Loading...</div>';
+
+  try {
+    const tplPayload = await fetchApiJson(`/api/templates/${encodeURIComponent(activeDbTemplateId)}`);
+    const currentVersionId = tplPayload.template.currentVersionId;
+    const locked = WF_LOCKED_STATUSES.has((tplPayload.template.status || "DRAFT").toUpperCase());
+
+    const payload = await fetchApiJson(`/api/templates/${encodeURIComponent(activeDbTemplateId)}/versions`);
+    const versions = payload.versions || [];
+    versionHistoryList.innerHTML = "";
+
+    if (!versions.length) {
+      versionHistoryList.innerHTML = '<div style="font-size:12px;color:#7a6f5f;">No versions found.</div>';
+      return;
+    }
+
+    versions.forEach((v) => {
+      const isCurrent = v.id === currentVersionId;
+      const row = document.createElement("div");
+      row.className = "version-list-item" + (isCurrent ? " version-current" : "");
+
+      const meta = document.createElement("div");
+      meta.className = "version-meta";
+      meta.innerHTML =
+        `<div class="version-number">Version ${v.version}${isCurrent ? '<span class="version-current-badge">CURRENT</span>' : ''}</div>` +
+        `<div class="version-detail">${v.createdBy || 'system'} &middot; ${new Date(v.createdAt).toLocaleString()}</div>`;
+
+      const actions = document.createElement("div");
+      actions.className = "version-actions";
+
+      const previewBtn = document.createElement("button");
+      previewBtn.className = "wf-btn";
+      previewBtn.textContent = "Preview";
+      previewBtn.addEventListener("click", () => previewVersion(v.id, v.version));
+      actions.appendChild(previewBtn);
+
+      if (!isCurrent) {
+        const restoreBtn = document.createElement("button");
+        restoreBtn.className = "wf-btn wf-btn-primary";
+        restoreBtn.textContent = "Restore";
+        restoreBtn.disabled = locked;
+        if (locked) restoreBtn.title = "Template is locked. Transition to Draft first.";
+        restoreBtn.addEventListener("click", () => restoreVersion(v.id, v.version));
+        actions.appendChild(restoreBtn);
+      }
+
+      row.appendChild(meta);
+      row.appendChild(actions);
+      versionHistoryList.appendChild(row);
+    });
+  } catch (err) {
+    versionHistoryList.innerHTML = `<div style="font-size:12px;color:#b33a2b;">Failed to load: ${err.message}</div>`;
+  }
+}
+
+async function previewVersion(versionId, versionNumber) {
+  if (!activeDbTemplateId) return;
+  try {
+    const payload = await fetchApiJson(
+      `/api/templates/${encodeURIComponent(activeDbTemplateId)}/versions/${encodeURIComponent(versionId)}`
+    );
+    const content = payload.version.contentJson;
+    if (!content || typeof content !== "object") {
+      alert("This version has no content.");
+      return;
+    }
+
+    if (!versionPreviewActive) {
+      savedTemplateBeforePreview = JSON.parse(JSON.stringify(template));
+    }
+    versionPreviewActive = true;
+
+    versionHistoryOverlay.classList.add("hidden");
+
+    setTemplate(content, { keepDbContext: true, markSaved: false });
+
+    if (versionPreviewBanner) versionPreviewBanner.classList.remove("hidden");
+    if (versionPreviewLabel) versionPreviewLabel.textContent = `Previewing version ${versionNumber} (read-only)`;
+  } catch (err) {
+    alert("Failed to load version: " + err.message);
+  }
+}
+
+function exitVersionPreview() {
+  if (!versionPreviewActive || !savedTemplateBeforePreview) return;
+  versionPreviewActive = false;
+  setTemplate(savedTemplateBeforePreview, { keepDbContext: true });
+  savedTemplateBeforePreview = null;
+  if (versionPreviewBanner) versionPreviewBanner.classList.add("hidden");
+}
+
+async function restoreVersion(versionId, versionNumber) {
+  if (!activeDbTemplateId) return;
+  if (!confirm(`Restore version ${versionNumber}? This will create a new version with that content.`)) return;
+
+  try {
+    const actorId = window.__user ? window.__user.id : "editor";
+    await fetchApiJson(`/api/templates/${encodeURIComponent(activeDbTemplateId)}/restore`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ versionId, actorId })
+    });
+
+    versionPreviewActive = false;
+    savedTemplateBeforePreview = null;
+    if (versionPreviewBanner) versionPreviewBanner.classList.add("hidden");
+    versionHistoryOverlay.classList.add("hidden");
+
+    await loadDbTemplateById(activeDbTemplateId);
+    setDbStatus(`Restored version ${versionNumber} as new version.`);
+  } catch (err) {
+    alert("Restore failed: " + err.message);
   }
 }
 
@@ -1750,7 +1891,7 @@ function createIncludeElement(ref) {
 }
 
 function isTemplateLocked() {
-  return Boolean(activeDbTemplateId && WF_LOCKED_STATUSES.has((activeDbTemplateStatus || "").toUpperCase()));
+  return versionPreviewActive || Boolean(activeDbTemplateId && WF_LOCKED_STATUSES.has((activeDbTemplateStatus || "").toUpperCase()));
 }
 
 function setPlacing(type) {
@@ -4289,6 +4430,20 @@ if (dbArchiveBtn) {
     if (!confirm("Archive this DB template?")) return;
     await executeWorkflowTransition("ARCHIVED", null);
   });
+}
+
+if (dbHistoryBtn) {
+  dbHistoryBtn.addEventListener("click", () => {
+    if (!activeDbTemplateId) {
+      setDbStatus("Load a DB template first.", true);
+      return;
+    }
+    loadVersionHistory();
+  });
+}
+
+if (versionPreviewBack) {
+  versionPreviewBack.addEventListener("click", () => exitVersionPreview());
 }
 
 // Submit for review confirm

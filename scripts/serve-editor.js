@@ -541,6 +541,41 @@ const server = http.createServer(async (req, res) => {
       return;
     }
 
+    // ── Single version (for preview) ──
+    const singleVersionMatch = urlPath.match(/^\/api\/templates\/([^/]+)\/versions\/([^/]+)$/);
+    if (singleVersionMatch) {
+      if (!templateStoreDb.canUseDb()) { dbUnavailableResponse(res); return; }
+      if (req.method !== "GET") { respondJson(res, 405, { error: "Method not allowed" }); return; }
+      const templateId = singleVersionMatch[1];
+      const versionId = singleVersionMatch[2];
+      try {
+        const version = await templateStoreDb.getTemplateVersion(templateId, versionId);
+        respondJson(res, 200, { version });
+      } catch (err) {
+        respondJson(res, err.statusCode || 500, { error: err.message });
+      }
+      return;
+    }
+
+    // ── Restore version ──
+    const restoreMatch = urlPath.match(/^\/api\/templates\/([^/]+)\/restore$/);
+    if (restoreMatch) {
+      if (!templateStoreDb.canUseDb()) { dbUnavailableResponse(res); return; }
+      if (req.method !== "POST") { respondJson(res, 405, { error: "Method not allowed" }); return; }
+      if (isDemoBlocked(req)) { demoBlockedResponse(res); return; }
+      const templateId = restoreMatch[1];
+      const payload = await readJsonBody(req);
+      const versionId = payload.versionId;
+      if (!versionId) { respondJson(res, 400, { error: "versionId is required" }); return; }
+      try {
+        const updated = await templateStoreDb.restoreTemplateVersion(templateId, versionId, payload.actorId || "editor");
+        respondJson(res, 200, { template: updated });
+      } catch (err) {
+        respondJson(res, err.statusCode || 500, { error: err.message });
+      }
+      return;
+    }
+
     const auditPathMatch = urlPath.match(/^\/api\/templates\/([^/]+)\/audit$/);
     if (auditPathMatch) {
       if (!templateStoreDb.canUseDb()) {
